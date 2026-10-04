@@ -83,6 +83,11 @@
 		}
 	}
 
+	function setHidden(form: HTMLFormElement, name: string, value: string) {
+		const field = form.elements.namedItem(name);
+		if (field instanceof HTMLInputElement) field.value = value;
+	}
+
 	function getLocation(): Promise<GeolocationPosition | null> {
 		if (typeof navigator === 'undefined' || !navigator.geolocation) {
 			return Promise.resolve(null);
@@ -126,15 +131,18 @@
 				gettingLocation = true;
 				const pos = await getLocation();
 				gettingLocation = false;
-				if (pos) {
-					latitude = String(pos.coords.latitude);
-					longitude = String(pos.coords.longitude);
-					accuracy = String(pos.coords.accuracy);
-				} else {
-					latitude = '';
-					longitude = '';
-					accuracy = '';
-				}
+				const lat = pos ? String(pos.coords.latitude) : '';
+				const lon = pos ? String(pos.coords.longitude) : '';
+				const acc = pos ? String(pos.coords.accuracy) : '';
+				latitude = lat;
+				longitude = lon;
+				accuracy = acc;
+				// The resubmit reads the inputs immediately. Writing the DOM here
+				// keeps the coordinates in that request; a state update alone lands
+				// after FormData has already been captured.
+				setHidden(formElement, 'latitude', lat);
+				setHidden(formElement, 'longitude', lon);
+				setHidden(formElement, 'accuracy', acc);
 				locationReady = true;
 				formElement.requestSubmit();
 			})();

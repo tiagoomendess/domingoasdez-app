@@ -37,9 +37,9 @@
 			<div
 				{@attach autoDismiss}
 				transition:materialize={{ y: 12 }}
-				class="pointer-events-auto col-start-1 row-start-1 flex max-w-sm items-center gap-2 rounded-full glass py-2.5 pr-5 pl-4 text-subhead font-medium text-ink"
+				class="pointer-events-auto col-start-1 row-start-1 flex max-w-xs items-center gap-2 rounded-full glass py-2 pr-3.5 pl-3 text-footnote leading-snug font-medium text-ink"
 			>
-				<ToneIcon size={20} weight="fill" class={['shrink-0', tones[tone].classes]} />
+				<ToneIcon size={16} weight="fill" class={['shrink-0', tones[tone].classes]} />
 				{message}
 			</div>
 		{/key}
