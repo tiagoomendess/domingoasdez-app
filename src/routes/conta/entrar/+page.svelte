@@ -43,6 +43,8 @@
 				return null;
 		}
 	});
+
+	const verifiedSuccess = $derived(data.verified && !formError && !socialError);
 </script>
 
 <svelte:head>
@@ -56,6 +58,12 @@
 
 {#key form?.error ?? 'idle'}
 	<form method="POST" class="mx-auto flex w-full max-w-sm flex-col gap-4">
+		{#if verifiedSuccess}
+			<p class="rounded-field bg-success/10 px-4 py-3 text-subhead text-success" role="status">
+				{m.login_verified()}
+			</p>
+		{/if}
+
 		{#if formError || socialError}
 			<p class="rounded-field bg-danger/10 px-4 py-3 text-subhead text-danger" role="alert">
 				{formError ?? socialError}

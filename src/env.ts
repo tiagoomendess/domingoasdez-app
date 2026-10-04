@@ -81,5 +81,45 @@ export const variables = defineEnvVars({
 	RECAPTCHA_PRIVATE_KEY: {
 		description: 'Legacy name for RECAPTCHA_SECRET_KEY. Used when the secret key above is empty.',
 		schema: optionalString
+	},
+	MAIL_DRIVER: {
+		description: 'Mail transport. Only "smtp" is supported (same as the legacy site).',
+		schema: (value) => {
+			const driver = optionalString(value).toLowerCase() || 'smtp';
+			return driver;
+		}
+	},
+	MAIL_HOST: {
+		description: 'SMTP host (e.g. smtp.mailtrap.io).',
+		schema: optionalString
+	},
+	MAIL_PORT: {
+		description: 'SMTP port (e.g. 2525, 587, 465).',
+		schema: (value) => {
+			const raw = optionalString(value);
+			if (!raw) return 2525;
+			const port = Number(raw);
+			return Number.isFinite(port) && port > 0 ? port : 2525;
+		}
+	},
+	MAIL_USERNAME: {
+		description: 'SMTP username.',
+		schema: optionalString
+	},
+	MAIL_PASSWORD: {
+		description: 'SMTP password.',
+		schema: optionalString
+	},
+	MAIL_ENCRYPTION: {
+		description: 'SMTP encryption: "tls", "ssl", or empty for none.',
+		schema: optionalString
+	},
+	MAIL_FROM_ADDRESS: {
+		description: 'From address for outbound mail (legacy site_email).',
+		schema: (value) => optionalString(value) || 'geral@domingoasdez.com'
+	},
+	MAIL_FROM_NAME: {
+		description: 'From display name for outbound mail (legacy site_name).',
+		schema: (value) => optionalString(value) || 'Domingo às Dez'
 	}
 });

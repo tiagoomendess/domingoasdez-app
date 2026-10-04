@@ -15,7 +15,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	const error = url.searchParams.get('error');
 	return {
 		socialProviders: enabledSocialProviders(),
-		socialError: error
+		socialError: error,
+		verified: url.searchParams.get('verified') === '1'
 	};
 };
 
