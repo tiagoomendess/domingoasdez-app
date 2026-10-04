@@ -31,7 +31,7 @@
 {#snippet team(team: Team, score: number | null | undefined, side: 'home' | 'away')}
 	{@const lost = winner !== null && winner !== side}
 	<span class="flex items-center gap-2.5">
-		<Emblem src={team.emblem} name={team.name} size={24} decorative />
+		<Emblem src={team.emblem} name={team.name} size={24} plate={false} decorative />
 		<span
 			class={[
 				'min-w-0 flex-1 truncate text-body',

@@ -254,6 +254,23 @@ export const teamAgents = mysqlTable('team_agents', {
 	updatedAt: timestamp('updated_at')
 });
 
+export const teamAgentHistory = mysqlTable('team_agents_history', {
+	id: bigint('id', { mode: 'number', unsigned: true }).primaryKey().autoincrement(),
+	teamAgentId: bigint('team_agent_id', { mode: 'number', unsigned: true }).notNull(),
+	teamId: int('team_id', { unsigned: true }),
+	agentType: mysqlEnum('agent_type', [
+		'manager',
+		'assistant_manager',
+		'goalkeeper_manager',
+		'director'
+	])
+		.notNull()
+		.default('manager'),
+	startedAt: timestamp('started_at').notNull(),
+	createdAt: timestamp('created_at'),
+	updatedAt: timestamp('updated_at')
+});
+
 /** MySQL POINT is read via ST_AsText in queries; not selected as a Drizzle column. */
 export const playgrounds = mysqlTable('playgrounds', {
 	id: int('id', { unsigned: true }).primaryKey().autoincrement(),

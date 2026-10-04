@@ -58,6 +58,7 @@
 							src={club.clubEmblem}
 							name={club.clubName}
 							size={i === 0 ? 40 : 24}
+							plate={false}
 							decorative
 						/>
 						<span class="min-w-0 flex-1">

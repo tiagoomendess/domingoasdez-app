@@ -3,6 +3,7 @@
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import BackButton from './BackButton.svelte';
+	import NavigationProgress from './NavigationProgress.svelte';
 	import ThemeToggle from './ThemeToggle.svelte';
 	import TabBar from './TabBar.svelte';
 	import Toast from '#lib/components/ui/Toast.svelte';
@@ -53,6 +54,8 @@
 		setLastTab(id as TabId);
 	}
 </script>
+
+<NavigationProgress />
 
 <div aria-hidden="true" class="scroll-edge-top z-30"></div>
 <div aria-hidden="true" class="scroll-edge-bottom z-30"></div>

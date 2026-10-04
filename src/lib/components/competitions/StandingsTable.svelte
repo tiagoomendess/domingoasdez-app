@@ -61,7 +61,7 @@
 						{i + 1}
 					</td>
 					<td class="py-2.5 pr-1">
-						<Emblem src={row.clubEmblem} name={row.clubName} size={24} decorative />
+						<Emblem src={row.clubEmblem} name={row.clubName} size={24} plate={false} decorative />
 					</td>
 					<td class="min-w-0 py-2.5 pr-2">
 						<a href={row.clubUrl} class="block truncate text-body text-ink hover:text-accent-text">

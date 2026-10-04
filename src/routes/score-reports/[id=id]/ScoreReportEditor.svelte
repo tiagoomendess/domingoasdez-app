@@ -159,7 +159,7 @@
 
 	<div class="flex items-start gap-3 sm:gap-4">
 		<div class="flex min-w-0 flex-1 flex-col items-center gap-2 text-center">
-			<Emblem src={home.emblem} name={home.name} size={72} decorative />
+			<Emblem src={home.emblem} name={home.name} size={72} plate={false} decorative />
 			<span class="line-clamp-2 text-subhead text-ink">{home.name}</span>
 			{#if accepting && !banned}
 				<div class="flex items-center gap-2">
@@ -196,7 +196,7 @@
 		</div>
 
 		<div class="flex min-w-0 flex-1 flex-col items-center gap-2 text-center">
-			<Emblem src={away.emblem} name={away.name} size={72} decorative />
+			<Emblem src={away.emblem} name={away.name} size={72} plate={false} decorative />
 			<span class="line-clamp-2 text-subhead text-ink">{away.name}</span>
 			{#if accepting && !banned}
 				<div class="flex items-center gap-2">

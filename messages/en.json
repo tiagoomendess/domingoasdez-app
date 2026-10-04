@@ -150,6 +150,17 @@
 			}
 		}
 	],
+	"poll_not_found": "Poll not found",
+	"poll_meta_description": "Take part in this Domingo às Dez poll.",
+	"poll_choose": "Choose an answer",
+	"poll_submit": "Submit answer",
+	"poll_ended": "Voting has ended",
+	"poll_error_invalid": "That answer is not valid.",
+	"poll_error_generic": "Something went wrong. Please try again.",
+	"poll_error_captcha": "Confirm you are not a robot to continue.",
+	"poll_login_captcha": "Sign in so you do not have to solve the captcha",
+	"poll_admin": "Admin",
+	"poll_admin_edit": "Edit poll",
 
 	"feed_filter": "Show in feed",
 	"feed_articles": "Articles",
@@ -266,6 +277,13 @@
 	"club_admin_edit_club": "Edit club",
 	"club_admin_edit_team": "Edit {team}",
 	"club_stadium": "Stadium",
+
+	"agent_not_found": "Staff member not found",
+	"agent_meta_description": "Domingo às Dez is an online sports newspaper covering amateur football in the municipality of Barcelos.",
+	"agent_linked_player": "Player",
+	"agent_no_history": "No history",
+	"agent_admin": "Admin",
+	"agent_admin_edit": "Edit staff member",
 
 	"player_not_found": "Player not found",
 	"player_meta_description": "Domingo às Dez is an online sports newspaper covering amateur football in the municipality of Barcelos.",

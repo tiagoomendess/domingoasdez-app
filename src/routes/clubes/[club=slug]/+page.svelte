@@ -94,7 +94,7 @@
 	{/if}
 	<div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent pt-12">
 		<div class="flex items-center gap-3 px-4 pt-1 pb-3">
-			<Emblem src={data.emblem} name={data.name} size={72} decorative />
+			<Emblem src={data.emblem} name={data.name} size={72} plate={false} decorative />
 			<h1 class="min-w-0 flex-1 truncate text-title-1 text-white">{data.name}</h1>
 		</div>
 	</div>

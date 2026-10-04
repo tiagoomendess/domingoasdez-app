@@ -79,6 +79,14 @@ export function isTabRoot(pathname: string): boolean {
 	return Object.values(TAB_ROOTS).includes(pathname);
 }
 
+/**
+ * A bottom-tab switch: the destination is a tab root and the path actually changes.
+ * Query-only updates on the same root (feed chips, the games date rail) are not.
+ */
+export function isTabSwitch(fromPath: string, toPath: string): boolean {
+	return isTabRoot(toPath) && fromPath !== toPath;
+}
+
 const nav = $state({ lastTab: null as TabId | null });
 
 export function getActiveTab(pathname: string): TabId {

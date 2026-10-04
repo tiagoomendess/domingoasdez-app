@@ -87,7 +87,7 @@
 			<ListGroup title={m.player_current_club()}>
 				<ListRow title={club.name} subtitle={club.teamName} href={club.href}>
 					{#snippet leading()}
-						<Emblem src={club.emblem} name={club.name} size={40} decorative />
+						<Emblem src={club.emblem} name={club.name} size={40} plate={false} decorative />
 					{/snippet}
 				</ListRow>
 			</ListGroup>
@@ -114,6 +114,7 @@
 								src={transfer.emblem}
 								name={clubTitle}
 								size={40}
+								plate={false}
 								decorative
 							/>
 						{/snippet}

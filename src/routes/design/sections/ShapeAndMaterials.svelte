@@ -66,7 +66,7 @@
 				class="absolute inset-0 flex flex-wrap content-start gap-3 p-4 opacity-90"
 			>
 				{#each backdropEmblems as club, i (i)}
-					<Emblem src={club.emblem} name={club.name} size={40} decorative />
+					<Emblem src={club.emblem} name={club.name} size={40} plate={false} decorative />
 				{/each}
 			</div>
 			<div class="relative space-y-3 px-4 py-6">

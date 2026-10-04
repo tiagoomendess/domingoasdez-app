@@ -135,7 +135,7 @@
 {#snippet clubColumn(side: ClubSide, slot: 'home' | 'away', form: FormChip[])}
 	<div class="flex min-w-0 flex-1 flex-col items-center gap-2 text-center">
 		<a href={side.href} class="flex min-w-0 flex-col items-center gap-2">
-			<Emblem src={side.emblem} name={side.name} size={72} decorative />
+			<Emblem src={side.emblem} name={side.name} size={72} plate={false} decorative />
 			<span class={['line-clamp-2 text-subhead', sideInk(slot)]}>
 				{side.name}
 			</span>

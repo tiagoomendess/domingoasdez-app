@@ -150,6 +150,17 @@
 			}
 		}
 	],
+	"poll_not_found": "Sondagem não encontrada",
+	"poll_meta_description": "Participa na sondagem do Domingo às Dez.",
+	"poll_choose": "Escolhe uma resposta",
+	"poll_submit": "Enviar resposta",
+	"poll_ended": "A votação já terminou",
+	"poll_error_invalid": "A resposta indicada não é válida.",
+	"poll_error_generic": "Algo correu mal, por favor tenta de novo.",
+	"poll_error_captcha": "Confirma que não és um robô para continuar.",
+	"poll_login_captcha": "Entra para não teres de resolver o captcha",
+	"poll_admin": "Administração",
+	"poll_admin_edit": "Editar sondagem",
 
 	"feed_filter": "Mostrar no feed",
 	"feed_articles": "Artigos",
@@ -266,6 +277,13 @@
 	"club_admin_edit_club": "Editar clube",
 	"club_admin_edit_team": "Editar {team}",
 	"club_stadium": "Estádio",
+
+	"agent_not_found": "Técnico não encontrado",
+	"agent_meta_description": "O Domingo às Dez é um Jornal Desportivo online que aposta na divulgação do futebol amador praticado no Concelho de Barcelos.",
+	"agent_linked_player": "Jogador",
+	"agent_no_history": "Não há histórico",
+	"agent_admin": "Administração",
+	"agent_admin_edit": "Editar técnico",
 
 	"player_not_found": "Jogador não encontrado",
 	"player_meta_description": "O Domingo às Dez é um Jornal Desportivo online que aposta na divulgação do futebol amador praticado no Concelho de Barcelos.",
