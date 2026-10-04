@@ -6,8 +6,8 @@ import type { Cookies } from '@sveltejs/kit';
 import { and, desc, eq, gt, or, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/mysql-core';
 import { dev } from '$app/env';
-import { RECAPTCHA_SECRET_KEY } from '$app/env/private';
 import type { AuthUser } from '#lib/auth/user.ts';
+import { verifyRecaptcha } from '#lib/server/captcha.ts';
 import { allowScoreReports, gameHref } from '#lib/games.ts';
 import {
 	SCORE_REPORT_FLASH_COOKIE,
@@ -391,30 +391,6 @@ export async function loadScoreReportPage(input: {
 		loggedIn: Boolean(input.user),
 		recaptchaSiteKey: input.user ? null : input.recaptchaSiteKey
 	};
-}
-
-async function verifyRecaptcha(token: string | null, remoteIp: string): Promise<boolean> {
-	if (!RECAPTCHA_SECRET_KEY) return false;
-	if (!token) return false;
-
-	const body = new URLSearchParams({
-		secret: RECAPTCHA_SECRET_KEY,
-		response: token,
-		remoteip: remoteIp
-	});
-
-	try {
-		const res = await fetch('https://www.google.com/recaptcha/api/siteverify', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-			body
-		});
-		if (!res.ok) return false;
-		const data = (await res.json()) as { success?: boolean };
-		return Boolean(data.success);
-	} catch {
-		return false;
-	}
 }
 
 async function ensureUserUuid(userId: number, uuid: string) {

@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import ChartBarHorizontalIcon from 'phosphor-svelte/lib/ChartBarHorizontalIcon';
 	import Button from '#lib/components/ui/Button.svelte';
+	import Recaptcha from '#lib/components/ui/Recaptcha.svelte';
 	import ListGroup from '#lib/components/ui/ListGroup.svelte';
 	import ListRow from '#lib/components/ui/ListRow.svelte';
 	import StatusPill from '#lib/components/ui/StatusPill.svelte';
@@ -16,6 +17,8 @@
 	const poll = $derived(data.poll);
 	let submitting = $state(false);
 	let picked = $state<string | null>(null);
+	let captchaToken = $state('');
+	let captchaEpoch = $state(0);
 	const selected = $derived(picked ?? (form?.answerId != null ? String(form.answerId) : ''));
 	const loginHref = $derived(`/conta/entrar?redirectTo=${encodeURIComponent(page.url.pathname)}`);
 	const ranked = $derived(
@@ -70,9 +73,6 @@
 	<meta property="og:description" content={m.poll_meta_description()} />
 	<meta property="og:type" content="website" />
 	<meta property="og:image" content={poll.image} />
-	{#if poll.state === 'open' && poll.recaptchaSiteKey}
-		<script src="https://www.google.com/recaptcha/api.js" async defer></script>
-	{/if}
 </svelte:head>
 
 <article class="space-y-4">
@@ -131,10 +131,13 @@
 				class="flex flex-col gap-4"
 				use:enhance={() => {
 					submitting = true;
-					return async ({ update }) => {
+					return async ({ update, result }) => {
 						await update();
 						submitting = false;
-						(window as Window & { grecaptcha?: { reset: () => void } }).grecaptcha?.reset();
+						if (result.type === 'failure') {
+							captchaToken = '';
+							captchaEpoch += 1;
+						}
 					};
 				}}
 			>
@@ -166,7 +169,12 @@
 
 				{#if poll.recaptchaSiteKey}
 					<div class="space-y-2">
-						<div class="g-recaptcha" data-sitekey={poll.recaptchaSiteKey}></div>
+						{#key captchaEpoch}
+							<Recaptcha
+								siteKey={poll.recaptchaSiteKey}
+								onsolved={(token) => (captchaToken = token)}
+							/>
+						{/key}
 						<a href={loginHref} class="text-footnote font-medium text-accent-text hover:underline">
 							{m.poll_login_captcha()}
 						</a>
@@ -177,7 +185,9 @@
 					type="submit"
 					size="lg"
 					full
-					disabled={selected === '' || submitting}
+					disabled={selected === '' ||
+						submitting ||
+						(!!poll.recaptchaSiteKey && captchaToken === '')}
 					loading={submitting}
 				>
 					{m.poll_submit()}

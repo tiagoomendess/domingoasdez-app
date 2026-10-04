@@ -1,7 +1,7 @@
 import { and, asc, eq, inArray, sql } from 'drizzle-orm';
 import { dev } from '$app/env';
-import { RECAPTCHA_SECRET_KEY } from '$app/env/private';
 import type { Cookies } from '@sveltejs/kit';
+import { verifyRecaptcha } from '#lib/server/captcha.ts';
 import type { PollAnswer, PollState } from '#lib/components/types.ts';
 import { POLL_COOKIE_MAX_AGE, decidePollVote, pollCookieName } from '#lib/polls.ts';
 import type { AuthUser } from '#lib/auth/user.ts';
@@ -52,29 +52,6 @@ export function setPollCookie(cookies: Cookies, pollId: number, voteId: number) 
 		secure: !dev,
 		maxAge: POLL_COOKIE_MAX_AGE
 	});
-}
-
-async function verifyRecaptcha(token: string | null, remoteIp: string): Promise<boolean> {
-	if (!RECAPTCHA_SECRET_KEY || !token) return false;
-
-	const body = new URLSearchParams({
-		secret: RECAPTCHA_SECRET_KEY,
-		response: token,
-		remoteip: remoteIp
-	});
-
-	try {
-		const res = await fetch('https://www.google.com/recaptcha/api/siteverify', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-			body
-		});
-		if (!res.ok) return false;
-		const data = (await res.json()) as { success?: boolean };
-		return Boolean(data.success);
-	} catch {
-		return false;
-	}
 }
 
 async function findVisiblePoll(slug: string) {

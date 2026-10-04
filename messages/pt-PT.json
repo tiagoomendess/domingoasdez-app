@@ -117,6 +117,7 @@
 	"score_report_error_recent": "Já enviaste um resultado recentemente. Tenta de novo mais tarde.",
 	"score_report_error_recent_ip": "Já temos muitos registos vindos da tua rede nos últimos minutos. Tenta de novo mais tarde.",
 	"score_report_error_captcha": "Confirma que não és um robô para continuar.",
+	"captcha_load_error": "Não foi possível carregar a verificação. Atualiza a página e tenta outra vez.",
 	"score_report_error_uuid": "Ocorreu um erro. Tenta de novo.",
 	"score_report_error_invalid": "O resultado indicado não é válido.",
 	"score_report_success": "Resultado de {home}-{away} enviado. Obrigado pelo contributo. O resultado do jogo pode demorar alguns minutos a atualizar no website.",

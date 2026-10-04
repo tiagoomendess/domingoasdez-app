@@ -1,6 +1,6 @@
 import { error, fail, redirect } from '@sveltejs/kit';
-import { RECAPTCHA_SITE_KEY } from '$app/env/public';
 import { m } from '#lib/messages.ts';
+import { captchaSiteKey } from '#lib/server/captcha.ts';
 import { loadPollPage, voteOnPoll } from '#lib/server/polls.ts';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -9,7 +9,7 @@ export const load: PageServerLoad = async ({ params, cookies, locals }) => {
 		slug: params.slug,
 		user: locals.user,
 		cookies,
-		recaptchaSiteKey: RECAPTCHA_SITE_KEY || null
+		recaptchaSiteKey: captchaSiteKey()
 	});
 	if (!poll) error(404, m.poll_not_found());
 	return { poll };

@@ -65,13 +65,21 @@ export const variables = defineEnvVars({
 		schema: optionalString
 	},
 	RECAPTCHA_SITE_KEY: {
-		description: 'Google reCAPTCHA v2 site key for guest score reports (legacy RECAPTCHA_PUBLIC_KEY).',
+		description: 'Google reCAPTCHA v2 site key for guest score reports.',
 		schema: optionalString,
 		public: true
 	},
 	RECAPTCHA_SECRET_KEY: {
-		description:
-			'Google reCAPTCHA v2 secret key for guest score reports (legacy RECAPTCHA_PRIVATE_KEY).',
+		description: 'Google reCAPTCHA v2 secret key for guest score reports.',
+		schema: optionalString
+	},
+	RECAPTCHA_PUBLIC_KEY: {
+		description: 'Legacy name for RECAPTCHA_SITE_KEY. Used when the site key above is empty.',
+		schema: optionalString,
+		public: true
+	},
+	RECAPTCHA_PRIVATE_KEY: {
+		description: 'Legacy name for RECAPTCHA_SECRET_KEY. Used when the secret key above is empty.',
 		schema: optionalString
 	}
 });

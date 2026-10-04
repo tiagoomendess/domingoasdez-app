@@ -1,6 +1,6 @@
 import { error, fail, redirect } from '@sveltejs/kit';
-import { RECAPTCHA_SITE_KEY } from '$app/env/public';
 import { m } from '#lib/messages.ts';
+import { captchaSiteKey } from '#lib/server/captcha.ts';
 import {
 	ensureScoreReportUuid,
 	loadScoreReportPage,
@@ -29,7 +29,7 @@ export const load: PageServerLoad = async ({
 		userAgent: request.headers.get('user-agent'),
 		returnToRaw: url.searchParams.get('returnTo'),
 		origin: url.origin,
-		recaptchaSiteKey: RECAPTCHA_SITE_KEY || null
+		recaptchaSiteKey: captchaSiteKey()
 	});
 
 	if (!page) error(404, m.game_not_found());

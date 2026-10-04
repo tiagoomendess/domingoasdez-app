@@ -6,6 +6,7 @@
 	import Button from '#lib/components/ui/Button.svelte';
 	import Emblem from '#lib/components/ui/Emblem.svelte';
 	import IconButton from '#lib/components/ui/IconButton.svelte';
+	import Recaptcha from '#lib/components/ui/Recaptcha.svelte';
 	import Sheet from '#lib/components/ui/Sheet.svelte';
 	import Switch from '#lib/components/ui/Switch.svelte';
 	import { m } from '#lib/messages.ts';
@@ -60,6 +61,8 @@
 	let gettingLocation = $state(false);
 	let whyOpen = $state(false);
 	let locationReady = false;
+	let captchaToken = $state('');
+	let captchaEpoch = $state(0);
 
 	const homeScore = $derived(clampScore(initialHome + homeOffset));
 	const awayScore = $derived(clampScore(initialAway + awayOffset));
@@ -68,8 +71,10 @@
 	const dirty = $derived(
 		homeScore !== originalHome || awayScore !== originalAway || finished !== originalFinished
 	);
-	const canSend = $derived(dirty && accepting && !banned && !submitting);
 	const showCaptcha = $derived(dirty && !loggedIn && Boolean(recaptchaSiteKey));
+	const canSend = $derived(
+		dirty && accepting && !banned && !submitting && (!showCaptcha || captchaToken !== '')
+	);
 	const showLoginHint = $derived(dirty && !loggedIn);
 	const loginHref = $derived(
 		`/conta/entrar?redirectTo=${encodeURIComponent(page.url.pathname + page.url.search)}`
@@ -114,12 +119,6 @@
 	}
 </script>
 
-<svelte:head>
-	{#if showCaptcha}
-		<script src="https://www.google.com/recaptcha/api.js" async defer></script>
-	{/if}
-</svelte:head>
-
 <form
 	method="POST"
 	class="space-y-5"
@@ -151,9 +150,13 @@
 
 		locationReady = false;
 		submitting = true;
-		return async ({ update }) => {
+		return async ({ update, result }) => {
 			submitting = false;
 			await update({ reset: false });
+			if (result.type === 'failure') {
+				captchaToken = '';
+				captchaEpoch += 1;
+			}
 		};
 	}}
 >
@@ -193,7 +196,7 @@
 
 		<div class="flex shrink-0 flex-col items-center justify-center gap-1 pt-6 text-center">
 			<div
-				class="flex items-center justify-center gap-2 text-scoreboard tabular-nums text-ink"
+				class="flex items-center justify-center gap-2 text-scoreboard text-ink tabular-nums"
 				aria-live="polite"
 			>
 				<span class="min-w-[1.2ch]">{homeScore}</span>
@@ -254,7 +257,7 @@
 			<div class="flex flex-wrap gap-2">
 				{#each alreadySent as report (`${report.homeScore}-${report.awayScore}-${report.finished}`)}
 					<span
-						class="inline-flex h-9 items-center rounded-full bg-fill px-4 text-subhead font-medium tabular-nums text-ink"
+						class="inline-flex h-9 items-center rounded-full bg-fill px-4 text-subhead font-medium text-ink tabular-nums"
 					>
 						{formatAlreadySent(report)}
 					</span>
@@ -275,7 +278,9 @@
 
 			{#if showCaptcha && recaptchaSiteKey}
 				<div class="space-y-2">
-					<div class="g-recaptcha" data-sitekey={recaptchaSiteKey}></div>
+					{#key captchaEpoch}
+						<Recaptcha siteKey={recaptchaSiteKey} onsolved={(token) => (captchaToken = token)} />
+					{/key}
 					<a href={loginHref} class="text-footnote font-medium text-accent-text hover:underline">
 						{m.score_report_login_captcha()}
 					</a>
