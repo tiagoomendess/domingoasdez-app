@@ -6,16 +6,19 @@
 
 	type Props = {
 		onrefresh: () => Promise<void>;
+		/** True while the indicator is held up, including the minimum visible time. */
+		refreshing?: boolean;
 		children: Snippet;
 	};
 
-	let { onrefresh, children }: Props = $props();
+	let { onrefresh, refreshing = $bindable(false), children }: Props = $props();
 
 	const THRESHOLD = 72;
+	/** Long enough to read the indicator and the skeletons, even when reload is instant. */
+	const MIN_REFRESH_MS = 1000;
 	const pull = new Spring(0, { stiffness: 0.2, damping: 0.7 });
 
 	let dragging = $state(false);
-	let refreshing = $state(false);
 	let armed = $state(false);
 	let startY = 0;
 	let engaged = false;
@@ -76,9 +79,12 @@
 			armed = false;
 			refreshing = true;
 			pull.set(THRESHOLD * 0.7, { instant: prefersReducedMotion.current });
+			const started = performance.now();
 			try {
 				await onrefresh();
 			} finally {
+				const remaining = MIN_REFRESH_MS - (performance.now() - started);
+				if (remaining > 0) await new Promise((resolve) => setTimeout(resolve, remaining));
 				refreshing = false;
 				await pull.set(0);
 			}

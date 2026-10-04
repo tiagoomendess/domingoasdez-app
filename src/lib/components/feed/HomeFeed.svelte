@@ -12,10 +12,17 @@
 		items: FeedItem[];
 		nextCursor: string | null;
 		types: FeedType[];
+		refreshing?: boolean;
 		onrefresh: () => Promise<void>;
 	};
 
-	let { items: initialItems, nextCursor: initialCursor, types, onrefresh }: Props = $props();
+	let {
+		items: initialItems,
+		nextCursor: initialCursor,
+		types,
+		refreshing = false,
+		onrefresh
+	}: Props = $props();
 
 	let extra = $state.raw<FeedItem[]>([]);
 	/** `undefined` means "use the server cursor"; set after the first client page load. */
@@ -25,6 +32,7 @@
 
 	const items = $derived([...initialItems, ...extra]);
 	const nextCursor = $derived(clientCursor === undefined ? initialCursor : clientCursor);
+	const skeletonCount = $derived(Math.max(items.length, 3));
 
 	async function loadMore() {
 		if (loadingMore || !nextCursor) return;
@@ -48,7 +56,9 @@
 	}
 </script>
 
-{#if items.length === 0 && !loadingMore}
+{#if refreshing}
+	<FeedSkeleton count={skeletonCount} />
+{:else if items.length === 0 && !loadingMore}
 	<EmptyState icon={NewspaperIcon} title={m.feed_empty_title()} description={m.feed_empty_text()} />
 {:else}
 	<div class="space-y-3">
@@ -87,7 +97,7 @@
 	{/if}
 {/if}
 
-{#if error}
+{#if error && !refreshing}
 	<div class="mt-4">
 		<EmptyState icon={WarningCircleIcon} title={error}>
 			{#snippet action()}

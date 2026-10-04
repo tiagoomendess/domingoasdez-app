@@ -10,6 +10,7 @@
 
 	let { data }: PageProps = $props();
 
+	let refreshing = $state(false);
 	const chips = chipOptions();
 	const feedKey = $derived(
 		`${tiposQuery(data.types)}|${data.nextCursor ?? ''}|${data.items[0] ? `${data.items[0].type}:${data.items[0].id}` : 'empty'}|${data.items.length}`
@@ -29,7 +30,7 @@
 	<meta name="description" content={m.feed_meta_description()} />
 </svelte:head>
 
-<PullToRefresh onrefresh={refresh}>
+<PullToRefresh bind:refreshing onrefresh={refresh}>
 	<header class="px-1 pb-3">
 		<h1 class="text-large-title text-ink">{m.feed_brand()}</h1>
 	</header>
@@ -49,6 +50,7 @@
 			items={data.items as FeedItem[]}
 			nextCursor={data.nextCursor}
 			types={data.types}
+			{refreshing}
 			onrefresh={refresh}
 		/>
 	{/key}
