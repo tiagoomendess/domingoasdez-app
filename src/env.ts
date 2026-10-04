@@ -63,5 +63,15 @@ export const variables = defineEnvVars({
 		description:
 			'Google OAuth redirect URI. Defaults to {origin}/conta/entrar/google/callback when empty.',
 		schema: optionalString
+	},
+	RECAPTCHA_SITE_KEY: {
+		description: 'Google reCAPTCHA v2 site key for guest score reports (legacy RECAPTCHA_PUBLIC_KEY).',
+		schema: optionalString,
+		public: true
+	},
+	RECAPTCHA_SECRET_KEY: {
+		description:
+			'Google reCAPTCHA v2 secret key for guest score reports (legacy RECAPTCHA_PRIVATE_KEY).',
+		schema: optionalString
 	}
 });

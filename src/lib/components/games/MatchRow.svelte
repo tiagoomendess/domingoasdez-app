@@ -5,9 +5,16 @@
 	import { m } from '#lib/messages.ts';
 	import { rollIn, rollOut } from '#lib/motion.ts';
 
-	let { match, showDate = false }: { match: Match; showDate?: boolean } = $props();
+	type Props = {
+		match: Match;
+		showDate?: boolean;
+		onliveclick?: (match: Match) => void;
+	};
+
+	let { match, showDate = false, onliveclick }: Props = $props();
 
 	const showScore = $derived(match.status === 'live' || match.status === 'finished');
+	const interceptLive = $derived(match.status === 'live' && !!onliveclick);
 
 	const winner = $derived.by(() => {
 		const { status, homeScore, awayScore, penalties } = match;
@@ -16,6 +23,9 @@
 		if (penalties) return penalties.home > penalties.away ? 'home' : 'away';
 		return null;
 	});
+
+	const rowClass =
+		'flex min-h-16 w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-fill active:bg-fill-strong';
 </script>
 
 {#snippet team(team: Team, score: number | null | undefined, side: 'home' | 'away')}
@@ -48,10 +58,7 @@
 	</span>
 {/snippet}
 
-<a
-	href={match.href}
-	class="flex min-h-16 items-center gap-3 px-4 py-3 transition-colors hover:bg-fill active:bg-fill-strong"
->
+{#snippet row()}
 	<span class="flex w-12 shrink-0 flex-col items-center justify-center text-center">
 		{#if showDate}
 			<span class="mb-0.5 text-caption text-ink-tertiary">{formatKickoffDay(match.kickoff)}</span>
@@ -83,4 +90,14 @@
 			</span>
 		{/if}
 	</span>
-</a>
+{/snippet}
+
+{#if interceptLive}
+	<button type="button" class={rowClass} onclick={() => onliveclick?.(match)}>
+		{@render row()}
+	</button>
+{:else}
+	<a href={match.href} class={rowClass}>
+		{@render row()}
+	</a>
+{/if}

@@ -13,6 +13,7 @@ import {
 	timestamp,
 	datetime,
 	date,
+	decimal,
 	mysqlEnum,
 	index
 } from 'drizzle-orm/mysql-core';
@@ -388,6 +389,55 @@ export const socialProviders = mysqlTable('social_providers', {
 	userId: int('user_id', { unsigned: true }).notNull(),
 	providerId: varchar('provider_id', { length: 155 }).notNull(),
 	provider: varchar('provider', { length: 155 }).notNull(),
+	createdAt: timestamp('created_at'),
+	updatedAt: timestamp('updated_at')
+});
+
+/** MySQL POINT is written via ST_GeomFromText; not selected as a Drizzle column. */
+export const scoreReports = mysqlTable('score_reports', {
+	id: bigint('id', { mode: 'number', unsigned: true }).primaryKey().autoincrement(),
+	userId: int('user_id', { unsigned: true }),
+	gameId: int('game_id', { unsigned: true }).notNull(),
+	homeScore: int('home_score', { unsigned: true }).notNull(),
+	awayScore: int('away_score', { unsigned: true }).notNull(),
+	source: varchar('source', { length: 25 }).notNull(),
+	ipAddress: varchar('ip_address', { length: 45 }),
+	ipCountry: varchar('ip_country', { length: 155 }),
+	userAgent: varchar('user_agent', { length: 255 }),
+	locationAccuracy: decimal('location_accuracy', { precision: 8, scale: 4, mode: 'number' }),
+	uuid: varchar('uuid', { length: 40 }),
+	finished: boolean('finished').notNull().default(false),
+	isFake: boolean('is_fake').notNull().default(false),
+	isCorrect: boolean('is_correct').notNull().default(false),
+	createdAt: timestamp('created_at'),
+	updatedAt: timestamp('updated_at')
+});
+
+export const scoreReportBans = mysqlTable('score_report_bans', {
+	id: bigint('id', { mode: 'number', unsigned: true }).primaryKey().autoincrement(),
+	userId: int('user_id', { unsigned: true }),
+	ipAddress: varchar('ip_address', { length: 45 }),
+	uuid: varchar('uuid', { length: 40 }),
+	userAgent: varchar('user_agent', { length: 255 }),
+	shadowBan: boolean('shadow_ban').notNull().default(false),
+	ipBan: boolean('ip_ban').notNull().default(false),
+	reason: varchar('reason', { length: 255 }),
+	expiresAt: timestamp('expires_at'),
+	createdAt: timestamp('created_at'),
+	updatedAt: timestamp('updated_at')
+});
+
+export const userUuids = mysqlTable('user_uuids', {
+	id: bigint('id', { mode: 'number', unsigned: true }).primaryKey().autoincrement(),
+	userId: int('user_id', { unsigned: true }).notNull(),
+	uuid: varchar('uuid', { length: 36 }).notNull(),
+	createdAt: timestamp('created_at'),
+	updatedAt: timestamp('updated_at')
+});
+
+export const uuidKarmas = mysqlTable('uuid_karmas', {
+	uuid: varchar('uuid', { length: 36 }).primaryKey(),
+	karma: int('karma').notNull().default(0),
 	createdAt: timestamp('created_at'),
 	updatedAt: timestamp('updated_at')
 });

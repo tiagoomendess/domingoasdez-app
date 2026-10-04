@@ -2,14 +2,19 @@
 	import { untrack } from 'svelte';
 	import { navigating } from '$app/state';
 	import CalendarXIcon from 'phosphor-svelte/lib/CalendarXIcon';
+	import InfoIcon from 'phosphor-svelte/lib/InfoIcon';
+	import PaperPlaneTiltIcon from 'phosphor-svelte/lib/PaperPlaneTiltIcon';
 	import DateRail from '#lib/components/games/DateRail.svelte';
 	import MatchGroup from '#lib/components/games/MatchGroup.svelte';
 	import MonthPicker from '#lib/components/games/MonthPicker.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
+	import ListGroup from '#lib/components/ui/ListGroup.svelte';
+	import ListRow from '#lib/components/ui/ListRow.svelte';
 	import SectionHeader from '#lib/components/ui/SectionHeader.svelte';
 	import Sheet from '#lib/components/ui/Sheet.svelte';
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import type { Match } from '#lib/components/types.ts';
 	import { addDays, formatDayMonth } from '#lib/format.ts';
 	import { m } from '#lib/messages.ts';
 	import type { PageProps } from './$types';
@@ -27,6 +32,8 @@
 	let live = $state.raw<DayGroup[]>(untrack(() => data.live));
 	let groups = $state.raw<DayGroup[]>(untrack(() => data.groups));
 	let sheetOpen = $state(false);
+	let liveMatchSheetOpen = $state(false);
+	let liveMatch = $state.raw<Match | null>(null);
 	let pageVisible = $state(
 		typeof document !== 'undefined' ? document.visibilityState === 'visible' : true
 	);
@@ -100,6 +107,17 @@
 		return day === data.today ? '/jogos' : `/jogos?date=${day}`;
 	}
 
+	function openLiveMatchSheet(match: Match) {
+		liveMatch = match;
+		liveMatchSheetOpen = true;
+	}
+
+	const liveScoreReportHref = $derived(
+		liveMatch
+			? `/score-reports/${liveMatch.id}?returnTo=${encodeURIComponent(hrefFor(data.selected))}`
+			: null
+	);
+
 	function onvisibilitychange() {
 		pageVisible = document.visibilityState === 'visible';
 	}
@@ -164,7 +182,7 @@
 	<meta name="description" content={m.games_meta_description()} />
 </svelte:head>
 
-<svelte:document onvisibilitychange={onvisibilitychange} />
+<svelte:document {onvisibilitychange} />
 
 <header class="px-1 pb-3">
 	<h1 class="text-large-title text-ink">{m.nav_games()}</h1>
@@ -192,6 +210,27 @@
 		onselect={() => (sheetOpen = false)}
 		{onmonthchange}
 	/>
+</Sheet>
+
+<Sheet bind:open={liveMatchSheetOpen} title={m.games_live_match_options()}>
+	{#if liveMatch && liveScoreReportHref}
+		<ListGroup>
+			<ListRow title={m.games_live_send_score()} href={liveScoreReportHref}>
+				{#snippet leading()}
+					<span class="text-ink-secondary">
+						<PaperPlaneTiltIcon size={22} weight="regular" />
+					</span>
+				{/snippet}
+			</ListRow>
+			<ListRow title={m.games_live_match_details()} href={liveMatch.href}>
+				{#snippet leading()}
+					<span class="text-ink-secondary">
+						<InfoIcon size={22} weight="regular" />
+					</span>
+				{/snippet}
+			</ListRow>
+		</ListGroup>
+	{/if}
 </Sheet>
 
 {#if loading}
@@ -229,6 +268,7 @@
 						emblem={group.emblem}
 						href={group.href}
 						matches={group.matches}
+						onliveclick={openLiveMatchSheet}
 					/>
 				{/each}
 			</section>

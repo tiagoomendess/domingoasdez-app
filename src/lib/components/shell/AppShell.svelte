@@ -1,9 +1,11 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import BackButton from './BackButton.svelte';
 	import ThemeToggle from './ThemeToggle.svelte';
 	import TabBar from './TabBar.svelte';
+	import Toast from '#lib/components/ui/Toast.svelte';
 	import {
 		getTabs,
 		getActiveTab,
@@ -35,6 +37,18 @@
 			pathname.startsWith('/rgpd/')
 	);
 
+	let toastVisible = $state(false);
+	let toastMessage = $state('');
+	let toastTone = $state<'info' | 'success' | 'error'>('info');
+
+	afterNavigate(() => {
+		const toast = page.data.toast;
+		if (!toast?.message) return;
+		toastMessage = toast.message;
+		toastTone = toast.tone ?? 'info';
+		toastVisible = true;
+	});
+
 	function onselect(id: string) {
 		setLastTab(id as TabId);
 	}
@@ -55,5 +69,7 @@
 <main class={['page-container', isReading && 'max-w-[42.5rem]!']}>
 	{@render children()}
 </main>
+
+<Toast bind:visible={toastVisible} message={toastMessage} tone={toastTone} duration={6000} />
 
 <TabBar {tabs} {current} {onselect} />

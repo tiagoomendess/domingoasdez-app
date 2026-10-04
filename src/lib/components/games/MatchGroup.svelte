@@ -10,9 +10,10 @@
 		emblem?: string | null;
 		href?: string;
 		matches: Match[];
+		onliveclick?: (match: Match) => void;
 	};
 
-	let { name, subtitle, emblem, href, matches }: Props = $props();
+	let { name, subtitle, emblem, href, matches, onliveclick }: Props = $props();
 </script>
 
 {#snippet header()}
@@ -40,7 +41,7 @@
 	<ul>
 		{#each matches as match (match.id)}
 			<li class="match">
-				<MatchRow {match} />
+				<MatchRow {match} {onliveclick} />
 			</li>
 		{/each}
 	</ul>

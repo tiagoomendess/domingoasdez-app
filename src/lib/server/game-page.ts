@@ -864,7 +864,7 @@ export async function loadGamePage(
 		mvp,
 		links: {
 			scoreReport: allowScoreReports(kickoff, now)
-				? legacyUrl(`/score-reports/${game.id}?returnTo=${returnTo}`)
+				? `/score-reports/${game.id}?returnTo=${encodeURIComponent(href)}`
 				: null,
 			flashInterview,
 			editGame: canEditGames ? legacyUrl(`/games/${game.id}/edit`) : null,

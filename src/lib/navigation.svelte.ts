@@ -48,6 +48,7 @@ const PATH_OWNERS: { prefix: string; tab: TabId }[] = (
 		{ prefix: '/jogos', tab: 'games' },
 		{ prefix: '/hoje', tab: 'games' },
 		{ prefix: '/direto', tab: 'games' },
+		{ prefix: '/score-reports', tab: 'games' },
 		{ prefix: '/competicoes', tab: 'competitions' },
 		{ prefix: '/clubes', tab: 'competitions' },
 		{ prefix: '/jogadores', tab: 'competitions' },
