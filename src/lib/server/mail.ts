@@ -24,7 +24,7 @@ export type BuiltEmail = {
 	subject: string;
 	text: string;
 	html: string;
-	verifyUrl: string;
+	verifyUrl?: string;
 };
 
 /** Build the verification email (no I/O) — same copy as the legacy VerifyEmailNotification. */
@@ -68,6 +68,40 @@ export function buildVerificationEmail(input: VerificationEmailInput): BuiltEmai
 		text,
 		html,
 		verifyUrl: input.verifyUrl
+	};
+}
+
+export type PasswordChangedEmailInput = {
+	to: string;
+	name: string;
+	email: string;
+	siteName?: string;
+};
+
+/** Build the password-changed notice — same copy as legacy PasswordChangedNotification. */
+export function buildPasswordChangedEmail(input: PasswordChangedEmailInput): BuiltEmail {
+	const siteName = input.siteName?.trim() || MAIL_FROM_NAME;
+	const subject = m.password_changed_email_subject({ site_name: siteName });
+	const greeting = m.password_changed_email_greeting({ name: input.name });
+	const body = m.password_changed_email_body({ email: input.email });
+	const thanks = m.password_changed_email_thanks();
+
+	const text = [greeting, '', body, '', thanks].join('\n').trim();
+	const html = `<!DOCTYPE html>
+<html lang="pt">
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1c1c1e; line-height: 1.5; margin: 0; padding: 24px;">
+  <p>${escapeHtml(greeting)}</p>
+  <p>${escapeHtml(body)}</p>
+  <p>${escapeHtml(thanks)}</p>
+</body>
+</html>`;
+
+	return {
+		from: formatFrom(MAIL_FROM_ADDRESS, MAIL_FROM_NAME),
+		to: input.to,
+		subject,
+		text,
+		html
 	};
 }
 
@@ -120,6 +154,14 @@ export async function sendMail(message: BuiltEmail): Promise<void> {
 
 export async function sendVerificationEmail(input: VerificationEmailInput): Promise<BuiltEmail> {
 	const message = buildVerificationEmail(input);
+	await sendMail(message);
+	return message;
+}
+
+export async function sendPasswordChangedEmail(
+	input: PasswordChangedEmailInput
+): Promise<BuiltEmail> {
+	const message = buildPasswordChangedEmail(input);
 	await sendMail(message);
 	return message;
 }

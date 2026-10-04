@@ -26,25 +26,37 @@
 	<section
 		class="mb-6 flex items-center gap-3.5 rounded-card bg-surface px-4 py-3.5 ring-1 ring-line dark:ring-0"
 	>
-		<Avatar name={user.name} src={user.picture} size={40} />
+		<Avatar name={user.name} src={user.picture} size={72} />
 		<div class="min-w-0 flex-1">
 			<h2 class="truncate text-headline text-ink">{user.name}</h2>
 			<p class="truncate text-footnote text-ink-secondary">{user.email}</p>
 		</div>
 	</section>
 
-	<form method="POST" action="?/logout" class="mb-6">
+	<div class="mb-6 space-y-6">
 		<ListGroup>
-			<ListRow
-				title={m.account_logout()}
-				destructive
-				onclick={(event) => {
-					event.preventDefault();
-					(event.currentTarget as HTMLElement).closest('form')?.requestSubmit();
-				}}
-			/>
+			<ListRow title={m.account_profile()} href="/conta/perfil" />
 		</ListGroup>
-	</form>
+
+		{#if data.hasPassword}
+			<ListGroup title={m.account_privacy_group()}>
+				<ListRow title={m.account_change_password()} href="/conta/palavra-passe" />
+			</ListGroup>
+		{/if}
+
+		<form method="POST" action="?/logout">
+			<ListGroup>
+				<ListRow
+					title={m.account_logout()}
+					destructive
+					onclick={(event) => {
+						event.preventDefault();
+						(event.currentTarget as HTMLElement).closest('form')?.requestSubmit();
+					}}
+				/>
+			</ListGroup>
+		</form>
+	</div>
 {:else}
 	<section
 		class="mb-6 flex flex-col items-center rounded-card bg-surface px-5 py-8 text-center ring-1 ring-line dark:ring-0"

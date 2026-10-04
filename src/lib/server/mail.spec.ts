@@ -44,4 +44,19 @@ describe('buildVerificationEmail', () => {
 		expect(message.text).toContain(verifyUrl);
 		expect(message.text).toMatch(/15/);
 	});
+
+	it('builds the password-changed notification with the account email', async () => {
+		const { buildPasswordChangedEmail } = await import('./mail.ts');
+		const message = buildPasswordChangedEmail({
+			to: 'ana@example.com',
+			name: 'Ana',
+			email: 'ana@example.com',
+			siteName: 'Domingo às Dez'
+		});
+
+		expect(message.subject).toContain('Domingo às Dez');
+		expect(message.text).toContain('ana@example.com');
+		expect(message.text).toContain('Ana');
+		expect(message.html).toContain('ana@example.com');
+	});
 });
