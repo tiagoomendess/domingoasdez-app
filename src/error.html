@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="pt-PT">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+		<meta name="robots" content="noindex" />
+		<meta name="theme-color" content="#f2f4f7" />
+		<title>Algo correu mal · Domingo às Dez</title>
+		<script>
+			(function () {
+				var saved = document.cookie.match(/(?:^|; )theme=(light|dark)/);
+				var dark = saved
+					? saved[1] === 'dark'
+					: window.matchMedia('(prefers-color-scheme: dark)').matches;
+				document.documentElement.classList.toggle('dark', dark);
+				document
+					.querySelector('meta[name="theme-color"]')
+					.setAttribute('content', dark ? '#08090b' : '#f2f4f7');
+			})();
+		</script>
+		<style>
+			/* Mirrors the semantic tokens in src/routes/layout.css; this page cannot load the app's CSS */
+			:root {
+				color-scheme: light;
+				--canvas: #f2f4f7;
+				--ink: #0b1220;
+				--ink-secondary: #4f5969;
+				--ink-tertiary: #6b7484;
+				--fill: rgb(11 18 32 / 0.05);
+				--accent: #107db7;
+				--accent-pressed: #0573a6;
+				--accent-fg: #ffffff;
+				--accent-text: #0573a6;
+				--accent-tint: rgb(16 125 183 / 0.12);
+			}
+
+			.dark {
+				color-scheme: dark;
+				--canvas: #08090b;
+				--ink: #f3f5f8;
+				--ink-secondary: #a8b0bd;
+				--ink-tertiary: #7f8896;
+				--fill: rgb(255 255 255 / 0.06);
+				--accent-pressed: #1f8cc8;
+				--accent-text: #5cb6ea;
+				--accent-tint: rgb(92 182 234 / 0.16);
+			}
+
+			*,
+			*::before,
+			*::after {
+				box-sizing: border-box;
+				margin: 0;
+			}
+
+			html {
+				-webkit-text-size-adjust: 100%;
+				text-size-adjust: 100%;
+				touch-action: manipulation;
+			}
+
+			body {
+				display: flex;
+				min-height: 100svh;
+				align-items: center;
+				justify-content: center;
+				padding: calc(env(safe-area-inset-top, 0px) + 1.5rem) 1.5rem
+					calc(env(safe-area-inset-bottom, 0px) + 1.5rem);
+				background: var(--canvas);
+				color: var(--ink);
+				font-family:
+					system-ui,
+					-apple-system,
+					BlinkMacSystemFont,
+					'Segoe UI Variable Text',
+					'Segoe UI',
+					Roboto,
+					'Helvetica Neue',
+					Arial,
+					sans-serif;
+				text-align: center;
+				-webkit-font-smoothing: antialiased;
+			}
+
+			main {
+				display: flex;
+				width: 100%;
+				max-width: 24rem;
+				flex-direction: column;
+				align-items: center;
+			}
+
+			.icon {
+				display: flex;
+				width: 4.5rem;
+				height: 4.5rem;
+				align-items: center;
+				justify-content: center;
+				border-radius: 9999px;
+				background: var(--fill);
+				color: var(--ink-secondary);
+			}
+
+			.code {
+				margin-top: 1.25rem;
+				color: var(--ink-tertiary);
+				font-size: 0.8125rem;
+				font-weight: 600;
+				line-height: 1.38;
+				letter-spacing: 0.005em;
+				font-variant-numeric: tabular-nums;
+			}
+
+			h1 {
+				margin-top: 0.25rem;
+				font-size: 1.75rem;
+				font-weight: 700;
+				line-height: 1.2;
+				letter-spacing: -0.02em;
+			}
+
+			.text {
+				margin-top: 0.5rem;
+				color: var(--ink-secondary);
+				font-size: 1rem;
+				line-height: 1.4;
+			}
+
+			.actions {
+				display: flex;
+				width: 100%;
+				max-width: 20rem;
+				flex-direction: column;
+				gap: 0.75rem;
+				margin-top: 2rem;
+			}
+
+			.button {
+				display: inline-flex;
+				height: 3.25rem;
+				align-items: center;
+				justify-content: center;
+				border-radius: 9999px;
+				padding: 0 1.5rem;
+				font-size: 1.0625rem;
+				font-weight: 600;
+				letter-spacing: -0.005em;
+				text-decoration: none;
+				user-select: none;
+				transition:
+					transform 100ms cubic-bezier(0.2, 0.9, 0.1, 1),
+					background-color 160ms cubic-bezier(0.2, 0.9, 0.1, 1);
+			}
+
+			.button:active {
+				transform: scale(0.97);
+			}
+
+			.button:focus-visible {
+				outline: 2px solid var(--accent);
+				outline-offset: 2px;
+			}
+
+			.filled {
+				background: var(--accent);
+				color: var(--accent-fg);
+			}
+
+			.filled:hover,
+			.filled:active {
+				background: var(--accent-pressed);
+			}
+
+			.tinted {
+				background: var(--accent-tint);
+				color: var(--accent-text);
+			}
+
+			@media (prefers-reduced-motion: reduce) {
+				.button {
+					transition: none;
+				}
+
+				.button:active {
+					transform: none;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<main>
+			<div class="icon" aria-hidden="true">
+				<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 256 256">
+					<path
+						fill="currentColor"
+						d="M160,40A88.09,88.09,0,0,0,81.29,88.67,64,64,0,1,0,72,216h88a88,88,0,0,0,0-176Zm0,160H72a48,48,0,0,1,0-96c1.1,0,2.2,0,3.29.11A88,88,0,0,0,72,128a8,8,0,0,0,16,0,72,72,0,1,1,72,72Zm-8-72V88a8,8,0,0,1,16,0v40a8,8,0,0,1-16,0Zm20,36a12,12,0,1,1-12-12A12,12,0,0,1,172,164Z"
+					/>
+				</svg>
+			</div>
+			<p class="code" id="code">Erro %sveltekit.status%</p>
+			<h1 id="title">Algo correu mal</h1>
+			<p class="text" id="text">
+				Tivemos um problema do nosso lado. Tenta outra vez daqui a pouco.
+			</p>
+			<div class="actions">
+				<a class="button filled" id="retry" href="">Tentar novamente</a>
+				<a class="button tinted" id="home" href="/">Ir para o início</a>
+			</div>
+		</main>
+		<script>
+			(function () {
+				// Keep in sync with the error_* keys in messages/*.json
+				var copy = {
+					'pt-PT': {
+						code: 'Erro',
+						400: [
+							'Pedido inválido',
+							'Não conseguimos processar este pedido. Verifica o endereço e tenta outra vez.'
+						],
+						404: [
+							'Página não encontrada',
+							'Esta página não existe ou foi removida. Verifica o endereço ou volta ao início.'
+						],
+						500: [
+							'Algo correu mal',
+							'Tivemos um problema do nosso lado. Tenta outra vez daqui a pouco.'
+						],
+						retry: 'Tentar novamente',
+						home: 'Ir para o início'
+					},
+					en: {
+						code: 'Error',
+						400: [
+							'Bad request',
+							"We couldn't process this request. Check the address and try again."
+						],
+						404: [
+							'Page not found',
+							"This page doesn't exist or has been removed. Check the address or go back home."
+						],
+						500: ['Something went wrong', 'We hit a problem on our side. Try again in a moment.'],
+						retry: 'Try again',
+						home: 'Go to home'
+					},
+					fr: {
+						code: 'Erreur',
+						400: [
+							'Requête invalide',
+							"Nous n'avons pas pu traiter cette requête. Vérifiez l'adresse et réessayez."
+						],
+						404: [
+							'Page introuvable',
+							"Cette page n'existe pas ou a été supprimée. Vérifiez l'adresse ou revenez à l'accueil."
+						],
+						500: [
+							'Un problème est survenu',
+							'Nous avons rencontré un problème de notre côté. Réessayez dans un instant.'
+						],
+						retry: 'Réessayer',
+						home: "Revenir à l'accueil"
+					}
+				};
+
+				function pickLocale() {
+					var saved = document.cookie.match(/(?:^|; )PARAGLIDE_LOCALE=([^;]+)/);
+					var wanted = saved
+						? [decodeURIComponent(saved[1])]
+						: navigator.languages || [navigator.language];
+					for (var i = 0; i < wanted.length; i++) {
+						var tag = String(wanted[i]);
+						if (copy[tag]) return tag;
+						var base = tag.split('-')[0].toLowerCase();
+						if (base === 'pt') return 'pt-PT';
+						if (copy[base]) return base;
+					}
+					return 'pt-PT';
+				}
+
+				var status = Number('%sveltekit.status%') || 500;
+				var locale = pickLocale();
+				var strings = copy[locale];
+				var kind = status === 404 ? 404 : status >= 500 ? 500 : 400;
+
+				document.documentElement.lang = locale;
+				document.title = strings[kind][0] + ' · Domingo às Dez';
+				document.getElementById('code').textContent = strings.code + ' ' + status;
+				document.getElementById('title').textContent = strings[kind][0];
+				document.getElementById('text').textContent = strings[kind][1];
+				document.getElementById('retry').textContent = strings.retry;
+				document.getElementById('home').textContent = strings.home;
+
+				if (kind !== 500) {
+					var retry = document.getElementById('retry');
+					retry.parentNode.removeChild(retry);
+					document.getElementById('home').className = 'button filled';
+				}
+			})();
+		</script>
+	</body>
+</html>

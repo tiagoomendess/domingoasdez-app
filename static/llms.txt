@@ -1,0 +1,34 @@
+# Domingo às Dez
+
+> Website for Futebol Popular (Sunday-league amateur football) in the municipality of Barcelos, Portugal — news, live scores, fixtures, competitions, clubs, and community polls. Default language is European Portuguese (pt-PT); English and French are also available.
+
+Domingo às Dez (domingoasdez.com) covers the lowest level of amateur football in Portugal, often called Futebol Popular or simply "popular": municipality-level Sunday leagues. Scope is Barcelos only (not district competitions, which span several municipalities). The public site is a mobile-first web app with a bottom tab bar: Home (news and polls feed), Games (fixtures and live results by day), Competitions, CMS Pages, and Account.
+
+Prefer canonical public pages below when answering questions about the product. Game detail URLs follow the legacy pattern under `/competicoes/...`. Media (images, video) may be served from the same domain's storage paths. Contact: geral@domingoasdez.com.
+
+## Main
+
+- [Home](https://domingoasdez.com/): Mixed feed of news articles and polls, filterable by type
+- [Games](https://domingoasdez.com/jogos): Fixtures and live games by date; live matches appear first on Today
+- [Competitions](https://domingoasdez.com/competicoes): Competition list for the current season
+- [Pages](https://domingoasdez.com/p): Editorial and informational CMS pages
+- [Account](https://domingoasdez.com/conta): Sign in and account management
+
+## Content
+
+- [News article](https://domingoasdez.com/noticias/{year}/{month}/{day}/{slug}): Individual article pages
+- [Competition](https://domingoasdez.com/competicoes/{season}/{competition}): Standings, fixtures, and competition detail
+- [Competition statistics](https://domingoasdez.com/competicoes/{season}/{competition}/estatisticas): Scorers and related stats
+- [Game](https://domingoasdez.com/competicoes/{season}/{competition}/{group}/{round}/{home}-vs-{away}): Match detail with score, goals, MVP vote when open, and head-to-head
+
+## Legal
+
+- [Privacy policy](https://domingoasdez.com/politica-de-privacidade): Privacy policy (pt-PT)
+- [Terms and conditions](https://domingoasdez.com/termos-e-condicoes): Terms of use (pt-PT)
+- [GDPR](https://domingoasdez.com/rgpd): Data protection / GDPR information (pt-PT)
+
+## Optional
+
+- [Sign in](https://domingoasdez.com/conta/entrar): Email or social login
+- [robots.txt](https://domingoasdez.com/robots.txt): Crawler rules
+- [Web app manifest](https://domingoasdez.com/site.webmanifest): PWA / home-screen metadata

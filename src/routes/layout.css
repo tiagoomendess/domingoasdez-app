@@ -1,0 +1,457 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+
+/* Theme is driven by a `.dark` class on <html>, set before paint by the script in app.html */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------------------------------------------------------------------------
+   Static scales (identical in light and dark)
+   --------------------------------------------------------------------------- */
+@theme static {
+	--font-sans:
+		system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI Variable Text', 'Segoe UI', Roboto,
+		'Helvetica Neue', Arial, sans-serif;
+
+	/* Brand blue, anchored on the legacy #107db7 / #0573a6 */
+	--color-brand-50: #eef7fc;
+	--color-brand-100: #d6ecf8;
+	--color-brand-200: #b0daf1;
+	--color-brand-300: #7cc1e7;
+	--color-brand-400: #42a3d9;
+	--color-brand-500: #1f8cc8;
+	--color-brand-600: #107db7;
+	--color-brand-700: #0573a6;
+	--color-brand-800: #0a5a82;
+	--color-brand-900: #0c4a6a;
+	--color-brand-950: #082f45;
+
+	/* Legacy gold, decorative only: fails contrast as text on white */
+	--color-gold-300: #dcc099;
+	--color-gold-400: #c89d68;
+	--color-gold-500: #be935e;
+	--color-gold-600: #a07843;
+	--color-gold-700: #7e5d33;
+
+	/* Legacy pitch green */
+	--color-pitch-400: #56a06b;
+	--color-pitch-500: #3b814f;
+	--color-pitch-600: #2f6a40;
+
+	/* Type scale: size, leading and tracking travel together (tighter as size grows) */
+	--text-large-title: 2.125rem;
+	--text-large-title--line-height: 1.2;
+	--text-large-title--letter-spacing: -0.022em;
+	--text-large-title--font-weight: 700;
+
+	--text-title-1: 1.75rem;
+	--text-title-1--line-height: 1.2;
+	--text-title-1--letter-spacing: -0.02em;
+	--text-title-1--font-weight: 700;
+
+	--text-title-2: 1.375rem;
+	--text-title-2--line-height: 1.27;
+	--text-title-2--letter-spacing: -0.015em;
+	--text-title-2--font-weight: 600;
+
+	--text-title-3: 1.25rem;
+	--text-title-3--line-height: 1.25;
+	--text-title-3--letter-spacing: -0.01em;
+	--text-title-3--font-weight: 600;
+
+	--text-headline: 1.0625rem;
+	--text-headline--line-height: 1.3;
+	--text-headline--letter-spacing: -0.005em;
+	--text-headline--font-weight: 600;
+
+	--text-body: 1.0625rem;
+	--text-body--line-height: 1.47;
+
+	--text-callout: 1rem;
+	--text-callout--line-height: 1.4;
+
+	--text-subhead: 0.9375rem;
+	--text-subhead--line-height: 1.35;
+
+	--text-footnote: 0.8125rem;
+	--text-footnote--line-height: 1.38;
+	--text-footnote--letter-spacing: 0.005em;
+
+	--text-caption: 0.75rem;
+	--text-caption--line-height: 1.33;
+	--text-caption--letter-spacing: 0.01em;
+	--text-caption--font-weight: 500;
+
+	--text-tab: 0.6875rem;
+	--text-tab--line-height: 1.1;
+	--text-tab--letter-spacing: 0.01em;
+	--text-tab--font-weight: 600;
+
+	--text-scoreboard: 3rem;
+	--text-scoreboard--line-height: 1;
+	--text-scoreboard--letter-spacing: -0.03em;
+	--text-scoreboard--font-weight: 700;
+
+	/* Concentric radii: a nested radius = parent radius - parent padding */
+	--radius-badge: 0.5rem;
+	--radius-inner: 0.75rem;
+	--radius-field: 0.875rem;
+	--radius-card: 1.375rem;
+	--radius-sheet: 2rem;
+
+	--ease-fluid: cubic-bezier(0.32, 0.72, 0, 1);
+	--ease-snappy: cubic-bezier(0.2, 0.9, 0.1, 1);
+	--ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+	--animate-live-pulse: live-pulse 2s ease-in-out infinite;
+	--animate-reject-shake: reject-shake 240ms var(--ease-snappy);
+
+	@keyframes live-pulse {
+		0%,
+		100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.35;
+		}
+	}
+
+	@keyframes reject-shake {
+		0%,
+		100% {
+			transform: translateX(0);
+		}
+		25% {
+			transform: translateX(-3px);
+		}
+		75% {
+			transform: translateX(3px);
+		}
+	}
+}
+
+/* ---------------------------------------------------------------------------
+   Semantic tokens (swap between light and dark)
+   --------------------------------------------------------------------------- */
+:root {
+	color-scheme: light;
+
+	--canvas: #f2f4f7;
+	--surface: #ffffff;
+	--surface-muted: #eef1f5;
+
+	--ink: #0b1220;
+	--ink-secondary: #4f5969;
+	--ink-tertiary: #6b7484;
+
+	--line: rgb(11 18 32 / 0.08);
+	--line-strong: rgb(11 18 32 / 0.14);
+	--fill: rgb(11 18 32 / 0.05);
+	--fill-strong: rgb(11 18 32 / 0.09);
+
+	--accent: #107db7;
+	--accent-pressed: #0573a6;
+	--accent-fg: #ffffff;
+	--accent-text: #0573a6;
+	--accent-tint: rgb(16 125 183 / 0.12);
+
+	--live: #d42c2a;
+	--live-tint: rgb(212 44 42 / 0.1);
+	--warmup: #b45309;
+	--success: #2f7a45;
+	--warning: #a16207;
+	--danger: #c62828;
+
+	--scrim: rgb(0 0 0 / 0.32);
+
+	--glass-bg: rgb(255 255 255 / 0.62);
+	--glass-bg-thin: rgb(255 255 255 / 0.5);
+	--glass-bg-thick: rgb(255 255 255 / 0.8);
+	--glass-edge: rgb(255 255 255 / 0.75);
+	--glass-rim: rgb(11 18 32 / 0.08);
+	--glass-shadow: 0 1px 2px rgb(11 18 32 / 0.06), 0 8px 28px -6px rgb(11 18 32 / 0.18);
+	--glass-blur: 20px;
+	--glass-saturate: 180%;
+
+	--dur-press: 100ms;
+	--dur-fast: 160ms;
+	--dur-base: 240ms;
+	--dur-slow: 380ms;
+
+	/* Floating chrome geometry; content padding is derived from it */
+	--safe-top: env(safe-area-inset-top, 0px);
+	--safe-bottom: env(safe-area-inset-bottom, 0px);
+	--chrome-inset: 0.75rem;
+	--chrome-button: 2.75rem;
+	--tabbar-height: 4rem;
+	--content-top: calc(var(--safe-top) + var(--chrome-inset) + var(--chrome-button) + 0.75rem);
+	--content-bottom: calc(var(--safe-bottom) + var(--chrome-inset) + var(--tabbar-height) + 1.5rem);
+}
+
+.dark {
+	color-scheme: dark;
+
+	--canvas: #08090b;
+	--surface: #15171b;
+	--surface-muted: #1e2126;
+
+	--ink: #f3f5f8;
+	--ink-secondary: #a8b0bd;
+	--ink-tertiary: #7f8896;
+
+	--line: rgb(255 255 255 / 0.08);
+	--line-strong: rgb(255 255 255 / 0.14);
+	--fill: rgb(255 255 255 / 0.06);
+	--fill-strong: rgb(255 255 255 / 0.1);
+
+	--accent: #107db7;
+	--accent-pressed: #1f8cc8;
+	--accent-fg: #ffffff;
+	--accent-text: #5cb6ea;
+	--accent-tint: rgb(92 182 234 / 0.16);
+
+	--live: #ff5c57;
+	--live-tint: rgb(255 92 87 / 0.14);
+	--warmup: #f59e0b;
+	--success: #4fbf74;
+	--warning: #eab308;
+	--danger: #ff6b61;
+
+	--scrim: rgb(0 0 0 / 0.5);
+
+	--glass-bg: rgb(32 35 41 / 0.55);
+	--glass-bg-thin: rgb(32 35 41 / 0.44);
+	--glass-bg-thick: rgb(32 35 41 / 0.74);
+	--glass-edge: rgb(255 255 255 / 0.14);
+	--glass-rim: rgb(0 0 0 / 0.4);
+	--glass-shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 32px -6px rgb(0 0 0 / 0.6);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+	:root,
+	.dark {
+		--glass-bg: var(--surface);
+		--glass-bg-thin: var(--surface);
+		--glass-bg-thick: var(--surface);
+	}
+}
+
+@media (prefers-reduced-transparency: reduce) {
+	:root,
+	.dark {
+		--glass-bg: var(--surface);
+		--glass-bg-thin: var(--surface);
+		--glass-bg-thick: var(--surface);
+		--glass-blur: 0px;
+	}
+}
+
+@media (prefers-contrast: more) {
+	:root,
+	.dark {
+		--glass-bg: var(--surface);
+		--glass-bg-thin: var(--surface);
+		--glass-bg-thick: var(--surface);
+		--glass-blur: 0px;
+		--glass-rim: var(--ink-tertiary);
+		--line: var(--line-strong);
+	}
+}
+
+@theme inline {
+	--color-canvas: var(--canvas);
+	--color-surface: var(--surface);
+	--color-surface-muted: var(--surface-muted);
+	--color-ink: var(--ink);
+	--color-ink-secondary: var(--ink-secondary);
+	--color-ink-tertiary: var(--ink-tertiary);
+	--color-line: var(--line);
+	--color-line-strong: var(--line-strong);
+	--color-fill: var(--fill);
+	--color-fill-strong: var(--fill-strong);
+	--color-accent: var(--accent);
+	--color-accent-pressed: var(--accent-pressed);
+	--color-accent-fg: var(--accent-fg);
+	--color-accent-text: var(--accent-text);
+	--color-accent-tint: var(--accent-tint);
+	--color-live: var(--live);
+	--color-live-tint: var(--live-tint);
+	--color-warmup: var(--warmup);
+	--color-success: var(--success);
+	--color-warning: var(--warning);
+	--color-danger: var(--danger);
+	--color-scrim: var(--scrim);
+}
+
+/* ---------------------------------------------------------------------------
+   Materials and helpers
+   --------------------------------------------------------------------------- */
+
+/* Floating chrome only (tab bar, floating buttons, toasts). Never nest glass in glass. */
+@utility glass {
+	background-color: var(--glass-bg);
+	-webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+	backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+	box-shadow:
+		inset 0 1px 0 0 var(--glass-edge),
+		0 0 0 1px var(--glass-rim),
+		var(--glass-shadow);
+}
+
+/* Large overlays (sheets, dialogs): heavier material for a bigger surface */
+@utility glass-thick {
+	background-color: var(--glass-bg-thick);
+	-webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.6)) saturate(var(--glass-saturate));
+	backdrop-filter: blur(calc(var(--glass-blur) * 1.6)) saturate(var(--glass-saturate));
+	box-shadow:
+		inset 0 1px 0 0 var(--glass-edge),
+		0 0 0 1px var(--glass-rim),
+		var(--glass-shadow);
+}
+
+/* Fades content where it slides under the floating chrome, instead of a hard divider */
+@utility scroll-edge-top {
+	position: fixed;
+	inset-inline: 0;
+	top: 0;
+	height: calc(var(--safe-top) + var(--chrome-inset) + var(--chrome-button) + 1rem);
+	background: linear-gradient(to bottom, var(--canvas) 20%, transparent);
+	pointer-events: none;
+}
+
+@utility scroll-edge-bottom {
+	position: fixed;
+	inset-inline: 0;
+	bottom: 0;
+	height: calc(var(--safe-bottom) + var(--chrome-inset) + var(--tabbar-height) + 1rem);
+	background: linear-gradient(to top, var(--canvas) 20%, transparent);
+	pointer-events: none;
+}
+
+@utility page-container {
+	margin-inline: auto;
+	width: 100%;
+	max-width: 40rem;
+	padding-inline: 1rem;
+	padding-top: var(--content-top);
+	padding-bottom: var(--content-bottom);
+
+	@media (width >= 48rem) {
+		padding-inline: 1.5rem;
+	}
+}
+
+/* Horizontal rails (filter chips, date rail): one row, swipeable, soft edges */
+@utility rail {
+	display: flex;
+	gap: 0.5rem;
+	overflow-x: auto;
+	overscroll-behavior-x: contain;
+	scroll-snap-type: x proximity;
+	scrollbar-width: none;
+	mask-image: linear-gradient(
+		to right,
+		transparent,
+		black 1rem,
+		black calc(100% - 1rem),
+		transparent
+	);
+
+	&::-webkit-scrollbar {
+		display: none;
+	}
+}
+
+/* Instant press feedback on pointer-down */
+@utility pressable {
+	transition:
+		transform var(--dur-press) var(--ease-snappy),
+		background-color var(--dur-fast) var(--ease-snappy),
+		opacity var(--dur-fast) var(--ease-snappy);
+
+	&:active {
+		transform: scale(0.97);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		&:active {
+			transform: none;
+			opacity: 0.7;
+		}
+	}
+}
+
+/* Use as `prose rich-text`: maps the typography plugin's colours onto the theme tokens */
+@utility rich-text {
+	--tw-prose-body: var(--ink);
+	--tw-prose-headings: var(--ink);
+	--tw-prose-lead: var(--ink-secondary);
+	--tw-prose-links: var(--accent-text);
+	--tw-prose-bold: var(--ink);
+	--tw-prose-counters: var(--ink-tertiary);
+	--tw-prose-bullets: var(--ink-tertiary);
+	--tw-prose-hr: var(--line-strong);
+	--tw-prose-quotes: var(--ink);
+	--tw-prose-quote-borders: var(--accent);
+	--tw-prose-captions: var(--ink-secondary);
+	--tw-prose-th-borders: var(--line-strong);
+	--tw-prose-td-borders: var(--line);
+	font-size: var(--text-body);
+	line-height: var(--text-body--line-height);
+}
+
+@layer base {
+	html {
+		background-color: var(--canvas);
+		color: var(--ink);
+		font-family: var(--font-sans);
+		-webkit-tap-highlight-color: transparent;
+		-webkit-text-size-adjust: 100%;
+		text-size-adjust: 100%;
+		/* The app implements its own pull-to-refresh; stop the browser's native one */
+		overscroll-behavior-y: none;
+		/* No double-tap zoom on quick repeated taps; pinch-to-zoom still works */
+		touch-action: manipulation;
+	}
+
+	body {
+		min-height: 100dvh;
+		font-size: var(--text-body);
+		line-height: var(--text-body--line-height);
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+	}
+
+	:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: 2px;
+	}
+
+	::selection {
+		background-color: var(--accent-tint);
+	}
+}
+
+/*
+  iOS Safari zooms the page when a field under 16px gets focus. Every text-entry control uses the
+  body size, floored at 16px in case the root font shrinks. Deliberately unlayered so no Tailwind
+  utility (e.g. `text-footnote` on an input) can override it. Never fix this with `maximum-scale`
+  in the viewport meta: Android then blocks pinch-to-zoom, which fails WCAG 1.4.4.
+*/
+input:not(
+	[type='checkbox'],
+	[type='radio'],
+	[type='range'],
+	[type='color'],
+	[type='file'],
+	[type='button'],
+	[type='submit'],
+	[type='reset'],
+	[type='image'],
+	[type='hidden']
+),
+textarea,
+select,
+[contenteditable]:not([contenteditable='false']) {
+	font-size: max(16px, var(--text-body));
+}
