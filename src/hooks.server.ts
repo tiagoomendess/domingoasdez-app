@@ -15,7 +15,10 @@ const paraglideHandle: Handle = ({ event, resolve }) =>
 		resolve(
 			{ ...event, request },
 			{
-				transformPageChunk: ({ html }) => html.replace('%lang%', locale)
+				transformPageChunk: ({ html }) =>
+					html
+						.replace('%lang%', locale)
+						.replace('%theme-class%', event.cookies.get('theme') === 'dark' ? 'dark' : '')
 			}
 		)
 	);

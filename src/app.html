@@ -1,10 +1,28 @@
 <!doctype html>
-<html lang="%lang%">
+<html lang="%lang%" class="%theme-class%">
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 		<meta name="text-scale" content="scale" />
-		<meta name="theme-color" content="#f2f4f7" />
+		<meta name="color-scheme" content="light dark" />
+		<!--
+			iOS Safari paints its status bar and toolbar from these at parse time. A single
+			light theme-color is locked in before JS runs, which leaves white bars in dark mode.
+			Keep the hexes in sync with THEME_COLORS in src/lib/theme.ts.
+		-->
+		<meta name="theme-color" content="#f2f4f7" media="(prefers-color-scheme: light)" />
+		<meta name="theme-color" content="#08090b" media="(prefers-color-scheme: dark)" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+		<style>
+			html {
+				background-color: #f2f4f7;
+				color-scheme: light;
+			}
+			html.dark {
+				background-color: #08090b;
+				color-scheme: dark;
+			}
+		</style>
 		<script>
 			(function () {
 				var saved = document.cookie.match(/(?:^|; )theme=(light|dark)/);
@@ -12,9 +30,12 @@
 					? saved[1] === 'dark'
 					: window.matchMedia('(prefers-color-scheme: dark)').matches;
 				document.documentElement.classList.toggle('dark', dark);
-				document
-					.querySelector('meta[name="theme-color"]')
-					.setAttribute('content', dark ? '#08090b' : '#f2f4f7');
+				document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+				var color = dark ? '#08090b' : '#f2f4f7';
+				var metas = document.querySelectorAll('meta[name="theme-color"]');
+				if (saved) {
+					for (var i = 0; i < metas.length; i++) metas[i].setAttribute('content', color);
+				}
 			})();
 		</script>
 		%sveltekit.head%

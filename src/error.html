@@ -4,7 +4,10 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 		<meta name="robots" content="noindex" />
-		<meta name="theme-color" content="#f2f4f7" />
+		<meta name="color-scheme" content="light dark" />
+		<meta name="theme-color" content="#f2f4f7" media="(prefers-color-scheme: light)" />
+		<meta name="theme-color" content="#08090b" media="(prefers-color-scheme: dark)" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 		<title>Algo correu mal · Domingo às Dez</title>
 		<script>
 			(function () {
@@ -13,13 +16,24 @@
 					? saved[1] === 'dark'
 					: window.matchMedia('(prefers-color-scheme: dark)').matches;
 				document.documentElement.classList.toggle('dark', dark);
-				document
-					.querySelector('meta[name="theme-color"]')
-					.setAttribute('content', dark ? '#08090b' : '#f2f4f7');
+				document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+				var color = dark ? '#08090b' : '#f2f4f7';
+				var metas = document.querySelectorAll('meta[name="theme-color"]');
+				if (saved) {
+					for (var i = 0; i < metas.length; i++) metas[i].setAttribute('content', color);
+				}
 			})();
 		</script>
 		<style>
 			/* Mirrors the semantic tokens in src/routes/layout.css; this page cannot load the app's CSS */
+			html {
+				background-color: #f2f4f7;
+				min-height: 100%;
+				min-height: 100lvh;
+			}
+			html.dark {
+				background-color: #08090b;
+			}
 			:root {
 				color-scheme: light;
 				--canvas: #f2f4f7;
