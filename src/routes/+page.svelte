@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto, invalidateAll } from '$app/navigation';
+	import { goto, refreshAll } from '$app/navigation';
 	import ChipGroup from '#lib/components/ui/ChipGroup.svelte';
 	import PullToRefresh from '#lib/components/shell/PullToRefresh.svelte';
 	import HomeFeed from '#lib/components/feed/HomeFeed.svelte';
@@ -21,7 +21,7 @@
 	}
 
 	async function refresh() {
-		await invalidateAll();
+		await refreshAll();
 	}
 </script>
 

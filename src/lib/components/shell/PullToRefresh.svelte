@@ -15,7 +15,7 @@
 
 	const THRESHOLD = 72;
 	/** Long enough to read the indicator and the skeletons, even when reload is instant. */
-	const MIN_REFRESH_MS = 1000;
+	const MIN_REFRESH_MS = 600;
 	const pull = new Spring(0, { stiffness: 0.2, damping: 0.7 });
 
 	let dragging = $state(false);

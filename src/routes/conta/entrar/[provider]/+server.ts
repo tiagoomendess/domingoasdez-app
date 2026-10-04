@@ -31,5 +31,7 @@ export const GET: RequestHandler = async ({ params, cookies, url, locals }) => {
 	});
 
 	const redirectUri = googleRedirectUri(url.origin);
-	throw redirect(302, googleAuthorizationUrl(state, redirectUri));
+	throw redirect(302, googleAuthorizationUrl(state, redirectUri), {
+		external: ['https://accounts.google.com']
+	});
 };

@@ -237,7 +237,7 @@ Primitives are in `src/lib/components/ui/`, the shell in `.../shell/`, and domai
 - **PullToRefresh**: wraps a scrollable page (Home only for now).
   - It only engages when the page is already at the top and the user drags down.
   - The content follows the finger with rubber-band resistance. A 36 px glass circle with an arrow appears at the top centre, between the two floating buttons.
-  - At 72 px of pull the arrow flips (with a tiny vibration where supported). Releasing past that point keeps the indicator spinning while `invalidateAll()` runs, then springs back. Releasing before it springs back without refreshing.
+  - At 72 px of pull the arrow flips (with a tiny vibration where supported). Releasing past that point keeps the indicator spinning while `refreshAll()` runs, then springs back. Releasing before it springs back without refreshing.
   - Because `overscroll-behavior-y: none` is set on `<html>`, the browser's own pull-to-refresh won't fire at the same time.
 
 ### 4.3 Feed (Home)
