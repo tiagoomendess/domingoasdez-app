@@ -24,6 +24,21 @@
 		if (open && !dialog.open) {
 			dragY = 0;
 			dialog.showModal();
+			// A tap focuses the close button, and mobile browsers paint :focus-visible.
+			// Park focus on the dialog so the ring only appears after a keyboard tab.
+			const touch = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+			if (touch) {
+				const park = () => {
+					if (!dialog.open) return;
+					const active = document.activeElement;
+					if (active instanceof HTMLElement && active !== dialog && dialog.contains(active)) {
+						dialog.focus({ preventScroll: true });
+					}
+				};
+				park();
+				queueMicrotask(park);
+				requestAnimationFrame(park);
+			}
 		} else if (!open && dialog.open) {
 			dialog.close();
 		}
@@ -62,6 +77,7 @@
 
 <dialog
 	{@attach sync}
+	tabindex="-1"
 	aria-labelledby="{uid}-title"
 	class={['sheet glass-thick text-ink', dragging && 'dragging']}
 	style:--drag-y="{dragY}px"
@@ -102,6 +118,11 @@
 </dialog>
 
 <style>
+	.sheet:focus,
+	.sheet:focus-visible {
+		outline: none;
+	}
+
 	.sheet {
 		position: fixed;
 		inset: auto 0 0 0;
