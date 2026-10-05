@@ -42,13 +42,14 @@
 	let loadingStart = false;
 	let loadingEnd = false;
 
-	// Apply the new day window before paint, so the rail centers the selection
-	// in its final layout instead of a list that is about to be replaced.
+	// Keep the days already on screen so a tap slides the rail instead of
+	// swapping the row out. A far jump (calendar) still adopts the new window.
 	$effect.pre(() => {
 		const selected = data.selected;
 		if (selected === seededFor) return;
 		seededFor = selected;
-		railDays = [...data.days];
+		const current = untrack(() => railDays);
+		if (!current.includes(selected)) railDays = [...data.days];
 		live = data.live;
 		groups = data.groups;
 	});
