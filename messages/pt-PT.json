@@ -135,6 +135,8 @@
 	"games_empty_text": "Não há jogos marcados para esta data.",
 	"games_next_game": "Próximo jogo: {date}",
 	"games_back_to_today": "Voltar a hoje",
+	"games_section_collapse": "Recolher {name}",
+	"games_section_expand": "Mostrar {name}",
 
 	"poll_label": "Sondagem",
 	"poll_vote": "Votar",

@@ -135,6 +135,8 @@
 	"games_empty_text": "Il n'y a aucun match prévu à cette date.",
 	"games_next_game": "Prochain match : {date}",
 	"games_back_to_today": "Retour à aujourd'hui",
+	"games_section_collapse": "Réduire {name}",
+	"games_section_expand": "Afficher {name}",
 
 	"poll_label": "Sondage",
 	"poll_vote": "Voter",

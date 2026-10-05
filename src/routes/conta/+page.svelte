@@ -34,16 +34,6 @@
 	</section>
 
 	<div class="mb-6 space-y-6">
-		<ListGroup>
-			<ListRow title={m.account_profile()} href="/conta/perfil" />
-		</ListGroup>
-
-		{#if data.hasPassword}
-			<ListGroup title={m.account_privacy_group()}>
-				<ListRow title={m.account_change_password()} href="/conta/palavra-passe" />
-			</ListGroup>
-		{/if}
-
 		<form method="POST" action="?/logout">
 			<ListGroup>
 				<ListRow
@@ -56,6 +46,16 @@
 				/>
 			</ListGroup>
 		</form>
+
+		<ListGroup>
+			<ListRow title={m.account_profile()} href="/conta/perfil" />
+		</ListGroup>
+
+		{#if data.hasPassword}
+			<ListGroup title={m.account_privacy_group()}>
+				<ListRow title={m.account_change_password()} href="/conta/palavra-passe" />
+			</ListGroup>
+		{/if}
 	</div>
 {:else}
 	<section

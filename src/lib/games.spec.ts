@@ -3,6 +3,7 @@ import {
 	allowScoreReports,
 	competitionHref,
 	dayRange,
+	isDayListExtension,
 	formResult,
 	gameHref,
 	gameStatus,
@@ -145,6 +146,22 @@ describe('hrefs', () => {
 describe('dayRange', () => {
 	it('returns a contiguous inclusive range', () => {
 		expect(dayRange('2026-06-10', 1, 1)).toEqual(['2026-06-09', '2026-06-10', '2026-06-11']);
+	});
+});
+
+describe('isDayListExtension', () => {
+	const base = ['2026-06-08', '2026-06-09', '2026-06-10'];
+
+	it('treats prepends, appends, and the same list as extensions', () => {
+		expect(isDayListExtension(base, ['2026-06-07', ...base])).toBe(true);
+		expect(isDayListExtension(base, [...base, '2026-06-11'])).toBe(true);
+		expect(isDayListExtension(base, base)).toBe(true);
+	});
+
+	it('rejects a window rebuilt around another day', () => {
+		expect(isDayListExtension(base, ['2026-06-09', '2026-06-10', '2026-06-11'])).toBe(false);
+		expect(isDayListExtension(base, ['2026-06-10'])).toBe(false);
+		expect(isDayListExtension([], base)).toBe(false);
 	});
 });
 

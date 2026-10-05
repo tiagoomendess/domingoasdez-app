@@ -42,22 +42,20 @@
 	let loadingStart = false;
 	let loadingEnd = false;
 
-	$effect(() => {
+	// Apply the new day window before paint, so the rail centers the selection
+	// in its final layout instead of a list that is about to be replaced.
+	$effect.pre(() => {
 		const selected = data.selected;
-		const serverDays = data.days;
+		if (selected === seededFor) return;
+		seededFor = selected;
+		railDays = [...data.days];
+		live = data.live;
+		groups = data.groups;
+	});
+
+	$effect(() => {
 		const serverMarkers = data.markers;
-		const serverLive = data.live;
-		const serverGroups = data.groups;
-
 		railMarkers = { ...untrack(() => railMarkers), ...serverMarkers };
-
-		// Only replace match lists on date navigation — live polling owns updates on Today.
-		if (selected !== seededFor) {
-			seededFor = selected;
-			railDays = [...serverDays];
-			live = serverLive;
-			groups = serverGroups;
-		}
 	});
 
 	// Poll scores while viewing Today (replaces slow invalidate-only refresh).

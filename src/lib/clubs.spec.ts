@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+	agentListName,
 	agentTypeRank,
 	clubHref,
 	mergeClubTransfers,
@@ -13,6 +14,16 @@ describe('href builders', () => {
 		expect(clubHref('Vitória Sport Clube')).toBe('/clubes/vitoria-sport-clube');
 		expect(playerHref(42, 'João Silva')).toBe('/jogadores/42/joao-silva');
 		expect(teamAgentHref(7, 'António Costa')).toBe('/tecnicos/7/antonio-costa');
+	});
+});
+
+describe('agentListName', () => {
+	it('keeps the first and last name and drops a parenthetical nickname', () => {
+		expect(agentListName('DANY SYLVAIN SÁ (DANY)')).toBe('DANY SÁ');
+		expect(agentListName('CARLOS JORGE ARAÚJO (Carlos Pio)')).toBe('CARLOS ARAÚJO');
+		expect(agentListName('Henrique Noel Pinto da Silva Guimarães')).toBe('Henrique Guimarães');
+		expect(agentListName('"Papagaio" Hélder Rodrigues da Mota Gonçalves')).toBe('Hélder Gonçalves');
+		expect(agentListName('Pelé')).toBe('Pelé');
 	});
 });
 

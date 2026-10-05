@@ -1,6 +1,7 @@
 /**
  * Pure club-page helpers (hrefs, agent ordering, transfer merge).
  */
+import { firstAndLastName } from '#lib/players.ts';
 import { slugify } from '#lib/slug.ts';
 
 export type AgentType =
@@ -23,6 +24,20 @@ export function playerHref(id: number, name: string): string {
 
 export function teamAgentHref(id: number, name: string): string {
 	return `/tecnicos/${id}/${slugify(name)}`;
+}
+
+/**
+ * Staff label on the club page. Drops a quoted or parenthetical nickname,
+ * then keeps the first and last name so a long legal name cannot widen the page.
+ */
+export function agentListName(fullName: string): string {
+	const withoutNick = fullName
+		.replace(/\s*\([^)]*\)/g, ' ')
+		.replace(/\s*"[^"]*"/g, ' ')
+		.replace(/\s*“[^”]*”/g, ' ')
+		.replace(/\s+/g, ' ')
+		.trim();
+	return firstAndLastName(withoutNick || fullName.trim());
 }
 
 /**

@@ -41,12 +41,12 @@
 </svelte:head>
 
 <div class="grid gap-6 lg:grid-cols-3">
-	<section class="space-y-6 lg:col-span-2">
+	<section class="min-w-0 space-y-6 lg:col-span-2">
 		<header
-			class="flex flex-col items-center gap-3 text-center sm:flex-row sm:items-start sm:gap-5 sm:text-left"
+			class="flex w-full min-w-0 flex-col items-center gap-3 text-center sm:flex-row sm:items-start sm:gap-5 sm:text-left"
 		>
 			<Avatar name={data.name} src={data.picture} size={128} />
-			<div class="min-w-0 flex-1 space-y-2">
+			<div class="w-full min-w-0 flex-1 space-y-2">
 				<h1 class="text-title-1 wrap-break-word text-ink">{data.name}</h1>
 				<span
 					class="inline-flex h-6 items-center rounded-full bg-accent-tint px-2.5 text-caption font-semibold whitespace-nowrap text-accent-text"
@@ -89,7 +89,7 @@
 		{/if}
 	</section>
 
-	<aside>
+	<aside class="min-w-0">
 		{#if data.history.length > 0}
 			<ListGroup title={m.player_history()}>
 				{#each data.history as record (record.id)}

@@ -2,9 +2,7 @@
 	import { goto } from '$app/navigation';
 	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
 	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
-	import MapPinIcon from 'phosphor-svelte/lib/MapPinIcon';
 	import UsersThreeIcon from 'phosphor-svelte/lib/UsersThreeIcon';
-	import DirectionsSheet from '#lib/components/games/DirectionsSheet.svelte';
 	import Avatar from '#lib/components/ui/Avatar.svelte';
 	import Chip from '#lib/components/ui/Chip.svelte';
 	import Emblem from '#lib/components/ui/Emblem.svelte';
@@ -19,7 +17,6 @@
 
 	let { data }: PageProps = $props();
 
-	let directionsOpen = $state(false);
 	let selectedTeamId = $derived(data.selectedTeamId);
 
 	const activeTeam = $derived(
@@ -81,17 +78,6 @@
 		class="aspect-video w-full object-cover"
 		decoding="async"
 	/>
-	{#if data.venue}
-		<button
-			type="button"
-			class="absolute top-3 left-3 z-10 inline-flex min-h-9 max-w-[min(100%-1.5rem,18rem)] items-center gap-1.5 rounded-full bg-black/55 px-3 text-footnote font-medium text-white ring-1 ring-white/15 backdrop-blur-sm hover:bg-black/65"
-			aria-label={m.club_stadium()}
-			onclick={() => (directionsOpen = true)}
-		>
-			<MapPinIcon size={16} weight="bold" class="shrink-0" />
-			<span class="truncate">{data.venue.name}</span>
-		</button>
-	{/if}
 	<div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent pt-12">
 		<div class="flex items-center gap-3 px-4 pt-1 pb-3">
 			<Emblem src={data.emblem} name={data.name} size={72} plate={false} decorative />
@@ -101,7 +87,7 @@
 </div>
 
 <div class="mt-6 grid gap-6 lg:grid-cols-3">
-	<section class="space-y-4 lg:col-span-2">
+	<section class="min-w-0 space-y-4 lg:col-span-2">
 		<SectionHeader title={m.club_teams()} />
 
 		{#if data.teams.length === 0}
@@ -167,7 +153,7 @@
 		{/if}
 	</section>
 
-	<aside class="space-y-4">
+	<aside class="min-w-0 space-y-4">
 		{#if data.transfers.length > 0}
 			<ListGroup title={m.club_transfers()}>
 				{#each data.transfers as transfer (transfer.id)}
@@ -222,8 +208,4 @@
 			{/if}
 		</ListGroup>
 	</div>
-{/if}
-
-{#if data.venue}
-	<DirectionsSheet bind:open={directionsOpen} venue={data.venue} />
 {/if}

@@ -2,6 +2,7 @@
 	import { prefersReducedMotion } from 'svelte/motion';
 	import CalendarBlankIcon from 'phosphor-svelte/lib/CalendarBlankIcon';
 	import { formatDayOfMonth, formatWeekday } from '#lib/format.ts';
+	import { isDayListExtension } from '#lib/games.ts';
 	import { m } from '#lib/messages.ts';
 
 	type Props = {
@@ -32,19 +33,11 @@
 	}: Props = $props();
 
 	let centered = false;
+	let centeredDay: string | undefined;
+	let prevDays: readonly string[] | undefined;
 	let prevFirst: string | undefined;
 	let prevLength = 0;
 	let prevFirstOffset = 0;
-
-	function centerSelected(rail: HTMLElement) {
-		const pill = rail.querySelector<HTMLElement>(`[data-day="${selected}"]`);
-		if (!pill) return;
-		rail.scrollTo({
-			left: pill.offsetLeft - rail.clientWidth / 2 + pill.clientWidth / 2,
-			behavior: centered && !prefersReducedMotion.current ? 'smooth' : 'instant'
-		});
-		centered = true;
-	}
 
 	/** Keep the visible window stable when the parent prepends older days. */
 	function preserveScrollOnPrepend(rail: HTMLElement) {
@@ -70,6 +63,48 @@
 		prevLength = length;
 		const firstEl = first ? rail.querySelector<HTMLElement>(`[data-day="${first}"]`) : null;
 		prevFirstOffset = firstEl?.offsetLeft ?? 0;
+	}
+
+	/**
+	 * Put the selected day in the middle of the row. Re-run after the day list
+	 * is rebuilt around a new selection; leave the scroll position alone when
+	 * the user is only loading more days at either end.
+	 */
+	function syncSelectedScroll(rail: HTMLElement) {
+		const nextDays = days;
+		const day = selected;
+		const extended = prevDays !== undefined && isDayListExtension(prevDays, nextDays);
+		prevDays = nextDays;
+
+		preserveScrollOnPrepend(rail);
+
+		const row = rail.closest('nav') ?? rail;
+		const rowRect = row.getBoundingClientRect();
+		const railRect = rail.getBoundingClientRect();
+		// The calendar button sits on the right. Inset the snap area by that
+		// width so a snapped day lands on the center of the screen, not the rail.
+		const buttonSpace = Math.max(0, Math.round(rowRect.right - railRect.right));
+		const snapPadding = `${buttonSpace}px`;
+		if (rail.style.scrollPaddingLeft !== snapPadding) {
+			rail.style.scrollPaddingLeft = snapPadding;
+		}
+
+		if (extended && centeredDay === day) return;
+
+		const pill = rail.querySelector<HTMLElement>(`[data-day="${day}"]`);
+		if (!pill) return;
+
+		const pillRect = pill.getBoundingClientRect();
+		const delta = pillRect.left + pillRect.width / 2 - (rowRect.left + rowRect.width / 2);
+		const onScreen = pillRect.right > railRect.left && pillRect.left < railRect.right;
+		if (Math.abs(delta) >= 1) {
+			rail.scrollBy({
+				left: delta,
+				behavior: centered && onScreen && !prefersReducedMotion.current ? 'smooth' : 'instant'
+			});
+		}
+		centered = true;
+		centeredDay = day;
 	}
 
 	/** Observe a 1px sentinel; fire once per enter (ignore while already intersecting). */
@@ -110,16 +145,8 @@
 </script>
 
 <nav aria-label={m.date_rail_label()} class="-mx-4 flex items-center">
-	<div
-		class="relative rail min-w-0 flex-1 px-4 py-1"
-		{@attach centerSelected}
-		{@attach preserveScrollOnPrepend}
-	>
-		<span
-			aria-hidden="true"
-			class="w-px shrink-0"
-			{@attach observeNear(onnearstart)}
-		></span>
+	<div class="relative rail min-w-0 flex-1 px-4 py-1" {@attach syncSelectedScroll}>
+		<span aria-hidden="true" class="w-px shrink-0" {@attach observeNear(onnearstart)}></span>
 		{#each days as day (day)}
 			{@const isSelected = day === selected}
 			{@const isToday = day === today}
@@ -157,11 +184,7 @@
 				></span>
 			</a>
 		{/each}
-		<span
-			aria-hidden="true"
-			class="w-px shrink-0"
-			{@attach observeNear(onnearend)}
-		></span>
+		<span aria-hidden="true" class="w-px shrink-0" {@attach observeNear(onnearend)}></span>
 	</div>
 	{#if oncalendar}
 		<button

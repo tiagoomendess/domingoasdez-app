@@ -261,3 +261,17 @@ export function dayRange(center: string, before: number, after: number): string[
 	for (let i = -before; i <= after; i++) days.push(addDays(center, i));
 	return days;
 }
+
+/**
+ * True when `next` is `prev` with days added only at the ends.
+ * A window rebuilt around another selected day is not an extension.
+ */
+export function isDayListExtension(prev: readonly string[], next: readonly string[]): boolean {
+	if (prev.length === 0 || next.length < prev.length) return false;
+	const start = next.indexOf(prev[0]);
+	if (start < 0 || start + prev.length > next.length) return false;
+	for (let i = 0; i < prev.length; i++) {
+		if (next[start + i] !== prev[i]) return false;
+	}
+	return true;
+}

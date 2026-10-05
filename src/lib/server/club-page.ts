@@ -2,9 +2,10 @@
  * Server helpers for the club detail page.
  * Ports Front\ClubController@show (with the multi-team transfers fix).
  */
-import { and, asc, eq, inArray, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray } from 'drizzle-orm';
 import type { AuthUser } from '#lib/auth/user.ts';
 import {
+	agentListName,
 	agentTypeRank,
 	mergeClubTransfers,
 	playerHref,
@@ -28,17 +29,6 @@ import {
 import { emblemUrl } from '#lib/server/games.ts';
 import { legacyUrl } from '#lib/server/legacy.ts';
 import { mediaUrl, placeholder16x9, profilePicture } from '#lib/server/media.ts';
-
-/** Parse MySQL `POINT(lat lon)` from ST_AsText. Legacy stores latitude first. */
-function parsePointLatLon(wkt: string | null | undefined): { lat: number; lon: number } | null {
-	if (!wkt) return null;
-	const match = /^POINT\(([-\d.]+)\s+([-\d.]+)\)$/i.exec(wkt.trim());
-	if (!match) return null;
-	const lat = Number(match[1]);
-	const lon = Number(match[2]);
-	if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
-	return { lat, lon };
-}
 
 export type ResolvedClub = {
 	id: number;
@@ -79,19 +69,11 @@ export type ClubTransferView = {
 	direction: 'in' | 'out';
 };
 
-export type ClubVenue = {
-	name: string;
-	picture: string;
-	googleMapsUrl: string | null;
-	wazeUrl: string | null;
-};
-
 export type ClubPageData = {
 	id: number;
 	name: string;
 	emblem: string | null;
 	coverPicture: string;
-	venue: ClubVenue | null;
 	teams: ClubTeamView[];
 	transfers: ClubTransferView[];
 	editClubHref: string | null;
@@ -124,17 +106,11 @@ export async function findClubBySlug(slug: string): Promise<ResolvedClub | null>
 	return null;
 }
 
-async function loadVenue(
-	clubId: number
-): Promise<{ venue: ClubVenue | null; coverPicture: string }> {
+async function loadVenue(clubId: number): Promise<{ coverPicture: string }> {
 	const [row] = await db
 		.select({
 			id: playgrounds.id,
-			name: playgrounds.name,
-			picture: playgrounds.picture,
-			location: sql<string | null>`ST_AsText(\`playgrounds\`.\`location\`)`.mapWith((v) =>
-				v == null ? null : String(v)
-			)
+			picture: playgrounds.picture
 		})
 		.from(playgrounds)
 		.where(eq(playgrounds.clubId, clubId))
@@ -142,23 +118,11 @@ async function loadVenue(
 		.limit(1);
 
 	if (!row) {
-		return { venue: null, coverPicture: placeholder16x9(clubId) };
+		return { coverPicture: placeholder16x9(clubId) };
 	}
 
-	const coords = parsePointLatLon(row.location);
 	const picture = row.picture?.trim() ? mediaUrl(row.picture)! : placeholder16x9(row.id);
-
-	return {
-		venue: {
-			name: row.name,
-			picture,
-			googleMapsUrl: coords
-				? `https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lon}`
-				: null,
-			wazeUrl: coords ? `https://www.waze.com/ul?ll=${coords.lat},${coords.lon}&navigate=yes` : null
-		},
-		coverPicture: picture
-	};
+	return { coverPicture: picture };
 }
 
 async function loadTeamsBlock(
@@ -216,7 +180,7 @@ async function loadTeamsBlock(
 		if (row.teamId == null) continue;
 		const view: ClubAgentView = {
 			id: row.id,
-			name: row.name,
+			name: agentListName(row.name),
 			picture: profilePicture(row.picture),
 			agentType: row.agentType,
 			href: teamAgentHref(row.id, row.name)
@@ -349,7 +313,7 @@ export async function loadClubPage(
 ): Promise<ClubPageData> {
 	const perms = user ? await getUserPermissionNames(user.id) : new Set<string>();
 
-	const [{ venue, coverPicture }, teamViews] = await Promise.all([
+	const [{ coverPicture }, teamViews] = await Promise.all([
 		loadVenue(club.id),
 		loadTeamsBlock(club.id, perms, now)
 	]);
@@ -368,7 +332,6 @@ export async function loadClubPage(
 		name: club.name,
 		emblem,
 		coverPicture,
-		venue,
 		teams: teamViews,
 		transfers: transferViews,
 		editClubHref: hasPermission(perms, `clubs.edit.${club.id}`)

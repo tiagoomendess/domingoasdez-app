@@ -135,6 +135,8 @@
 	"games_empty_text": "There are no fixtures scheduled for this date.",
 	"games_next_game": "Next game: {date}",
 	"games_back_to_today": "Back to today",
+	"games_section_collapse": "Collapse {name}",
+	"games_section_expand": "Expand {name}",
 
 	"poll_label": "Poll",
 	"poll_vote": "Vote",
