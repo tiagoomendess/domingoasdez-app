@@ -104,7 +104,6 @@ export type CompetitionPageData = {
 	groups: CompetitionPageGroup[];
 	seasons: CompetitionSeasonOption[];
 	hasLiveGames: boolean;
-	statsHref: string;
 };
 
 function displayName(seasonName: string | null, competitionName: string): string {
@@ -536,7 +535,6 @@ export async function loadCompetitionPage(
 		obs: season.obs,
 		groups,
 		seasons: seasonOptions,
-		hasLiveGames: live,
-		statsHref: `/competicoes/${seasonSlug}/${slug}/estatisticas`
+		hasLiveGames: live
 	};
 }

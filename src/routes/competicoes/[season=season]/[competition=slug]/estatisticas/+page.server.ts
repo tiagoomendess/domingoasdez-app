@@ -1,14 +1,10 @@
 import { error, redirect } from '@sveltejs/kit';
-import {
-	isLegacyFullYearSlug,
-	parseSeasonSlug,
-	seasonNameSlug
-} from '#lib/competitions.ts';
+import { isLegacyFullYearSlug, parseSeasonSlug, seasonNameSlug } from '#lib/competitions.ts';
 import { findSeasonBySlugs } from '#lib/server/competition-page.ts';
-import { loadCompetitionStats } from '#lib/server/competition-stats.ts';
 import { slugify } from '#lib/slug.ts';
 import type { PageServerLoad } from './$types';
 
+/** Old statistics URL. The view now lives on the competition page. */
 export const load: PageServerLoad = async ({ params }) => {
 	const { season: seasonSlug, competition: competitionSlug } = params;
 
@@ -18,7 +14,7 @@ export const load: PageServerLoad = async ({ params }) => {
 		const [startYear, endYear] = years;
 		redirect(
 			301,
-			`/competicoes/${seasonNameSlug(startYear, endYear)}/${competitionSlug}/estatisticas`
+			`/competicoes/${seasonNameSlug(startYear, endYear)}/${competitionSlug}?vista=estatisticas`
 		);
 	}
 
@@ -29,9 +25,5 @@ export const load: PageServerLoad = async ({ params }) => {
 	const displaySlug = slugify(displayName);
 	const canonicalSeasonSlug = seasonNameSlug(season.startYear, season.endYear);
 
-	if (displaySlug !== competitionSlug || canonicalSeasonSlug !== seasonSlug) {
-		redirect(301, `/competicoes/${canonicalSeasonSlug}/${displaySlug}/estatisticas`);
-	}
-
-	return loadCompetitionStats(season);
+	redirect(301, `/competicoes/${canonicalSeasonSlug}/${displaySlug}?vista=estatisticas`);
 };

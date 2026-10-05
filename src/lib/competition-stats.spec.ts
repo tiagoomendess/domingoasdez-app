@@ -86,6 +86,15 @@ describe('rankAttack', () => {
 		expect(result.best[0].goalCount).toBe(10);
 		expect(result.worst[0].goalCount).toBe(2);
 	});
+
+	it('returns no clubs when every attack is 0', () => {
+		expect(
+			rankAttack([
+				team({ teamId: 1, clubName: 'Alpha', goalsFor: 0, goalsAgainst: 0 }),
+				team({ teamId: 2, clubName: 'Beta', goalsFor: 0, goalsAgainst: 0 })
+			])
+		).toEqual({ best: [], worst: [] });
+	});
 });
 
 describe('rankDefense', () => {
@@ -104,6 +113,15 @@ describe('rankDefense', () => {
 		expect(result.worst.map((c) => c.clubName).sort()).toEqual(['Delta', 'Gamma']);
 		expect(result.best[0].goalCount).toBe(1);
 		expect(result.worst[0].goalCount).toBe(8);
+	});
+
+	it('returns no clubs when every defense is 0', () => {
+		expect(
+			rankDefense([
+				team({ teamId: 1, clubName: 'Alpha', goalsFor: 0, goalsAgainst: 0 }),
+				team({ teamId: 2, clubName: 'Beta', goalsFor: 3, goalsAgainst: 0 })
+			])
+		).toEqual({ best: [], worst: [] });
 	});
 });
 

@@ -5,6 +5,7 @@
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 	import TrophyIcon from 'phosphor-svelte/lib/TrophyIcon';
 	import WarningCircleIcon from 'phosphor-svelte/lib/WarningCircleIcon';
+	import CompetitionStats from '#lib/components/competitions/CompetitionStats.svelte';
 	import RoundNavigator from '#lib/components/competitions/RoundNavigator.svelte';
 	import SeasonSheet from '#lib/components/competitions/SeasonSheet.svelte';
 	import StandingsLegend from '#lib/components/competitions/StandingsLegend.svelte';
@@ -81,6 +82,17 @@
 	);
 	const newerSeason = $derived(seasonIndex > 0 ? data.seasons[seasonIndex - 1] : null);
 
+	function withVista(href: string): string {
+		if (vista === 'jogos') return href;
+		const url = new URL(href, 'http://local');
+		url.searchParams.set('vista', vista);
+		return `${url.pathname}${url.search}`;
+	}
+
+	const seasonLinks = $derived(
+		data.seasons.map((season) => ({ ...season, href: withVista(season.href) }))
+	);
+
 	function roundLabel(key: RoundLabelKey, number: number): string {
 		switch (key) {
 			case 'round_matchday':
@@ -95,10 +107,6 @@
 	}
 
 	function setVista(value: Vista) {
-		if (value === 'estatisticas') {
-			void goto(data.statsHref, { replace: true, reset: false });
-			return;
-		}
 		vista = value;
 		const url = new URL(window.location.href);
 		if (value === 'jogos') url.searchParams.delete('vista');
@@ -151,7 +159,7 @@
 					<IconButton
 						label={m.competition_season_prev()}
 						variant="fill"
-						href={olderSeason.href}
+						href={withVista(olderSeason.href)}
 						class="!size-9"
 					>
 						<CaretLeftIcon size={18} weight="bold" />
@@ -172,7 +180,7 @@
 					<IconButton
 						label={m.competition_season_next()}
 						variant="fill"
-						href={newerSeason.href}
+						href={withVista(newerSeason.href)}
 						class="!size-9"
 					>
 						<CaretRightIcon size={18} weight="bold" />
@@ -211,7 +219,13 @@
 	</aside>
 {/if}
 
-{#if data.groups.length === 0}
+{#if vista === 'estatisticas'}
+	<CompetitionStats
+		scorers={data.stats.scorers}
+		attack={data.stats.attack}
+		defense={data.stats.defense}
+	/>
+{:else if data.groups.length === 0}
 	<EmptyState
 		icon={TrophyIcon}
 		title={m.competition_empty_title()}
@@ -271,7 +285,7 @@
 	<p class="mt-6 px-1 text-footnote text-ink-tertiary">{data.obs}</p>
 {/if}
 
-<SeasonSheet bind:open={seasonSheetOpen} seasons={data.seasons} currentId={data.seasonId} />
+<SeasonSheet bind:open={seasonSheetOpen} seasons={seasonLinks} currentId={data.seasonId} />
 
 <style>
 	.match {

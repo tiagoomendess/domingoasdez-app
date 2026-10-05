@@ -8,6 +8,7 @@ import {
 	findSeasonBySlugs,
 	loadCompetitionPage
 } from '#lib/server/competition-page.ts';
+import { loadCompetitionStats } from '#lib/server/competition-stats.ts';
 import { slugify } from '#lib/slug.ts';
 import type { PageServerLoad } from './$types';
 
@@ -39,10 +40,21 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		redirect(301, `/competicoes/${canonicalSeasonSlug}/${displaySlug}${url.search}`);
 	}
 
-	const page = await loadCompetitionPage(season);
+	const [page, stats] = await Promise.all([
+		loadCompetitionPage(season),
+		loadCompetitionStats(season)
+	]);
 	const vistaParam = url.searchParams.get('vista');
 	const vista =
-		vistaParam === 'classificacao' || vistaParam === 'jogos' ? vistaParam : 'jogos';
+		vistaParam === 'classificacao' || vistaParam === 'estatisticas' ? vistaParam : 'jogos';
 
-	return { ...page, vista };
+	return {
+		...page,
+		vista,
+		stats: {
+			scorers: stats.scorers,
+			attack: stats.attack,
+			defense: stats.defense
+		}
+	};
 };

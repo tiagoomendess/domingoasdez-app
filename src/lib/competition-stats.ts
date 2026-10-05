@@ -77,13 +77,16 @@ export function rankScorers(
 
 /**
  * Best attack = highest goalsFor; worst = lowest.
- * Returns every club tied at each extreme (empty arrays when no teams).
+ * Returns every club tied at each extreme.
+ * Empty when there are no teams, or when every club is on 0.
  */
 export function rankAttack(teams: TeamGoalInput[]): ExtremeClubs {
 	if (teams.length === 0) return { best: [], worst: [] };
 
 	const max = Math.max(...teams.map((t) => t.goalsFor));
 	const min = Math.min(...teams.map((t) => t.goalsFor));
+	// Every club on 0 is not a ranking — the cards show the empty state instead.
+	if (max === 0) return { best: [], worst: [] };
 
 	const toClub = (t: TeamGoalInput): StatsClub => ({
 		teamId: t.teamId,
@@ -102,12 +105,15 @@ export function rankAttack(teams: TeamGoalInput[]): ExtremeClubs {
 
 /**
  * Best defense = fewest goalsAgainst; worst = most.
+ * Empty when there are no teams, or when every club is on 0.
  */
 export function rankDefense(teams: TeamGoalInput[]): ExtremeClubs {
 	if (teams.length === 0) return { best: [], worst: [] };
 
 	const min = Math.min(...teams.map((t) => t.goalsAgainst));
 	const max = Math.max(...teams.map((t) => t.goalsAgainst));
+	// Every club on 0 is not a ranking — the cards show the empty state instead.
+	if (max === 0) return { best: [], worst: [] };
 
 	const toClub = (t: TeamGoalInput): StatsClub => ({
 		teamId: t.teamId,
