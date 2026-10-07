@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { page } from '$app/state';
+	import AdSenseUnit from '#lib/components/ads/AdSenseUnit.svelte';
 	import ArticleMedia from '#lib/components/articles/ArticleMedia.svelte';
 	import PartnerGrid from '#lib/components/partners/PartnerGrid.svelte';
 	import { formatArticleDate } from '#lib/format.ts';
@@ -58,5 +60,11 @@
 		{@html article.html}
 	</div>
 </article>
+
+{#key page.url.pathname}
+	<div class="mt-6">
+		<AdSenseUnit adSlot="7397948298" />
+	</div>
+{/key}
 
 <PartnerGrid partners={data.partners} />

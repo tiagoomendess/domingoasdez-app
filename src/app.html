@@ -38,6 +38,73 @@
 				}
 			})();
 		</script>
+		<!--
+			Google Analytics + AdSense. Placeholders are filled by hooks.server.ts from public env.
+			Empty IDs or a non-production hostname skip every Google script (including localhost).
+		-->
+		<script>
+			(function () {
+				var hosts = {
+					'domingoasdez.com': 1,
+					'www.domingoasdez.com': 1,
+					'app.domingoasdez.com': 1
+				};
+				if (!hosts[location.hostname]) return;
+
+				var gaId = '%PUBLIC_GA_MEASUREMENT_ID%';
+				var adsClient = '%PUBLIC_ADSENSE_CLIENT%';
+				if (!gaId && !adsClient) return;
+
+				window.gtag_enable_tcf_support = true;
+				window.dataLayer = window.dataLayer || [];
+				function gtag() {
+					window.dataLayer.push(arguments);
+				}
+				window.gtag = gtag;
+
+				// Denied until Funding Choices / TCF updates consent. Do not copy the legacy
+				// site's default-granted configuration.
+				gtag('consent', 'default', {
+					ad_storage: 'denied',
+					ad_user_data: 'denied',
+					ad_personalization: 'denied',
+					analytics_storage: 'denied'
+				});
+
+				if (adsClient) {
+					var fc = document.createElement('script');
+					fc.async = true;
+					fc.src =
+						'https://fundingchoicesmessages.google.com/i/' +
+						encodeURIComponent(adsClient) +
+						'?ers=2';
+					document.head.appendChild(fc);
+				}
+
+				if (gaId) {
+					var gs = document.createElement('script');
+					gs.async = true;
+					gs.src =
+						'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(gaId);
+					document.head.appendChild(gs);
+					gtag('js', new Date());
+					gtag('config', gaId, {
+						send_page_view: false,
+						cookie_domain: 'auto'
+					});
+				}
+
+				if (adsClient) {
+					var as = document.createElement('script');
+					as.async = true;
+					as.crossOrigin = 'anonymous';
+					as.src =
+						'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' +
+						encodeURIComponent(adsClient);
+					document.head.appendChild(as);
+				}
+			})();
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">

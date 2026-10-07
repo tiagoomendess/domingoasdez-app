@@ -1,6 +1,7 @@
 <script lang="ts">
 	import NewspaperIcon from 'phosphor-svelte/lib/NewspaperIcon';
 	import WarningCircleIcon from 'phosphor-svelte/lib/WarningCircleIcon';
+	import AdSenseUnit from '#lib/components/ads/AdSenseUnit.svelte';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import PartnerCard from '#lib/components/partners/PartnerCard.svelte';
@@ -91,6 +92,9 @@
 			{:else}
 				{@const Card = feedTypes.poll.component}
 				<Card {...item.data} />
+			{/if}
+			{#if index === 0}
+				<AdSenseUnit adSlot="6406546239" />
 			{/if}
 			{#if partner}
 				<PartnerCard {partner} />

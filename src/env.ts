@@ -107,6 +107,18 @@ export const variables = defineEnvVars({
 		description: 'Legacy name for RECAPTCHA_SECRET_KEY. Used when the secret key above is empty.',
 		schema: optionalString
 	},
+	PUBLIC_GA_MEASUREMENT_ID: {
+		description:
+			'GA4 measurement ID (e.g. G-PPBRM1T8VZ). Empty disables Analytics. Same property as the legacy site.',
+		schema: optionalString,
+		public: true
+	},
+	PUBLIC_ADSENSE_CLIENT: {
+		description:
+			'AdSense client ID (e.g. ca-pub-…). Empty disables ads. Same publisher as the legacy site.',
+		schema: optionalString,
+		public: true
+	},
 	MAIL_DRIVER: {
 		description: 'Mail transport. Only "smtp" is supported (same as the legacy site).',
 		schema: (value) => {

@@ -1,5 +1,6 @@
 import type { Handle } from '@sveltejs/kit/hooks';
 import { sequence } from '@sveltejs/kit/hooks';
+import { PUBLIC_ADSENSE_CLIENT, PUBLIC_GA_MEASUREMENT_ID } from '$app/env/public';
 import { paraglideMiddleware } from '#lib/paraglide/server.js';
 import { SESSION_COOKIE, readSessionUserId } from '#lib/server/auth/session.ts';
 import { getAuthUserById } from '#lib/server/auth/users.ts';
@@ -19,6 +20,8 @@ const paraglideHandle: Handle = ({ event, resolve }) =>
 					html
 						.replace('%lang%', locale)
 						.replace('%theme-class%', event.cookies.get('theme') === 'dark' ? 'dark' : '')
+						.replace('%PUBLIC_GA_MEASUREMENT_ID%', PUBLIC_GA_MEASUREMENT_ID)
+						.replace('%PUBLIC_ADSENSE_CLIENT%', PUBLIC_ADSENSE_CLIENT)
 			}
 		)
 	);

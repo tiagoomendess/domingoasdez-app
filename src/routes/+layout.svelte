@@ -1,6 +1,7 @@
 <script lang="ts">
 	import './layout.css';
 	import { page } from '$app/state';
+	import AnalyticsPageViews from '#lib/components/analytics/AnalyticsPageViews.svelte';
 	import AppShell from '#lib/components/shell/AppShell.svelte';
 	import { m } from '#lib/messages.ts';
 
@@ -8,6 +9,8 @@
 
 	const bare = $derived(page.url.pathname.startsWith('/design'));
 </script>
+
+<AnalyticsPageViews />
 
 <svelte:head>
 	<!-- Round mark for browser tabs -->
