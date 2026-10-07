@@ -50,6 +50,7 @@
 			items={data.items as FeedItem[]}
 			nextCursor={data.nextCursor}
 			types={data.types}
+			disclaimerHref={data.disclaimerHref}
 			{refreshing}
 			onrefresh={refresh}
 		/>

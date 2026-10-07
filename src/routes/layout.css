@@ -185,6 +185,7 @@
 	--chrome-button: 2.75rem;
 	--tabbar-height: 4rem;
 	--content-top: calc(var(--safe-top) + var(--chrome-inset) + var(--chrome-button) + 0.75rem);
+	--chrome-fade: calc(var(--safe-top) + var(--chrome-inset) + var(--chrome-button) + 1rem);
 	--content-bottom: calc(var(--safe-bottom) + var(--chrome-inset) + var(--tabbar-height) + 1.5rem);
 }
 
@@ -314,9 +315,15 @@
 	position: fixed;
 	inset-inline: 0;
 	top: 0;
-	height: calc(var(--safe-top) + var(--chrome-inset) + var(--chrome-button) + 1rem);
+	height: var(--chrome-fade);
 	background: linear-gradient(to bottom, var(--canvas) 20%, transparent);
 	pointer-events: none;
+}
+
+/* Neither floating button is on screen, so content can sit under the status bar. */
+.no-top-chrome {
+	--content-top: calc(var(--safe-top) + var(--chrome-inset));
+	--chrome-fade: calc(var(--safe-top) + var(--chrome-inset));
 }
 
 @utility scroll-edge-bottom {

@@ -1,5 +1,11 @@
 import type { LayoutServerLoad } from './$types';
-import { parseBackButtonCookie, parseThemeCookie } from '#lib/preferences.ts';
+import {
+	BACK_BUTTON_COOKIE,
+	parseBackButtonCookie,
+	parseThemeButtonCookie,
+	parseThemeCookie,
+	THEME_BUTTON_COOKIE
+} from '#lib/preferences.ts';
 import { consumeScoreReportFlash } from '#lib/server/score-reports.ts';
 import { m } from '#lib/messages.ts';
 
@@ -30,7 +36,8 @@ export const load: LayoutServerLoad = ({ cookies, depends, locals }) => {
 		user: locals.user,
 		preferences: {
 			theme: parseThemeCookie(cookies.get('theme')),
-			backButton: parseBackButtonCookie(cookies.get('back_button'))
+			backButton: parseBackButtonCookie(cookies.get(BACK_BUTTON_COOKIE)),
+			themeButton: parseThemeButtonCookie(cookies.get(THEME_BUTTON_COOKIE))
 		},
 		toast
 	};

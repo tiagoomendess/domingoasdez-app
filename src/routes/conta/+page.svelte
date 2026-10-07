@@ -76,4 +76,8 @@
 	</section>
 {/if}
 
-<PreferencesGroup theme={data.preferences.theme} backButton={data.preferences.backButton} />
+<PreferencesGroup
+	theme={data.preferences.theme}
+	backButton={data.preferences.backButton}
+	themeButton={data.preferences.themeButton}
+/>

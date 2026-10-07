@@ -174,6 +174,8 @@
 	"feed_retry": "Réessayer",
 	"feed_brand": "Domingo às Dez",
 	"feed_meta_description": "Domingo às Dez est le journal du football populaire à Barcelos. Actualités, sondages, matchs en direct, classements, statistiques, clubs et joueurs.",
+	"feed_disclaimer": "Ce site est encore en construction, il peut donc présenter quelques erreurs ou comportements inattendus. Si quelque chose te semble incorrect, dis-le-nous. En cas de doute, l'ancien site reste inchangé et tu peux le consulter",
+	"feed_disclaimer_link": "ici",
 
 	"competitions_meta_description": "Compétitions de football de district — compétitions et saisons en cours.",
 	"competitions_empty_title": "Aucune compétition",
@@ -337,6 +339,8 @@
 	"prefs_language": "Langue",
 	"prefs_back_button": "Bouton retour",
 	"prefs_back_button_footer": "Affiche le bouton flottant de retour en haut à gauche.",
+	"prefs_theme_button": "Bouton de thème",
+	"prefs_theme_button_footer": "Affiche le bouton flottant de thème en haut à droite.",
 
 	"login_title": "Se connecter",
 	"login_meta_description": "Connectez-vous à votre compte Domingo às Dez.",

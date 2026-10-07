@@ -27,6 +27,11 @@ export const variables = defineEnvVars({
 			'Origin of the legacy site for backoffice / score-report / flash-interview links. Falls back to MEDIA_BASE_URL when empty.',
 		schema: optionalString
 	},
+	NEW_SITE_DISCLAIMER_ENABLED: {
+		description:
+			'Show the construction disclaimer as the second item on the home feed. Set to false to remove it.',
+		schema: flag(true)
+	},
 	SESSION_SECRET: {
 		description: 'HMAC secret for signed session cookies. Use a long random string in production.',
 		schema: (value) => {

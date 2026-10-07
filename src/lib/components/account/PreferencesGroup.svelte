@@ -4,16 +4,17 @@
 	import Switch from '#lib/components/ui/Switch.svelte';
 	import ChoiceSheet from '#lib/components/account/ChoiceSheet.svelte';
 	import { m, getLocale } from '#lib/messages.ts';
-	import { setAppearance, setBackButton } from '#lib/preferences.client.ts';
+	import { setAppearance, setBackButton, setThemeButton } from '#lib/preferences.client.ts';
 	import type { ThemePreference } from '#lib/theme.ts';
 	import { setLocale, locales, type Locale } from '#lib/paraglide/runtime.js';
 
 	type Props = {
 		theme: ThemePreference;
 		backButton: boolean;
+		themeButton: boolean;
 	};
 
-	let { theme, backButton }: Props = $props();
+	let { theme, backButton, themeButton }: Props = $props();
 
 	let appearanceOpen = $state(false);
 	let languageOpen = $state(false);
@@ -56,9 +57,17 @@
 	async function onBackButton(checked: boolean) {
 		await setBackButton(checked);
 	}
+
+	async function onThemeButton(checked: boolean) {
+		await setThemeButton(checked);
+	}
 </script>
 
-<ListGroup title={m.prefs_group()} footer={m.prefs_back_button_footer()} headingLevel={2}>
+<ListGroup
+	title={m.prefs_group()}
+	footer={`${m.prefs_back_button_footer()} ${m.prefs_theme_button_footer()}`}
+	headingLevel={2}
+>
 	<ListRow
 		title={m.prefs_appearance()}
 		value={appearanceLabel}
@@ -74,6 +83,11 @@
 	<ListRow title={m.prefs_back_button()}>
 		{#snippet trailing()}
 			<Switch checked={backButton} label={m.prefs_back_button()} onchange={onBackButton} />
+		{/snippet}
+	</ListRow>
+	<ListRow title={m.prefs_theme_button()}>
+		{#snippet trailing()}
+			<Switch checked={themeButton} label={m.prefs_theme_button()} onchange={onThemeButton} />
 		{/snippet}
 	</ListRow>
 </ListGroup>

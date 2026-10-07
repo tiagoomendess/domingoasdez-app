@@ -188,11 +188,31 @@
 	 * the user is only loading more days at either end.
 	 */
 	function syncSelectedScroll(rail: HTMLElement) {
-		const noteUser = () => {
-			userScrolled = true;
+		// A tap selects a day. Only a drag or wheel means the user took over the scroll.
+		let originX = 0;
+		let pressing = false;
+		const onPointerDown = (event: PointerEvent) => {
+			pressing = true;
+			originX = event.clientX;
 		};
-		rail.addEventListener('pointerdown', noteUser);
-		rail.addEventListener('wheel', noteUser, { passive: true });
+		const onPointerUp = () => {
+			pressing = false;
+		};
+		const onPointerMove = (event: PointerEvent) => {
+			if (!pressing) return;
+			if (Math.abs(event.clientX - originX) <= 6) return;
+			userScrolled = true;
+			stopScrollAnimation(rail);
+		};
+		const onWheel = () => {
+			userScrolled = true;
+			stopScrollAnimation(rail);
+		};
+		rail.addEventListener('pointerdown', onPointerDown);
+		rail.addEventListener('pointerup', onPointerUp);
+		rail.addEventListener('pointercancel', onPointerUp);
+		rail.addEventListener('pointermove', onPointerMove);
+		rail.addEventListener('wheel', onWheel, { passive: true });
 		const resize = new ResizeObserver(() => {
 			if (scrolling || userScrolled || !currentDay || placedFor !== currentDay) return;
 			placeSelected(rail, currentDay, 'instant');
@@ -207,26 +227,27 @@
 		if (selectionChanged) userScrolled = false;
 		prevDays = nextDays;
 
-		preserveScrollOnPrepend(rail);
-
 		const release = () => {
 			cancelAnimationFrame(settleFrame);
-			cancelAnimationFrame(scrollFrame);
-			scrolling = false;
-			rail.style.scrollSnapType = '';
-			rail.removeEventListener('pointerdown', noteUser);
-			rail.removeEventListener('wheel', noteUser);
+			rail.removeEventListener('pointerdown', onPointerDown);
+			rail.removeEventListener('pointerup', onPointerUp);
+			rail.removeEventListener('pointercancel', onPointerUp);
+			rail.removeEventListener('pointermove', onPointerMove);
+			rail.removeEventListener('wheel', onWheel);
 			resize.disconnect();
 		};
 
+		// The day list often updates again in the same navigation (prod is fast
+		// enough that this lands mid-slide). Leaving the slide running avoids a snap.
+		if (scrolling && placedFor === day) return release;
+
+		preserveScrollOnPrepend(rail);
+
 		if (placedFor === day && extended && userScrolled) return release;
 
-		const pill = rail.querySelector<HTMLElement>(`[data-day="${day}"]`);
-		const railRect = rail.getBoundingClientRect();
-		const pillRect = pill?.getBoundingClientRect();
-		const onScreen =
-			!!pillRect && pillRect.right > railRect.left && pillRect.left < railRect.right;
-		const behavior = centered && onScreen && !prefersReducedMotion.current ? 'slide' : 'instant';
+		const delta = centerDelta(rail, day);
+		const far = delta != null && Math.abs(delta) > rail.clientWidth;
+		const behavior = centered && !far && !prefersReducedMotion.current ? 'slide' : 'instant';
 
 		cancelAnimationFrame(settleFrame);
 		let attempts = 0;
@@ -235,7 +256,6 @@
 			const done = placeSelected(rail, day, attempts === 0 ? behavior : 'instant');
 			attempts += 1;
 			// First paint can report a zero-size rail. Keep trying until it has a box.
-			// Don't interrupt a smooth scroll that already started for a day change.
 			if (!done && behavior === 'instant' && attempts < 8) {
 				settleFrame = requestAnimationFrame(settle);
 				return;

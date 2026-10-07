@@ -25,7 +25,12 @@
 	const pathname = $derived(page.url.pathname);
 	const tabs = $derived(getTabs(page.data.user ?? null));
 	const current = $derived(getActiveTab(pathname));
-	const showBack = $derived((page.data.preferences?.backButton ?? true) && !isTabRoot(pathname));
+	const backEnabled = $derived(page.data.preferences?.backButton ?? true);
+	const showTheme = $derived(page.data.preferences?.themeButton ?? true);
+	const showBack = $derived(backEnabled && !isTabRoot(pathname));
+	// Keep the top inset while either switch is on. The back button is hidden on
+	// tab roots, but the space has to stay so it is still visible on inner pages.
+	const noTopChrome = $derived(!backEnabled && !showTheme);
 	const fallback = $derived(parentOf(pathname));
 	const isReading = $derived(
 		pathname.startsWith('/noticias/') ||
@@ -55,24 +60,28 @@
 	}
 </script>
 
-<NavigationProgress />
+<div class={['contents', noTopChrome && 'no-top-chrome']}>
+	<NavigationProgress />
 
-<div aria-hidden="true" class="scroll-edge-top z-30"></div>
-<div aria-hidden="true" class="scroll-edge-bottom z-30"></div>
+	<div aria-hidden="true" class="scroll-edge-top z-30"></div>
+	<div aria-hidden="true" class="scroll-edge-bottom z-30"></div>
 
-<BackButton
-	{fallback}
-	visible={showBack}
-	class="fixed top-[calc(var(--safe-top)+var(--chrome-inset))] left-(--chrome-inset) z-40"
-/>
-<ThemeToggle
-	class="fixed top-[calc(var(--safe-top)+var(--chrome-inset))] right-(--chrome-inset) z-40"
-/>
+	<BackButton
+		{fallback}
+		visible={showBack}
+		class="fixed top-[calc(var(--safe-top)+var(--chrome-inset))] left-(--chrome-inset) z-40"
+	/>
+	{#if showTheme}
+		<ThemeToggle
+			class="fixed top-[calc(var(--safe-top)+var(--chrome-inset))] right-(--chrome-inset) z-40"
+		/>
+	{/if}
 
-<main class={['page-container', isReading && 'max-w-[42.5rem]!']}>
-	{@render children()}
-</main>
+	<main class={['page-container', isReading && 'max-w-[42.5rem]!']}>
+		{@render children()}
+	</main>
 
-<Toast bind:visible={toastVisible} message={toastMessage} tone={toastTone} duration={6000} />
+	<Toast bind:visible={toastVisible} message={toastMessage} tone={toastTone} duration={6000} />
 
-<TabBar {tabs} {current} {onselect} />
+	<TabBar {tabs} {current} {onselect} />
+</div>

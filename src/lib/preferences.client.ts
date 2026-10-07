@@ -1,6 +1,6 @@
 import { invalidate } from '$app/navigation';
 import { setThemePreference, type ThemePreference } from '#lib/theme.ts';
-import { BACK_BUTTON_COOKIE } from '#lib/preferences.ts';
+import { BACK_BUTTON_COOKIE, THEME_BUTTON_COOKIE } from '#lib/preferences.ts';
 
 const YEAR = 31_536_000;
 
@@ -19,5 +19,10 @@ export async function setAppearance(preference: ThemePreference) {
 
 export async function setBackButton(enabled: boolean) {
 	writeCookie(BACK_BUTTON_COOKIE, enabled ? null : 'off');
+	await invalidate('app:preferences');
+}
+
+export async function setThemeButton(enabled: boolean) {
+	writeCookie(THEME_BUTTON_COOKIE, enabled ? null : 'off');
 	await invalidate('app:preferences');
 }

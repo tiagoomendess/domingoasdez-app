@@ -3,6 +3,7 @@
 	import WarningCircleIcon from 'phosphor-svelte/lib/WarningCircleIcon';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
+	import DisclaimerCard from './DisclaimerCard.svelte';
 	import FeedSkeleton from './FeedSkeleton.svelte';
 	import { feedTypes } from './registry.ts';
 	import { tiposQuery, type FeedItem, type FeedType } from '#lib/feed.ts';
@@ -12,6 +13,7 @@
 		items: FeedItem[];
 		nextCursor: string | null;
 		types: FeedType[];
+		disclaimerHref?: string | null;
 		refreshing?: boolean;
 		onrefresh: () => Promise<void>;
 	};
@@ -20,6 +22,7 @@
 		items: initialItems,
 		nextCursor: initialCursor,
 		types,
+		disclaimerHref = null,
 		refreshing = false,
 		onrefresh
 	}: Props = $props();
@@ -59,10 +62,18 @@
 {#if refreshing}
 	<FeedSkeleton count={skeletonCount} />
 {:else if items.length === 0 && !loadingMore}
-	<EmptyState icon={NewspaperIcon} title={m.feed_empty_title()} description={m.feed_empty_text()} />
+	<div class="space-y-3">
+		{#if disclaimerHref}
+			<DisclaimerCard href={disclaimerHref} />
+		{/if}
+		<EmptyState icon={NewspaperIcon} title={m.feed_empty_title()} description={m.feed_empty_text()} />
+	</div>
 {:else}
 	<div class="space-y-3">
-		{#each items as item (`${item.type}-${item.id}`)}
+		{#each items as item, index (`${item.type}-${item.id}`)}
+			{#if index === 1 && disclaimerHref}
+				<DisclaimerCard href={disclaimerHref} />
+			{/if}
 			{#if item.type === 'article'}
 				{@const Card = feedTypes.article.component}
 				<Card {...item.data} />
@@ -71,6 +82,9 @@
 				<Card {...item.data} />
 			{/if}
 		{/each}
+		{#if items.length === 1 && disclaimerHref}
+			<DisclaimerCard href={disclaimerHref} />
+		{/if}
 	</div>
 
 	{#if loadingMore}
