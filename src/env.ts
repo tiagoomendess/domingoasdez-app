@@ -17,6 +17,21 @@ function optionalString(value: string | undefined) {
 	return value;
 }
 
+function optionalHttpUrl(value: string | undefined) {
+	const raw = optionalString(value);
+	if (!raw) return '';
+	let url: URL;
+	try {
+		url = new URL(raw);
+	} catch {
+		throw new Error('Must be an http(s) URL');
+	}
+	if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+		throw new Error('Must be an http(s) URL');
+	}
+	return raw;
+}
+
 export const variables = defineEnvVars({
 	DATABASE_URL: { description: 'The database connection string (legacy MySQL, read-only).' },
 	MEDIA_BASE_URL: {
@@ -31,6 +46,11 @@ export const variables = defineEnvVars({
 		description:
 			'Show the construction disclaimer as the second item on the home feed. Set to false to remove it.',
 		schema: flag(true)
+	},
+	FEEDBACK_FORM_URL: {
+		description:
+			'Public feedback form (Google Forms or similar). When set, the home-feed disclaimer links to it. Leave empty to hide the link.',
+		schema: optionalHttpUrl
 	},
 	SESSION_SECRET: {
 		description: 'HMAC secret for signed session cookies. Use a long random string in production.',

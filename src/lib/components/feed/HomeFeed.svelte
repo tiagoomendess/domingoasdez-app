@@ -3,17 +3,21 @@
 	import WarningCircleIcon from 'phosphor-svelte/lib/WarningCircleIcon';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
+	import PartnerCard from '#lib/components/partners/PartnerCard.svelte';
 	import DisclaimerCard from './DisclaimerCard.svelte';
 	import FeedSkeleton from './FeedSkeleton.svelte';
 	import { feedTypes } from './registry.ts';
 	import { tiposQuery, type FeedItem, type FeedType } from '#lib/feed.ts';
 	import { m } from '#lib/messages.ts';
+	import { partnerAfterPost, type PartnerAd } from '#lib/partners.ts';
 
 	type Props = {
 		items: FeedItem[];
 		nextCursor: string | null;
 		types: FeedType[];
+		partners?: PartnerAd[];
 		disclaimerHref?: string | null;
+		feedbackHref?: string | null;
 		refreshing?: boolean;
 		onrefresh: () => Promise<void>;
 	};
@@ -22,7 +26,9 @@
 		items: initialItems,
 		nextCursor: initialCursor,
 		types,
+		partners = [],
 		disclaimerHref = null,
+		feedbackHref = null,
 		refreshing = false,
 		onrefresh
 	}: Props = $props();
@@ -64,15 +70,20 @@
 {:else if items.length === 0 && !loadingMore}
 	<div class="space-y-3">
 		{#if disclaimerHref}
-			<DisclaimerCard href={disclaimerHref} />
+			<DisclaimerCard href={disclaimerHref} {feedbackHref} />
 		{/if}
-		<EmptyState icon={NewspaperIcon} title={m.feed_empty_title()} description={m.feed_empty_text()} />
+		<EmptyState
+			icon={NewspaperIcon}
+			title={m.feed_empty_title()}
+			description={m.feed_empty_text()}
+		/>
 	</div>
 {:else}
 	<div class="space-y-3">
 		{#each items as item, index (`${item.type}-${item.id}`)}
+			{@const partner = partnerAfterPost(partners, index)}
 			{#if index === 1 && disclaimerHref}
-				<DisclaimerCard href={disclaimerHref} />
+				<DisclaimerCard href={disclaimerHref} {feedbackHref} />
 			{/if}
 			{#if item.type === 'article'}
 				{@const Card = feedTypes.article.component}
@@ -81,9 +92,12 @@
 				{@const Card = feedTypes.poll.component}
 				<Card {...item.data} />
 			{/if}
+			{#if partner}
+				<PartnerCard {partner} />
+			{/if}
 		{/each}
 		{#if items.length === 1 && disclaimerHref}
-			<DisclaimerCard href={disclaimerHref} />
+			<DisclaimerCard href={disclaimerHref} {feedbackHref} />
 		{/if}
 	</div>
 

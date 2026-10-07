@@ -458,3 +458,23 @@ export const uuidKarmas = mysqlTable('uuid_karmas', {
 	createdAt: timestamp('created_at'),
 	updatedAt: timestamp('updated_at')
 });
+
+/** Direct-sold ads. Lower `priority` is shown first. Clicks are written to `partner_clicks`. */
+export const partners = mysqlTable('partners', {
+	id: int('id', { unsigned: true }).primaryKey().autoincrement(),
+	name: varchar('name', { length: 50 }).notNull(),
+	url: varchar('url', { length: 150 }).notNull(),
+	picture: varchar('picture', { length: 255 }).notNull(),
+	priority: int('priority', { unsigned: true }).notNull(),
+	visible: boolean('visible').notNull().default(true),
+	createdAt: timestamp('created_at'),
+	updatedAt: timestamp('updated_at')
+});
+
+export const partnerClicks = mysqlTable('partner_clicks', {
+	id: bigint('id', { mode: 'number', unsigned: true }).primaryKey().autoincrement(),
+	partnerId: int('partner_id', { unsigned: true }).notNull(),
+	page: varchar('page', { length: 155 }),
+	createdAt: timestamp('created_at'),
+	updatedAt: timestamp('updated_at')
+});

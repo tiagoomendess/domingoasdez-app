@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
 	import ChartBarHorizontalIcon from 'phosphor-svelte/lib/ChartBarHorizontalIcon';
+	import PartnerGrid from '#lib/components/partners/PartnerGrid.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import Recaptcha from '#lib/components/ui/Recaptcha.svelte';
 	import ListGroup from '#lib/components/ui/ListGroup.svelte';
@@ -204,6 +205,8 @@
 		{/if}
 	</p>
 </article>
+
+<PartnerGrid partners={data.partners} />
 
 {#if poll.editHref}
 	<div class="mt-6">

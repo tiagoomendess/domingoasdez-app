@@ -1,18 +1,22 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { m } from '#lib/messages.ts';
 import { captchaSiteKey } from '#lib/server/captcha.ts';
+import { listVisiblePartners } from '#lib/server/partners.ts';
 import { loadPollPage, voteOnPoll } from '#lib/server/polls.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, cookies, locals }) => {
-	const poll = await loadPollPage({
-		slug: params.slug,
-		user: locals.user,
-		cookies,
-		recaptchaSiteKey: captchaSiteKey()
-	});
+	const [poll, partners] = await Promise.all([
+		loadPollPage({
+			slug: params.slug,
+			user: locals.user,
+			cookies,
+			recaptchaSiteKey: captchaSiteKey()
+		}),
+		listVisiblePartners()
+	]);
 	if (!poll) error(404, m.poll_not_found());
-	return { poll };
+	return { poll, partners };
 };
 
 export const actions: Actions = {

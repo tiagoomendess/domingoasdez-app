@@ -1,5 +1,6 @@
 <script lang="ts">
 	import ArticleMedia from '#lib/components/articles/ArticleMedia.svelte';
+	import PartnerGrid from '#lib/components/partners/PartnerGrid.svelte';
 	import { formatArticleDate } from '#lib/format.ts';
 	import { m } from '#lib/messages.ts';
 	import type { PageProps } from './$types';
@@ -57,3 +58,5 @@
 		{@html article.html}
 	</div>
 </article>
+
+<PartnerGrid partners={data.partners} />
