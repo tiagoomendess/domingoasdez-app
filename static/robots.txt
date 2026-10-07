@@ -1,3 +1,23 @@
-# allow crawling everything by default
+# https://domingoasdez.com — public news, games, competitions, clubs, polls.
+# Private account flows, APIs, demos, and redirect-only URLs stay out of the index.
+
 User-agent: *
-Disallow:
+Allow: /
+
+# Sign-in, register, profile, OAuth callbacks
+Disallow: /conta/
+
+# Design system and Playwright demo pages
+Disallow: /design/
+Disallow: /demo/
+
+# JSON APIs and partner click trackers (not pages)
+Disallow: /api/
+Disallow: /parceiros/
+
+# Guest score-report forms
+Disallow: /score-reports/
+
+# Legacy redirects → /jogos (crawl the canonical Games tab instead)
+Disallow: /hoje
+Disallow: /direto
