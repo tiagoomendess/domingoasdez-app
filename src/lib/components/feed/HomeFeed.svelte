@@ -5,6 +5,7 @@
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import PartnerCard from '#lib/components/partners/PartnerCard.svelte';
+	import { adSlots, feedAdAtIndex } from '#lib/ads.ts';
 	import DisclaimerCard from './DisclaimerCard.svelte';
 	import FeedSkeleton from './FeedSkeleton.svelte';
 	import { feedTypes } from './registry.ts';
@@ -93,8 +94,8 @@
 				{@const Card = feedTypes.poll.component}
 				<Card {...item.data} />
 			{/if}
-			{#if index === 0}
-				<AdSenseUnit adSlot="6406546239" />
+			{#if feedAdAtIndex(index)}
+				<AdSenseUnit adSlot={adSlots.auto} />
 			{/if}
 			{#if partner}
 				<PartnerCard {partner} />

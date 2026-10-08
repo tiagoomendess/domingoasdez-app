@@ -4,6 +4,7 @@
 	import CalendarXIcon from 'phosphor-svelte/lib/CalendarXIcon';
 	import InfoIcon from 'phosphor-svelte/lib/InfoIcon';
 	import PaperPlaneTiltIcon from 'phosphor-svelte/lib/PaperPlaneTiltIcon';
+	import AdSenseUnit from '#lib/components/ads/AdSenseUnit.svelte';
 	import DateRail from '#lib/components/games/DateRail.svelte';
 	import MatchGroup from '#lib/components/games/MatchGroup.svelte';
 	import MonthPicker from '#lib/components/games/MonthPicker.svelte';
@@ -15,6 +16,7 @@
 	import Sheet from '#lib/components/ui/Sheet.svelte';
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import type { Match } from '#lib/components/types.ts';
+	import { adSlots } from '#lib/ads.ts';
 	import { addDays, formatDayMonth } from '#lib/format.ts';
 	import { m } from '#lib/messages.ts';
 	import type { PageProps } from './$types';
@@ -200,6 +202,12 @@
 	/>
 </div>
 
+{#if !loading && !isEmpty && adSlots.horizontal}
+	<div class="mb-4">
+		<AdSenseUnit adSlot={adSlots.horizontal} shape="horizontal" />
+	</div>
+{/if}
+
 <Sheet bind:open={sheetOpen} title={m.date_pick()}>
 	<MonthPicker
 		selected={data.selected}
@@ -313,6 +321,9 @@
 					{/if}
 				{/snippet}
 			</EmptyState>
+			<div class="mt-4">
+				<AdSenseUnit adSlot={adSlots.auto} />
+			</div>
 		{/if}
 	</div>
 {/if}

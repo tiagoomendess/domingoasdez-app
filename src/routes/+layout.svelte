@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import './layout.css';
 	import { page } from '$app/state';
 	import AnalyticsPageViews from '#lib/components/analytics/AnalyticsPageViews.svelte';
@@ -8,6 +9,20 @@
 	let { children } = $props();
 
 	const bare = $derived(page.url.pathname.startsWith('/design'));
+
+	// PWA standalone: black-translucent draws under the status bar and clips chrome.
+	// Switch to default so the viewport starts below the status bar.
+	onMount(() => {
+		const nav = navigator as Navigator & { standalone?: boolean };
+		const standalone =
+			window.matchMedia('(display-mode: standalone)').matches || Boolean(nav.standalone);
+		if (!standalone) return;
+		for (const meta of document.querySelectorAll(
+			'meta[name="apple-mobile-web-app-status-bar-style"]'
+		)) {
+			meta.setAttribute('content', 'default');
+		}
+	});
 </script>
 
 <AnalyticsPageViews />

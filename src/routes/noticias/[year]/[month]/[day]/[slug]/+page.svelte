@@ -3,6 +3,7 @@
 	import AdSenseUnit from '#lib/components/ads/AdSenseUnit.svelte';
 	import ArticleMedia from '#lib/components/articles/ArticleMedia.svelte';
 	import PartnerGrid from '#lib/components/partners/PartnerGrid.svelte';
+	import { adSlots } from '#lib/ads.ts';
 	import { formatArticleDate } from '#lib/format.ts';
 	import { m } from '#lib/messages.ts';
 	import type { PageProps } from './$types';
@@ -56,6 +57,12 @@
 		<p class="mt-3 text-callout text-ink-secondary">{article.description}</p>
 	{/if}
 
+	{#key page.url.pathname}
+		<div class="mt-6">
+			<AdSenseUnit adSlot={adSlots.auto} />
+		</div>
+	{/key}
+
 	<div class="prose mt-6 max-w-none rich-text">
 		{@html article.html}
 	</div>
@@ -63,7 +70,7 @@
 
 {#key page.url.pathname}
 	<div class="mt-6">
-		<AdSenseUnit adSlot="7397948298" />
+		<AdSenseUnit adSlot={adSlots.articleEnd} />
 	</div>
 {/key}
 

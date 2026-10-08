@@ -1,4 +1,6 @@
 <script lang="ts">
+	import AdSenseUnit from '#lib/components/ads/AdSenseUnit.svelte';
+	import { adSlots } from '#lib/ads.ts';
 	import { m } from '#lib/messages.ts';
 	import type { PageProps } from './$types';
 
@@ -35,7 +37,17 @@
 
 	<h1 class="text-title-1 text-ink">{page.title}</h1>
 
+	{#if adSlots.horizontal}
+		<div class="mt-6">
+			<AdSenseUnit adSlot={adSlots.horizontal} shape="horizontal" />
+		</div>
+	{/if}
+
 	<div class="prose mt-6 max-w-none rich-text">
 		{@html page.html}
 	</div>
 </article>
+
+<div class="mt-6">
+	<AdSenseUnit adSlot={adSlots.auto} />
+</div>

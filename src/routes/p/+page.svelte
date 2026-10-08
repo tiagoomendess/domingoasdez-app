@@ -1,8 +1,10 @@
 <script lang="ts">
 	import FilesIcon from 'phosphor-svelte/lib/FilesIcon';
+	import AdSenseUnit from '#lib/components/ads/AdSenseUnit.svelte';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
 	import ListGroup from '#lib/components/ui/ListGroup.svelte';
 	import ListRow from '#lib/components/ui/ListRow.svelte';
+	import { adSlots } from '#lib/ads.ts';
 	import { m } from '#lib/messages.ts';
 	import type { PageProps } from './$types';
 
@@ -48,4 +50,8 @@
 		<ListRow title={m.pages_terms()} href="/termos-e-condicoes" />
 		<ListRow title={m.pages_rgpd()} href="/rgpd" />
 	</ListGroup>
+</div>
+
+<div class="mt-6">
+	<AdSenseUnit adSlot={adSlots.auto} />
 </div>
