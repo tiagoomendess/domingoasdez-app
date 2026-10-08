@@ -15,6 +15,7 @@
 		parentOf,
 		type TabId
 	} from '#lib/navigation.svelte.ts';
+	import { m } from '#lib/messages.ts';
 
 	type Props = {
 		children: Snippet;
@@ -23,6 +24,7 @@
 	let { children }: Props = $props();
 
 	const pathname = $derived(page.url.pathname);
+	const copyrightYear = new Date().getFullYear();
 	const tabs = $derived(getTabs(page.data.user ?? null));
 	const current = $derived(getActiveTab(pathname));
 	const backEnabled = $derived(page.data.preferences?.backButton ?? true);
@@ -79,6 +81,10 @@
 
 	<main class={['page-container', isReading && 'max-w-[42.5rem]!']}>
 		{@render children()}
+		<!-- Real <footer> so Funding Choices can park the privacy/cookie link here instead of floating. -->
+		<footer class="mt-10 border-t border-line pt-4 text-center text-footnote text-ink-tertiary">
+			© 2014–{copyrightYear} {m.feed_brand()}
+		</footer>
 	</main>
 
 	<Toast bind:visible={toastVisible} message={toastMessage} tone={toastTone} duration={6000} />
