@@ -9,11 +9,11 @@ import { parseTipos } from '#lib/feed.ts';
 import { getFeedPage } from '#lib/server/feed/index.ts';
 import { listVisiblePartners } from '#lib/server/partners.ts';
 
-export const load: PageServerLoad = async ({ url, cookies, locals }) => {
+export const load: PageServerLoad = async ({ url, cookies }) => {
 	const types = parseTipos(url.searchParams.get('tipos'));
 	const [page, partners] = await Promise.all([
 		getFeedPage({ types, cookies }),
-		locals.showAds ? listVisiblePartners() : Promise.resolve([])
+		listVisiblePartners()
 	]);
 	const legacyOrigin = (LEGACY_BASE_URL || MEDIA_BASE_URL || '').replace(/\/$/, '');
 

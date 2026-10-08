@@ -34,7 +34,6 @@ export const load: LayoutServerLoad = ({ cookies, depends, locals }) => {
 
 	return {
 		user: locals.user,
-		showAds: locals.showAds,
 		preferences: {
 			theme: parseThemeCookie(cookies.get('theme')),
 			backButton: parseBackButtonCookie(cookies.get(BACK_BUTTON_COOKIE)),
