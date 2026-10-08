@@ -66,10 +66,10 @@
 <BackButton
 	fallback="/"
 	visible={showBack}
-	class="fixed top-[calc(var(--safe-top)+var(--chrome-inset))] left-(--chrome-inset) z-40"
+	class="fixed top-(--chrome-top) left-(--chrome-inset) z-40"
 />
 <ThemeToggle
-	class="fixed top-[calc(var(--safe-top)+var(--chrome-inset))] right-(--chrome-inset) z-40"
+	class="fixed top-(--chrome-top) right-(--chrome-inset) z-40"
 	ontoggle={(preference) => (appearance = preference)}
 />
 

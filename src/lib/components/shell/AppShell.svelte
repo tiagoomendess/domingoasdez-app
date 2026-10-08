@@ -1,7 +1,9 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import { onMount } from 'svelte';
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/state';
+	import { watchTopAnchorOffset } from '#lib/top-anchor.ts';
 	import BackButton from './BackButton.svelte';
 	import NavigationProgress from './NavigationProgress.svelte';
 	import ThemeToggle from './ThemeToggle.svelte';
@@ -61,9 +63,11 @@
 	function onselect(id: string) {
 		setLastTab(id as TabId);
 	}
+
+	onMount(() => watchTopAnchorOffset());
 </script>
 
-<div class={['contents', noTopChrome && 'no-top-chrome']}>
+<div data-app-root class={['contents', noTopChrome && 'no-top-chrome']}>
 	<NavigationProgress />
 
 	<div aria-hidden="true" class="scroll-edge-top z-30"></div>
@@ -72,12 +76,10 @@
 	<BackButton
 		{fallback}
 		visible={showBack}
-		class="fixed top-[calc(var(--safe-top)+var(--chrome-inset))] left-(--chrome-inset) z-40"
+		class="fixed top-(--chrome-top) left-(--chrome-inset) z-40"
 	/>
 	{#if showTheme}
-		<ThemeToggle
-			class="fixed top-[calc(var(--safe-top)+var(--chrome-inset))] right-(--chrome-inset) z-40"
-		/>
+		<ThemeToggle class="fixed top-(--chrome-top) right-(--chrome-inset) z-40" />
 	{/if}
 
 	<main class={['page-container', isReading && 'max-w-[42.5rem]!']}>

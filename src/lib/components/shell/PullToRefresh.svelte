@@ -106,7 +106,7 @@
 	<div
 		aria-live="polite"
 		aria-atomic="true"
-		class="pointer-events-none fixed top-[calc(var(--safe-top)+var(--chrome-inset)+0.25rem)] left-1/2 z-30 -translate-x-1/2"
+		class="pointer-events-none fixed top-[calc(var(--chrome-top)+0.25rem)] left-1/2 z-30 -translate-x-1/2"
 		style:opacity={pull.current > 8 || refreshing ? 1 : 0}
 		style:transform="translate(-50%, {Math.min(pull.current, THRESHOLD) * 0.35}px)"
 	>

@@ -184,6 +184,10 @@
 	--chrome-inset: 0.75rem;
 	--chrome-button: 2.75rem;
 	--tabbar-height: 4rem;
+	/* Set from the top anchor ad: open is tall, collapsed is short, ads off is 0. */
+	--anchor-offset: 0px;
+	/* Sit below the status bar, or below the anchor when that reaches further down. */
+	--chrome-top: calc(var(--chrome-inset) + max(var(--safe-top), var(--anchor-offset)));
 	--content-top: calc(var(--safe-top) + var(--chrome-inset) + var(--chrome-button) + 0.75rem);
 	--chrome-fade: calc(var(--safe-top) + var(--chrome-inset) + var(--chrome-button) + 1rem);
 	--content-bottom: calc(var(--safe-bottom) + var(--chrome-inset) + var(--tabbar-height) + 1.5rem);
@@ -314,7 +318,7 @@
 @utility scroll-edge-top {
 	position: fixed;
 	inset-inline: 0;
-	top: 0;
+	top: var(--anchor-offset);
 	height: var(--chrome-fade);
 	background: linear-gradient(to bottom, var(--canvas) 20%, transparent);
 	pointer-events: none;

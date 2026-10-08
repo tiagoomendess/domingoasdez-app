@@ -14,7 +14,7 @@
 {#if pending}
 	<div
 		class="nav-progress pointer-events-none fixed inset-x-0 z-50 h-[3px] overflow-hidden"
-		style:top="var(--safe-top)"
+		style:top="max(var(--safe-top), var(--anchor-offset))"
 		role="progressbar"
 		aria-label={m.loading()}
 	>
