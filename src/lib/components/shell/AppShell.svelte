@@ -6,6 +6,7 @@
 	import NavigationProgress from './NavigationProgress.svelte';
 	import ThemeToggle from './ThemeToggle.svelte';
 	import TabBar from './TabBar.svelte';
+	import AdSenseTopAnchor from '#lib/components/ads/AdSenseTopAnchor.svelte';
 	import Toast from '#lib/components/ui/Toast.svelte';
 	import {
 		getTabs,
@@ -26,6 +27,7 @@
 
 	const pathname = $derived(page.url.pathname);
 	const copyrightYear = new Date().getFullYear();
+	const showAds = $derived(page.data.showAds !== false);
 	const tabs = $derived(getTabs(page.data.user ?? null));
 	const current = $derived(getActiveTab(pathname));
 	const backEnabled = $derived(page.data.preferences?.backButton ?? true);
@@ -64,6 +66,10 @@
 </script>
 
 <div class={['contents', noTopChrome && 'no-top-chrome']}>
+	{#if showAds}
+		<AdSenseTopAnchor />
+	{/if}
+
 	<NavigationProgress />
 
 	<div aria-hidden="true" class="scroll-edge-top z-30"></div>
@@ -72,11 +78,11 @@
 	<BackButton
 		{fallback}
 		visible={showBack}
-		class="fixed top-[calc(var(--safe-top)+var(--chrome-inset))] left-(--chrome-inset) z-40"
+		class="fixed top-[calc(var(--adsense-top-pad,var(--safe-top))+var(--chrome-inset))] left-(--chrome-inset) z-40"
 	/>
 	{#if showTheme}
 		<ThemeToggle
-			class="fixed top-[calc(var(--safe-top)+var(--chrome-inset))] right-(--chrome-inset) z-40"
+			class="fixed top-[calc(var(--adsense-top-pad,var(--safe-top))+var(--chrome-inset))] right-(--chrome-inset) z-40"
 		/>
 	{/if}
 
@@ -84,13 +90,15 @@
 		{@render children()}
 		<footer class="mt-10 border-t border-line pt-4 text-center text-footnote text-ink-tertiary">
 			<p>© 2014–{copyrightYear} {m.feed_brand()}</p>
-			<button
-				type="button"
-				class="mt-1 font-medium text-accent-text hover:underline"
-				onclick={showPrivacySettings}
-			>
-				{m.pages_privacy_cookie_settings()}
-			</button>
+			{#if showAds}
+				<button
+					type="button"
+					class="mt-1 font-medium text-accent-text hover:underline"
+					onclick={showPrivacySettings}
+				>
+					{m.pages_privacy_cookie_settings()}
+				</button>
+			{/if}
 		</footer>
 	</main>
 

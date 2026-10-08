@@ -326,6 +326,12 @@
 	--chrome-fade: calc(var(--safe-top) + var(--chrome-inset));
 }
 
+/* Body already has AdSense top-anchor padding — keep only a small content gap. */
+html.adsense-top-anchor {
+	--content-top: var(--chrome-inset);
+	--chrome-fade: var(--chrome-inset);
+}
+
 @utility scroll-edge-bottom {
 	position: fixed;
 	inset-inline: 0;
@@ -465,10 +471,4 @@ textarea,
 select,
 [contenteditable]:not([contenteditable='false']) {
 	font-size: max(16px, var(--text-body));
-}
-
-/* Funding Choices injects a floating control when it cannot park in the footer.
-   Hide it; the revocation link is in AppShell's <footer>. */
-.google-revocation-link-placeholder {
-	display: none !important;
 }
