@@ -314,13 +314,18 @@
 		var(--glass-shadow);
 }
 
-/* Fades content where it slides under the floating chrome, instead of a hard divider */
+/* Fades content where it slides under the floating chrome, instead of a hard divider.
+   Solid through the top anchor so a transparent edge of the ad cannot show the page. */
 @utility scroll-edge-top {
 	position: fixed;
 	inset-inline: 0;
-	top: var(--anchor-offset);
-	height: var(--chrome-fade);
-	background: linear-gradient(to bottom, var(--canvas) 20%, transparent);
+	top: 0;
+	height: calc(var(--anchor-offset) + var(--chrome-fade));
+	background: linear-gradient(
+		to bottom,
+		var(--canvas) calc(var(--anchor-offset) + var(--chrome-fade) * 0.2),
+		transparent
+	);
 	pointer-events: none;
 }
 
