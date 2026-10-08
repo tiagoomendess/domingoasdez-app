@@ -15,6 +15,7 @@
 		parentOf,
 		type TabId
 	} from '#lib/navigation.svelte.ts';
+	import { showPrivacySettings } from '#lib/google.ts';
 	import { m } from '#lib/messages.ts';
 
 	type Props = {
@@ -81,9 +82,15 @@
 
 	<main class={['page-container', isReading && 'max-w-[42.5rem]!']}>
 		{@render children()}
-		<!-- Real <footer> so Funding Choices can park the privacy/cookie link here instead of floating. -->
 		<footer class="mt-10 border-t border-line pt-4 text-center text-footnote text-ink-tertiary">
-			© 2014–{copyrightYear} {m.feed_brand()}
+			<p>© 2014–{copyrightYear} {m.feed_brand()}</p>
+			<button
+				type="button"
+				class="mt-1 font-medium text-accent-text hover:underline"
+				onclick={showPrivacySettings}
+			>
+				{m.pages_privacy_cookie_settings()}
+			</button>
 		</footer>
 	</main>
 

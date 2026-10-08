@@ -466,3 +466,9 @@ select,
 [contenteditable]:not([contenteditable='false']) {
 	font-size: max(16px, var(--text-body));
 }
+
+/* Funding Choices injects a floating control when it cannot park in the footer.
+   Hide it; the revocation link is in AppShell's <footer>. */
+.google-revocation-link-placeholder {
+	display: none !important;
+}
