@@ -16,7 +16,11 @@ The tokens described here are implemented in `src/routes/layout.css` (Tailwind v
 
 ---
 
+
+
 ## 2. Foundations
+
+
 
 ### 2.1 Colour
 
@@ -25,6 +29,7 @@ The brand palette comes from the legacy site: blue `#107db7` / `#0573a6`, gold `
 **Brand scales** (static, same in both themes): `brand-50…950` (600 = `#107db7`), `gold-300…700`, `pitch-400…600`. Use them only for illustrations, emblem plates or one-off brand moments. UI code should use the semantic tokens below.
 
 **Semantic tokens** (these swap automatically between light and dark):
+
 
 | Token (Tailwind name)  | Light        | Dark           | Use                                        |
 | ---------------------- | ------------ | -------------- | ------------------------------------------ |
@@ -47,17 +52,21 @@ The brand palette comes from the legacy site: blue `#107db7` / `#0573a6`, gold `
 | `danger`               | `#c62828`    | `#ff6b61`      | Errors, destructive actions                |
 | `scrim`                | 32% black    | 50% black      | Behind modal sheets                        |
 
+
 Rules:
 
 - Text contrast targets WCAG AA: 4.5:1 for body text and 3:1 for large text and UI shapes. `ink-tertiary` is the lightest colour allowed for readable text.
 - Gold fails contrast as text on white. Use it only as a fill or accent (for example, the leading bar of a poll result or a "featured" marker), never for text.
 - Do not use blue to mean "finished". The legacy site did; here, finished games are neutral so that live games stand out.
 
+
+
 ### 2.2 Typography
 
 Use the **system font stack** (`font-sans`): SF Pro on Apple devices, Segoe UI Variable on Windows, Roboto on Android. It loads instantly, is the most Apple-like option on the web, and already handles optical sizing.
 
 Each style sets size, line height, tracking and weight together (`text-<name>` in Tailwind). Tracking gets tighter as the size grows.
+
 
 | Style         | Size / leading | Weight | Tracking | Use                                               |
 | ------------- | -------------- | ------ | -------- | ------------------------------------------------- |
@@ -74,11 +83,14 @@ Each style sets size, line height, tracking and weight together (`text-<name>` i
 | `tab`         | 11 / 1.1       | 600    | +0.01em  | Tab bar labels only                               |
 | `scoreboard`  | 48 / 1         | 700    | −0.03em  | Score on the game detail page                     |
 
+
 - Scores, times, dates and table numbers always use `tabular-nums`, so digits don't shift when a live score changes.
 - Use weight for emphasis, not size. In a finished game, the winning team's name and score are `ink` at weight 600; the loser is `ink-secondary` at weight 400.
 - Spacing uses `rem`, so the layout grows with the user's text-size setting.
 - **Form fields are never smaller than 16px.** iOS Safari zooms the whole page when you focus a field below 16px. Every text input, textarea, select and editable area uses the `body` size (17px), floored at 16px. `layout.css` enforces this outside Tailwind's layers, so a utility like `text-footnote` on an input has no effect. Don't try to shrink a field; if a compact field is ever needed, make it shorter (less padding), not smaller text.
 - **Never stop zoom with the viewport meta.** No `maximum-scale=1` or `user-scalable=no`: on Android they block pinch-to-zoom, which fails WCAG 1.4.4 (resize text). Double-tap zoom is turned off with `touch-action: manipulation` on `<html>` instead, which keeps pinch-to-zoom working.
+
+
 
 ### 2.3 Spacing and layout
 
@@ -89,15 +101,20 @@ Each style sets size, line height, tracking and weight together (`text-<name>` i
 
 Breakpoints (mobile first):
 
+
 | Width  | Behaviour                                                                                                                                              |
 | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | < 768  | Single column. Full-width cards.                                                                                                                       |
 | ≥ 768  | Wider gutters. Competition and page lists can become 2-column card grids.                                                                              |
 | ≥ 1024 | Games show competition groups in a 2-column masonry. The feed stays single column (it's for reading). The tab bar shows icons and labels side by side. |
 
+
+
+
 ### 2.4 Shape
 
 Corners are **concentric**: a nested element's radius equals its parent's radius minus the parent's padding, which is the Liquid Glass look.
+
 
 | Token           | Value   | Use                                                   |
 | --------------- | ------- | ----------------------------------------------------- |
@@ -107,6 +124,9 @@ Corners are **concentric**: a nested element's radius equals its parent's radius
 | `rounded-field` | 14 px   | Text fields, segmented control                        |
 | `rounded-inner` | 12 px   | Images inside cards (a 22 px card with 10 px padding) |
 | `rounded-badge` | 8 px    | Small square badges, logo plates                      |
+
+
+
 
 ### 2.5 Materials and depth
 
@@ -122,9 +142,12 @@ Rules:
 - No 1 px divider under the floating chrome. Use the `scroll-edge-top` and `scroll-edge-bottom` gradients so content fades softly where it slides under the buttons and tab bar.
 - Glass falls back to solid `surface` automatically when `backdrop-filter` is unsupported, when the user prefers reduced transparency, or when they prefer more contrast (which also strengthens the borders). This is already handled in the CSS.
 
+
+
 ### 2.6 Motion
 
 Motion should feel physical: it responds instantly, can be interrupted, and uses springs for anything the user drags.
+
 
 | Token         | Value                       | Use                                                                     |
 | ------------- | --------------------------- | ----------------------------------------------------------------------- |
@@ -136,11 +159,14 @@ Motion should feel physical: it responds instantly, can be interrupted, and uses
 | `ease-snappy` | `cubic-bezier(.2,.9,.1,1)`  | Press, chips, small UI                                                  |
 | `ease-exit`   | `cubic-bezier(.4,0,1,1)`    | Things leaving the screen                                               |
 
+
 - **Springs** for gestures and anything that can be interrupted (pull-to-refresh, sheet drag, the tab bar selection indicator). Use Svelte's built-in `Spring` from `svelte/motion`, so no extra dependency is needed. Default to no bounce. Add a little bounce only after a flick.
 - **Glass materialises.** It arrives with opacity 0→1, scale 0.9→1 and blur, rather than a plain fade.
 - **Page transitions** use the View Transitions API through SvelteKit's `onNavigate`. Going deeper slides content in from the right; going back reverses it. Switching tabs cross-fades because tabs are peers. The tab bar and floating buttons have their own `view-transition-name`, so they stay still while pages change.
 - **Live score change**: the old digit rolls up and out, the new one rolls in from below, and the row briefly flashes `live-tint` (600 ms).
 - **Reduced motion** (`prefers-reduced-motion`): slides and springs become 150 ms cross-fades, there's no overshoot or shake, and the live dot stays solid instead of pulsing.
+
+
 
 ### 2.7 Iconography
 
@@ -151,6 +177,8 @@ Motion should feel physical: it responds instantly, can be interrupted, and uses
 Tab icons: Home `House`, Games `SoccerBall`, Competitions `Trophy`, Pages `Files`, Account `UserCircle`. When the user is logged in, the Account tab shows their avatar instead.
 
 ---
+
+
 
 ## 3. App shell
 
@@ -169,6 +197,8 @@ Tab icons: Home `House`, Games `SoccerBall`, Competitions `Trophy`, Pages `Files
 └──────────────────────────────────┘
 ```
 
+
+
 ### 3.1 Floating buttons (the only top-of-page chrome)
 
 - **Back** (top left): 44 px glass circle with a left-chevron icon. Hidden on the five tab roots. It materialises in and out (240 ms) instead of jumping.
@@ -178,6 +208,8 @@ Tab icons: Home `House`, Games `SoccerBall`, Competitions `Trophy`, Pages `Files
   - By default the app follows the system setting. Once toggled, the choice is saved in a `theme` cookie, which the script in `app.html` reads before paint, so there's no flash.
   - Account → Appearance has three options (Automatic / Light / Dark), so users can go back to following the system.
 - Position: `top: safe-top + 12px`, `left/right: 12px`. Both buttons sit above the `scroll-edge-top` fade.
+
+
 
 ### 3.2 Bottom tab bar
 
@@ -190,9 +222,12 @@ Tab icons: Home `House`, Games `SoccerBall`, Competitions `Trophy`, Pages `Files
 - Markup: `<nav aria-label>` with links, `aria-current="page"` on the active one.
 - Optional, later: the bar compacts (labels hide, height 64→52) while scrolling down the feed and expands when scrolling up, as in iOS 26.
 
+
+
 ### 3.3 Navigation model
 
 Each tab owns a stack of pages, like iOS. The **active tab is the one the user last tapped**, and it stays active as they go deeper. For example, opening a club from a game keeps "Jogos" highlighted. On a fresh page load (deep link), the tab and the back button's parent come from this URL map:
+
 
 | Tab         | Root           | Also owns                                                                                                     |
 | ----------- | -------------- | ------------------------------------------------------------------------------------------------------------- |
@@ -202,9 +237,12 @@ Each tab owns a stack of pages, like iOS. The **active tab is the one the user l
 | Páginas     | `/p`           | `/p/{slug}`, legal pages (privacy, terms, GDPR)                                                               |
 | Conta       | `/conta`       | Login, register, profile editing, account deletion                                                            |
 
+
 Game URLs live under `/competicoes/...` in the legacy site, so a deep link to a game highlights Competições. Once a user taps a tab, the "last tapped tab" rule takes over.
 
 ---
+
+
 
 ## 4. Components
 
@@ -212,23 +250,27 @@ Primitives are in `src/lib/components/ui/`, the shell in `.../shell/`, and domai
 
 ### 4.1 Primitives
 
-| Component               | Spec                                                                                                                                                                                                                                                                                                           | States                                                                                                                                                                      |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Button**              | Capsule. Heights 44 (md) and 52 (lg). Label `callout` 600. Variants: `filled` (accent), `tinted` (accent-tint + accent-text), `outline` (surface + line-strong ring), `plain` (text only), `destructive` (danger).                                                                                           | Rest, pressed (scale 0.97), focus ring, disabled (40% opacity), loading (spinner replaces the label, width stays fixed)                                                     |
-| **IconButton**          | 44 px circle. Variants: `glass` (chrome), `fill`, `plain`. Requires `aria-label`.                                                                                                                                                                                                                              | Same as Button                                                                                                                                                              |
-| **Chip**                | Capsule, 36 px tall, `subhead` 500, optional 16 px leading icon. Unselected: `fill` + `ink`. Selected: `accent` + `accent-fg`.                                                                                                                                                                                 | Rest, pressed, selected, rejected (see ChipGroup)                                                                                                                           |
-| **ChipGroup**           | One horizontal row only (`rail` utility): it swipes horizontally and never wraps. Multi-select toggles (`aria-pressed`) in a `role="group"`. Option `minSelected` (Home uses 1).                                                                                                                               | Deselecting the last selected chip is refused: the chip shakes 3 px (`animate-reject-shake`) with a 10 ms vibration where supported. Under reduced motion there's no shake. |
-| **SegmentedControl**    | A `fill` track (`rounded-field`) with a `surface` thumb that slides with a spring. For 2–4 peer views inside a page.                                                                                                                                                                                           | Selected, pressed, disabled                                                                                                                                                 |
-| **ListGroup / ListRow** | Inset grouped list (iOS Settings style) in a `surface` card. Row is at least 52 px: leading slot (icon or logo), title (`body`), optional subtitle (`footnote`, ink-secondary), trailing slot (chevron, value, switch, badge). Separators are inset to start after the leading slot.                           | Rest, pressed (`fill` background), disabled, destructive (danger title, no chevron)                                                                                         |
-| **TextField**           | `surface-muted` fill, `rounded-field`, 52 px tall, label above (`footnote` 600), helper or error text below. Input text is always `body` (17px), so iOS never zooms on focus. No floating labels.                                                                                                              | Rest, focus (2 px accent ring), invalid (danger ring and message, checked as the user types after the first blur), disabled                                                 |
-| **Switch**              | 51 × 31 iOS-style. On = `success`.                                                                                                                                                                                                                                                                             | On, off, disabled                                                                                                                                                           |
-| **StatusPill**          | Capsule, `caption`. Variants: `live` (pulsing dot + live colour), `warmup`, `finished` (neutral), `postponed` (warning), `open`, `closed`.                                                                                                                                                                     | —                                                                                                                                                                           |
-| **Emblem**              | Competition logos sit on a white plate (`rounded-badge`, or a circle) with a hairline ring, because many are JPEGs. Club emblems are PNGs and have no plate in either theme (`plate={false}`). The image uses `object-contain`. Sizes 24 / 32 / 40 / 72. Missing image: initials. | Loading (`fill` placeholder), error (initials)                                                                                                                              |
-| **Avatar**              | Circular user photo, sizes 28 / 40 / 72, initials fallback.                                                                                                                                                                                                                                                    | —                                                                                                                                                                           |
-| **Skeleton**            | `fill` blocks shaped like the content. A gentle opacity pulse with no shimmer, and static under reduced motion.                                                                                                                                                                                                | —                                                                                                                                                                           |
-| **EmptyState**          | Centred 48 px icon in `ink-tertiary`, a `headline` title, `subhead` text, and an optional action.                                                                                                                                                                                                              | —                                                                                                                                                                           |
-| **Sheet**               | Native `<dialog>` (focus trap and Esc for free). Phones: a bottom sheet with `glass-thick`, `rounded-sheet` top corners, a grab handle, drag-to-dismiss with velocity and a spring, and a `scrim`. ≥ 768 px: a centred dialog, max 440 px wide.                                                                | Opening, open, dragging, closing                                                                                                                                            |
-| **Toast**               | A `glass` capsule just above the tab bar, `subhead` text, optional icon. Disappears after 3 s; swipe down to dismiss. Announced through an `aria-live="polite"` region.                                                                                                                                        | Info, success, error                                                                                                                                                        |
+
+| Component               | Spec                                                                                                                                                                                                                                                                                 | States                                                                                                                                                                      |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Button**              | Capsule. Heights 44 (md) and 52 (lg). Label `callout` 600. Variants: `filled` (accent), `tinted` (accent-tint + accent-text), `outline` (surface + line-strong ring), `plain` (text only), `destructive` (danger).                                                                   | Rest, pressed (scale 0.97), focus ring, disabled (40% opacity), loading (spinner replaces the label, width stays fixed)                                                     |
+| **IconButton**          | 44 px circle. Variants: `glass` (chrome), `fill`, `plain`. Requires `aria-label`.                                                                                                                                                                                                    | Same as Button                                                                                                                                                              |
+| **Chip**                | Capsule, 36 px tall, `subhead` 500, optional 16 px leading icon. Unselected: `fill` + `ink`. Selected: `accent` + `accent-fg`.                                                                                                                                                       | Rest, pressed, selected, rejected (see ChipGroup)                                                                                                                           |
+| **ChipGroup**           | One horizontal row only (`rail` utility): it swipes horizontally and never wraps. Multi-select toggles (`aria-pressed`) in a `role="group"`. Option `minSelected` (Home uses 1).                                                                                                     | Deselecting the last selected chip is refused: the chip shakes 3 px (`animate-reject-shake`) with a 10 ms vibration where supported. Under reduced motion there's no shake. |
+| **SegmentedControl**    | A `fill` track (`rounded-field`) with a `surface` thumb that slides with a spring. For 2–4 peer views inside a page.                                                                                                                                                                 | Selected, pressed, disabled                                                                                                                                                 |
+| **ListGroup / ListRow** | Inset grouped list (iOS Settings style) in a `surface` card. Row is at least 52 px: leading slot (icon or logo), title (`body`), optional subtitle (`footnote`, ink-secondary), trailing slot (chevron, value, switch, badge). Separators are inset to start after the leading slot. | Rest, pressed (`fill` background), disabled, destructive (danger title, no chevron)                                                                                         |
+| **TextField**           | `surface-muted` fill, `rounded-field`, 52 px tall, label above (`footnote` 600), helper or error text below. Input text is always `body` (17px), so iOS never zooms on focus. No floating labels.                                                                                    | Rest, focus (2 px accent ring), invalid (danger ring and message, checked as the user types after the first blur), disabled                                                 |
+| **Switch**              | 51 × 31 iOS-style. On = `success`.                                                                                                                                                                                                                                                   | On, off, disabled                                                                                                                                                           |
+| **StatusPill**          | Capsule, `caption`. Variants: `live` (pulsing dot + live colour), `warmup`, `finished` (neutral), `postponed` (warning), `open`, `closed`.                                                                                                                                           | —                                                                                                                                                                           |
+| **Emblem**              | Competition logos sit on a white plate (`rounded-badge`, or a circle) with a hairline ring, because many are JPEGs. Club emblems are PNGs and have no plate in either theme (`plate={false}`). The image uses `object-contain`. Sizes 24 / 32 / 40 / 72. Missing image: initials.    | Loading (`fill` placeholder), error (initials)                                                                                                                              |
+| **Avatar**              | Circular user photo, sizes 28 / 40 / 72, initials fallback.                                                                                                                                                                                                                          | —                                                                                                                                                                           |
+| **Skeleton**            | `fill` blocks shaped like the content. A gentle opacity pulse with no shimmer, and static under reduced motion.                                                                                                                                                                      | —                                                                                                                                                                           |
+| **EmptyState**          | Centred 48 px icon in `ink-tertiary`, a `headline` title, `subhead` text, and an optional action.                                                                                                                                                                                    | —                                                                                                                                                                           |
+| **Sheet**               | Native `<dialog>` (focus trap and Esc for free). Phones: a bottom sheet with `glass-thick`, `rounded-sheet` top corners, a grab handle, drag-to-dismiss with velocity and a spring, and a `scrim`. ≥ 768 px: a centred dialog, max 440 px wide.                                      | Opening, open, dragging, closing                                                                                                                                            |
+| **Toast**               | A `glass` capsule just above the tab bar, `subhead` text, optional icon. Disappears after 3 s; swipe down to dismiss. Announced through an `aria-live="polite"` region.                                                                                                              | Info, success, error                                                                                                                                                        |
+
+
+
 
 ### 4.2 Shell
 
@@ -239,6 +281,8 @@ Primitives are in `src/lib/components/ui/`, the shell in `.../shell/`, and domai
   - The content follows the finger with rubber-band resistance. A 36 px glass circle with an arrow appears at the top centre, between the two floating buttons.
   - At 72 px of pull the arrow flips (with a tiny vibration where supported). Releasing past that point keeps the indicator spinning while `refreshAll()` runs, then springs back. Releasing before it springs back without refreshing.
   - Because `overscroll-behavior-y: none` is set on `<html>`, the browser's own pull-to-refresh won't fire at the same time.
+
+
 
 ### 4.3 Feed (Home)
 
@@ -263,6 +307,8 @@ The chips on Home are generated from `feedTypes`, so a new content type gets a c
   - Results visible: up to 3 horizontal result bars. The leading answer's bar is gold, the others `fill-strong`. Percentages use `tabular-nums`.
   - Voted, results not yet public: "Resultados a partir de {date}", following the legacy rule.
   - The whole card links to the poll page, which shows voting or results based on the same legacy logic (closed, voted, show-results-after).
+
+
 
 ### 4.4 Games
 
@@ -295,6 +341,8 @@ The chips on Home are generated from `feedTypes`, so a new content type gets a c
 
 ---
 
+
+
 ## 5. Page patterns
 
 Every tab root starts with a `large-title` heading in the content (it scrolls away, since there's no navbar). The tab bar handles "where am I".
@@ -326,6 +374,8 @@ Competition page: a header (Emblem 72, name, season), then a **SegmentedControl*
   - **Backoffice**: Dashboard, shown only with the `dashboard` permission. It opens the legacy backoffice.
   - **Terminar sessão**: a destructive row, with a confirmation sheet.
 
+
+
 ### Second-level patterns (how the rest of the old site stays reachable)
 
 1. A **ListRow with a chevron** pushes a sub-page.
@@ -334,6 +384,8 @@ Competition page: a header (Emblem 72, name, season), then a **SegmentedControl*
 4. **Contextual links**: game → club emblem → club → player.
 
 ---
+
+
 
 ## 6. Content and translations
 
@@ -344,6 +396,8 @@ Competition page: a header (Emblem 72, name, season), then a **SegmentedControl*
 - Voice: short, direct, second person singular ("Entra na tua conta"). Labels are specific ("Jogos do dia", not "Lista").
 
 ---
+
+
 
 ## 7. Accessibility checklist
 
@@ -357,6 +411,8 @@ Competition page: a header (Emblem 72, name, season), then a **SegmentedControl*
 
 ---
 
+
+
 ## 8. Implementation plan
 
 **Already done:**
@@ -368,7 +424,7 @@ Competition page: a header (Emblem 72, name, season), then a **SegmentedControl*
 - `src/lib/components/games/`: DateRail, MatchGroup, MatchRow. `src/lib/components/feed/`: ArticleCard, PollCard.
 - `src/lib/theme.ts` (theme cookie and switching), `src/lib/format.ts` (dates and times, always in `Europe/Lisbon` for games), `src/lib/motion.ts` (materialise and score-roll transitions).
 - `src/lib/messages.ts`: a pt-PT stand-in with Paraglide's `m.key()` call shape, so adding Paraglide only means swapping the import.
-- **`/design`**: a living style guide that renders every token and component above with sample data, plus the real floating chrome. Not linked from the app and marked `noindex`.
+- `/design`: a living style guide that renders every token and component above with sample data, plus the real floating chrome. Not linked from the app and marked `noindex`.
 
 **Still to build, in order:**
 
@@ -377,3 +433,4 @@ Competition page: a header (Emblem 72, name, season), then a **SegmentedControl*
 3. Games: the month picker inside the date sheet, 30 s live refresh, and real data.
 4. Competitions and Pages: the competition page with SegmentedControl, CMS page rendering.
 5. Account: logged-out hero, auth pages, Settings-style management.
+

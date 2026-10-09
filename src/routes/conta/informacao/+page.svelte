@@ -27,6 +27,10 @@
 	let pendingCode = $state<string | null>(null);
 
 	// Keep local draft unless a failed submit echoed values back.
+	// Note: never read-then-write the same state here (e.g. `epoch += 1`);
+	// that subscribes the effect to its own write and loops until
+	// `effect_update_depth_exceeded` blows up the page. Widget resets live
+	// in the enhance callback below instead.
 	$effect(() => {
 		if (form?.action === 'send' && !form?.sent) {
 			content = typeof form?.content === 'string' ? form.content : '';
@@ -35,7 +39,6 @@
 			content = '';
 			source = '';
 			captchaToken = '';
-			captchaEpoch += 1;
 		}
 	});
 
@@ -93,6 +96,16 @@
 		}
 	});
 	const justDeleted = $derived(form?.action === 'delete' && form?.deleted);
+
+	// Close the confirmation sheet once the delete resolves (success or
+	// failure) — the outcome is shown inline in the page below. Only reads
+	// `form` here so the effect can't loop on its own writes.
+	$effect(() => {
+		if (form?.action === 'delete' && (form?.deleted || form?.error)) {
+			deleteOpen = false;
+			pendingCode = null;
+		}
+	});
 
 	function formatDate(raw: string | null) {
 		if (!raw) return '—';
@@ -183,7 +196,11 @@
 				return async ({ update, result }) => {
 					await update();
 					sending = false;
-					if (result.type === 'failure') {
+					// The captcha token is single-use: refresh the widget after every
+					// submit so a second send never reuses a consumed token.
+					// (Bumping the counter here is safe — this is an event callback,
+					// not an $effect.)
+					if (result.type === 'failure' || result.type === 'success') {
 						captchaToken = '';
 						captchaEpoch += 1;
 					}

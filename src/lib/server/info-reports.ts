@@ -131,8 +131,12 @@ export async function submitInfoReport(input: SubmitInfoInput): Promise<SubmitIn
 	const validated = validateInfoReport(input.content, input.source);
 	if (!validated.ok) return { ok: false, error: validated.error };
 
-	const captchaOk = await verifyRecaptcha(input.recaptchaToken, input.ipAddress);
-	if (!captchaOk) return { ok: false, error: 'captcha' };
+	// Logged-in users skip the captcha (same as score reports and polls);
+	// guests must solve it.
+	if (!input.user) {
+		const captchaOk = await verifyRecaptcha(input.recaptchaToken, input.ipAddress);
+		if (!captchaOk) return { ok: false, error: 'captcha' };
+	}
 
 	// Guests are always anonymous (legacy forces anonymous=true when logged out).
 	const anonymous =
