@@ -11,11 +11,9 @@
  *
  * Live slots today: feed/auto `6406546239`, article end `7397948298`.
  *
- * PWA vignette close button: installed standalone switches the status-bar meta from
- * `black-translucent` to `default` so the layout viewport starts below the clock.
- * That is the best we can do from our side — Google still owns the overlay. Confirm
- * on a real home-screen install; if the X remains untappable, turn vignettes off for
- * that surface in the AdSense console.
+ * Home-screen iOS draws under the status bar. `watchVignetteInset` shifts the
+ * vignette overlay down by `safe-area-inset-top` so the close button clears the
+ * clock and battery. Google owns the button; we only move its frame.
  */
 
 export const adSlots = {
