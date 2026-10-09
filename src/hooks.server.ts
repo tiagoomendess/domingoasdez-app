@@ -14,10 +14,10 @@ const authHandle: Handle = async ({ event, resolve }) => {
 		? adsDisabled(await getUserPermissionNames(event.locals.user.id))
 		: false;
 
-	// Runs before the placeholder is filled, so an empty client skips adsbygoogle.js.
+	// Funding Choices still loads so Analytics gets a consent update. Only the ad script is gated.
 	return resolve(event, {
 		transformPageChunk: ({ html }) =>
-			event.locals.adsDisabled ? html.replaceAll('%PUBLIC_ADSENSE_CLIENT%', '') : html
+			html.replaceAll('%ADSENSE_ENABLED%', event.locals.adsDisabled ? '' : '1')
 	});
 };
 

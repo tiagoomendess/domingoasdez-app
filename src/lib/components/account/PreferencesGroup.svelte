@@ -63,11 +63,7 @@
 	}
 </script>
 
-<ListGroup
-	title={m.prefs_group()}
-	footer={`${m.prefs_back_button_footer()} ${m.prefs_theme_button_footer()}`}
-	headingLevel={2}
->
+<ListGroup title={m.prefs_group()} headingLevel={2}>
 	<ListRow
 		title={m.prefs_appearance()}
 		value={appearanceLabel}

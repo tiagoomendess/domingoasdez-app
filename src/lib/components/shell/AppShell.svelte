@@ -32,6 +32,7 @@
 	const current = $derived(getActiveTab(pathname));
 	const backEnabled = $derived(page.data.preferences?.backButton ?? true);
 	const showTheme = $derived(page.data.preferences?.themeButton ?? true);
+	const adsDisabled = $derived(page.data.adsDisabled ?? false);
 	const showBack = $derived(backEnabled && !isTabRoot(pathname));
 	// Keep the top inset while either switch is on. The back button is hidden on
 	// tab roots, but the space has to stay so it is still visible on inner pages.
@@ -86,13 +87,15 @@
 		{@render children()}
 		<footer class="mt-10 border-t border-line pt-4 text-center text-footnote text-ink-tertiary">
 			<p>© 2014–{copyrightYear} {m.feed_brand()}</p>
-			<button
-				type="button"
-				class="mt-1 font-medium text-accent-text hover:underline"
-				onclick={showPrivacySettings}
-			>
-				{m.pages_privacy_cookie_settings()}
-			</button>
+			{#if !adsDisabled}
+				<button
+					type="button"
+					class="mt-1 font-medium text-accent-text hover:underline"
+					onclick={showPrivacySettings}
+				>
+					{m.pages_privacy_cookie_settings()}
+				</button>
+			{/if}
 		</footer>
 	</main>
 

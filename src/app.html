@@ -53,6 +53,8 @@
 
 				var gaId = '%PUBLIC_GA_MEASUREMENT_ID%';
 				var adsClient = '%PUBLIC_ADSENSE_CLIENT%';
+				// '1' only. A missing replacement must not load AdSense.
+				var loadAdSense = '%ADSENSE_ENABLED%' === '1';
 				if (!gaId && !adsClient) return;
 
 				window.gtag_enable_tcf_support = true;
@@ -63,12 +65,14 @@
 				window.gtag = gtag;
 
 				// Denied until Funding Choices / TCF updates consent. Do not copy the legacy
-				// site's default-granted configuration.
+				// site's default-granted configuration. wait_for_update holds session_start
+				// until that update includes ad_user_data.
 				gtag('consent', 'default', {
 					ad_storage: 'denied',
 					ad_user_data: 'denied',
 					ad_personalization: 'denied',
-					analytics_storage: 'denied'
+					analytics_storage: 'denied',
+					wait_for_update: 500
 				});
 
 				if (adsClient) {
@@ -94,7 +98,7 @@
 					});
 				}
 
-				if (adsClient) {
+				if (adsClient && loadAdSense) {
 					var as = document.createElement('script');
 					as.async = true;
 					as.crossOrigin = 'anonymous';
@@ -102,6 +106,10 @@
 						'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' +
 						encodeURIComponent(adsClient);
 					document.head.appendChild(as);
+				} else if (adsClient) {
+					// Permission disable_ads: keep the consent script, never request ads.
+					var held = (window.adsbygoogle = window.adsbygoogle || []);
+					held.pauseAdRequests = 1;
 				}
 			})();
 		</script>
