@@ -220,6 +220,7 @@ Tab icons: Home `House`, Games `SoccerBall`, Competitions `Trophy`, Pages `Files
 - At ≥ 1024 px, the icon and label sit side by side, and the bar grows to fit (it reads like a dock).
 - Labels: always one line. French and Portuguese labels are long ("Compétitions", "Competições"), so below 360 px wide the bar uses short label keys (`nav.competitions_short`, e.g. "Provas"). Check all three languages at 320 px.
 - Markup: `<nav aria-label>` with links, `aria-current="page"` on the active one.
+- When any match is live, the Games tab (icon and label) pulses in `live` red (solid under reduced motion). The link's accessible name becomes "Games, live now".
 - Optional, later: the bar compacts (labels hide, height 64→52) while scrolling down the feed and expands when scrolling up, as in iOS 26.
 
 

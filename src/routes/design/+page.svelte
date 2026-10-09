@@ -42,6 +42,7 @@
 
 	let currentTab = $state('home');
 	let showBack = $state(true);
+	let showLiveDot = $state(false);
 	let appearance = $state<ThemePreference>('system');
 	let sheetOpen = $state(false);
 	let toast = $state({ visible: false, message: '', tone: 'info' as 'info' | 'success' | 'error' });
@@ -104,12 +105,13 @@
 	<Feedback onopensheet={() => (sheetOpen = true)} ontoast={showToast} />
 	<Games oncalendar={() => (sheetOpen = true)} />
 	<Feed />
-	<Navigation bind:showBack />
+	<Navigation bind:showBack bind:showLiveDot />
 </main>
 
 <TabBar
 	{tabs}
 	current={currentTab}
+	live={showLiveDot}
 	onselect={(id, event) => {
 		event.preventDefault();
 		currentTab = id;

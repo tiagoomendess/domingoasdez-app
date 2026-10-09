@@ -20,6 +20,8 @@
 	import { showPrivacySettings } from '#lib/google.ts';
 	import { m } from '#lib/messages.ts';
 
+	const LIVE_POLL_MS = 30_000;
+
 	type Props = {
 		children: Snippet;
 	};
@@ -52,6 +54,11 @@
 	let toastVisible = $state(false);
 	let toastMessage = $state('');
 	let toastTone = $state<'info' | 'success' | 'error'>('info');
+	// Writable derived: server value after navigations; poll may override between loads.
+	let liveNow = $derived(Boolean(page.data.liveNow));
+	let pageVisible = $state(
+		typeof document !== 'undefined' ? document.visibilityState === 'visible' : true
+	);
 
 	afterNavigate(() => {
 		const toast = page.data.toast;
@@ -61,12 +68,43 @@
 		toastVisible = true;
 	});
 
+	$effect(() => {
+		if (!pageVisible) return;
+
+		let cancelled = false;
+
+		async function tick() {
+			try {
+				const res = await fetch('/api/jogos/live', { cache: 'no-store' });
+				if (!res.ok || cancelled) return;
+				const body = (await res.json()) as { live?: boolean };
+				if (cancelled || typeof body.live !== 'boolean') return;
+				liveNow = body.live;
+			} catch {
+				// Keep last good value; next tick retries.
+			}
+		}
+
+		void tick();
+		const id = setInterval(tick, LIVE_POLL_MS);
+		return () => {
+			cancelled = true;
+			clearInterval(id);
+		};
+	});
+
 	function onselect(id: string) {
 		setLastTab(id as TabId);
 	}
 
+	function onvisibilitychange() {
+		pageVisible = document.visibilityState === 'visible';
+	}
+
 	onMount(() => watchTopAnchorOffset());
 </script>
+
+<svelte:document {onvisibilitychange} />
 
 <div data-app-root class={['contents', noTopChrome && 'no-top-chrome']}>
 	<NavigationProgress />
@@ -101,5 +139,5 @@
 
 	<Toast bind:visible={toastVisible} message={toastMessage} tone={toastTone} duration={6000} />
 
-	<TabBar {tabs} {current} {onselect} />
+	<TabBar {tabs} {current} {onselect} live={liveNow} />
 </div>

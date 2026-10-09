@@ -6,10 +6,11 @@ import {
 	parseThemeCookie,
 	THEME_BUTTON_COOKIE
 } from '#lib/preferences.ts';
+import { hasLiveGameNow } from '#lib/server/competition-page.ts';
 import { consumeScoreReportFlash } from '#lib/server/score-reports.ts';
 import { m } from '#lib/messages.ts';
 
-export const load: LayoutServerLoad = ({ cookies, depends, locals }) => {
+export const load: LayoutServerLoad = async ({ cookies, depends, locals }) => {
 	depends('app:preferences');
 
 	const flash = consumeScoreReportFlash(cookies);
@@ -32,6 +33,13 @@ export const load: LayoutServerLoad = ({ cookies, depends, locals }) => {
 		}
 	}
 
+	let liveNow = false;
+	try {
+		liveNow = await hasLiveGameNow();
+	} catch (e) {
+		console.error('[layout] hasLiveGameNow', e);
+	}
+
 	return {
 		user: locals.user,
 		adsDisabled: locals.adsDisabled,
@@ -40,6 +48,7 @@ export const load: LayoutServerLoad = ({ cookies, depends, locals }) => {
 			backButton: parseBackButtonCookie(cookies.get(BACK_BUTTON_COOKIE)),
 			themeButton: parseThemeButtonCookie(cookies.get(THEME_BUTTON_COOKIE))
 		},
-		toast
+		toast,
+		liveNow
 	};
 };

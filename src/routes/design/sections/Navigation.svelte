@@ -6,7 +6,10 @@
 	import Switch from '#lib/components/ui/Switch.svelte';
 	import { m } from '#lib/messages.ts';
 
-	let { showBack = $bindable() }: { showBack: boolean } = $props();
+	let {
+		showBack = $bindable(),
+		showLiveDot = $bindable()
+	}: { showBack: boolean; showLiveDot: boolean } = $props();
 </script>
 
 <DesignSection
@@ -29,6 +32,14 @@
 		<ListGroup
 			footer="Below 360px wide the bar switches to short labels, so long words like “Compétitions” still fit five across."
 		>
+			<ListRow
+				title="Mostrar ícone ao vivo"
+				subtitle="Pulsing red Games tab when matches are live"
+			>
+				{#snippet trailing()}
+					<Switch bind:checked={showLiveDot} label="Mostrar ícone ao vivo" />
+				{/snippet}
+			</ListRow>
 			<ListRow title={m.nav_home()} value="/" />
 			<ListRow title={m.nav_games()} value="/jogos" />
 			<ListRow

@@ -23,9 +23,11 @@
 		/** The tab the user last tapped; it stays active while they go deeper into it */
 		current: string;
 		onselect?: (id: string, event: MouseEvent) => void;
+		/** When true, Games tab (icon + label) pulses in live red and the link gets a richer accessible name */
+		live?: boolean;
 	};
 
-	let { tabs, current, onselect }: Props = $props();
+	let { tabs, current, onselect, live = false }: Props = $props();
 
 	const index = $derived(tabs.findIndex((tab) => tab.id === current));
 
@@ -61,9 +63,14 @@
 					<a
 						href={tab.href}
 						aria-current={active ? 'page' : undefined}
+						aria-label={live && tab.id === 'games' ? m.nav_games_live() : undefined}
 						class={[
 							'flex h-full pressable flex-col items-center justify-center gap-0.5 rounded-full px-1 lg:flex-row lg:gap-2 lg:px-5',
-							active ? 'text-accent-text' : 'text-ink-secondary hover:text-ink'
+							live && tab.id === 'games'
+								? 'text-live animate-live-pulse motion-reduce:animate-none'
+								: active
+									? 'text-accent-text'
+									: 'text-ink-secondary hover:text-ink'
 						]}
 						onclick={(event) => select(tab, event)}
 					>
