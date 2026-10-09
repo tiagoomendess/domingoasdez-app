@@ -444,6 +444,18 @@ export const scoreReportBans = mysqlTable('score_report_bans', {
 	updatedAt: timestamp('updated_at')
 });
 
+/** Info reports ("Enviar Informação"). Status mirrors App\InfoReport::ALLOWED_STATUS. */
+export const infoReports = mysqlTable('info_reports', {
+	id: int('id', { unsigned: true }).primaryKey().autoincrement(),
+	code: varchar('code', { length: 12 }).notNull().unique(),
+	userId: int('user_id', { unsigned: true }),
+	status: mysqlEnum('status', ['sent', 'seen', 'used', 'archived', 'deleted']).notNull(),
+	content: varchar('content', { length: 500 }).notNull(),
+	source: varchar('source', { length: 155 }).notNull(),
+	createdAt: timestamp('created_at'),
+	updatedAt: timestamp('updated_at')
+});
+
 export const userUuids = mysqlTable('user_uuids', {
 	id: bigint('id', { mode: 'number', unsigned: true }).primaryKey().autoincrement(),
 	userId: int('user_id', { unsigned: true }).notNull(),

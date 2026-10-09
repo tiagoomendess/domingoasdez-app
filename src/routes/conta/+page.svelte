@@ -81,3 +81,13 @@
 	backButton={data.preferences.backButton}
 	themeButton={data.preferences.themeButton}
 />
+
+<div class="mt-6">
+	<ListGroup title={m.account_info_group()}>
+		<ListRow
+			title={m.account_info()}
+			subtitle={m.account_info_subtitle()}
+			href="/conta/informacao"
+		/>
+	</ListGroup>
+</div>
