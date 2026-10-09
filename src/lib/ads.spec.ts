@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { feedAdAtIndex } from '#lib/ads.ts';
+import { adsDisabled, feedAdAtIndex } from '#lib/ads.ts';
 
 describe('feedAdAtIndex', () => {
 	it('places an ad after the first post', () => {
@@ -17,5 +17,14 @@ describe('feedAdAtIndex', () => {
 		expect(feedAdAtIndex(8)).toBe(false);
 		expect(feedAdAtIndex(10)).toBe(false);
 		expect(feedAdAtIndex(18)).toBe(false);
+	});
+});
+
+describe('adsDisabled', () => {
+	it('suppresses AdSense only for an explicit disable_ads grant', () => {
+		expect(adsDisabled(new Set(['disable_ads']))).toBe(true);
+		expect(adsDisabled(new Set(['admin']))).toBe(false);
+		expect(adsDisabled(new Set(['admin', 'disable_ads']))).toBe(true);
+		expect(adsDisabled(new Set())).toBe(false);
 	});
 });

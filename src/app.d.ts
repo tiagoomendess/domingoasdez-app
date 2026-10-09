@@ -5,9 +5,12 @@ declare global {
 		// interface Error {}
 		interface Locals {
 			user: AuthUser | null;
+			/** True when the signed-in account has the `disable_ads` permission. */
+			adsDisabled: boolean;
 		}
 		interface PageData {
 			user: AuthUser | null;
+			adsDisabled: boolean;
 		}
 		// interface PageState {}
 		// interface Platform {}

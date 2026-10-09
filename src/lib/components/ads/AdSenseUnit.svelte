@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { page } from '$app/state';
 	import { PUBLIC_ADSENSE_CLIENT } from '$app/env/public';
 	import type { AdShape } from '#lib/ads.ts';
 	import { isGoogleHost } from '#lib/google.ts';
@@ -20,7 +21,7 @@
 	const sizeClass = $derived(shape === 'horizontal' ? 'min-h-[90px]' : 'min-h-[250px]');
 
 	onMount(() => {
-		enabled = Boolean(PUBLIC_ADSENSE_CLIENT) && isGoogleHost();
+		enabled = Boolean(PUBLIC_ADSENSE_CLIENT) && isGoogleHost() && !page.data.adsDisabled;
 	});
 </script>
 

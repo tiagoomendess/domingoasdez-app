@@ -27,6 +27,14 @@ export const adSlots = {
 
 export type AdShape = 'auto' | 'horizontal';
 
+/**
+ * Opt-out, not a capability: `admin` does not imply this.
+ * Only an explicit `disable_ads` grant suppresses AdSense.
+ */
+export function adsDisabled(permissionNames: ReadonlySet<string>): boolean {
+	return permissionNames.has('disable_ads');
+}
+
 /** After 1st post (index 0) and after every 10th post from the 10th (indices 9, 19, 29, …). */
 export function feedAdAtIndex(index: number): boolean {
 	if (index === 0) return true;
