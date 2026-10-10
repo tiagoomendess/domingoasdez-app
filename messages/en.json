@@ -319,6 +319,27 @@
 	"player_admin": "Admin",
 	"player_admin_edit": "Edit player",
 
+	"clubs_index_title": "All clubs",
+	"clubs_index_meta_description": "List of all Barcelos grassroots football clubs.",
+	"clubs_index_empty_title": "No clubs",
+	"clubs_index_empty_text": "There are no clubs to show right now.",
+
+	"players_index_title": "All players",
+	"players_index_meta_description": "List of all Barcelos grassroots football players.",
+	"players_index_empty_title": "No players",
+	"players_index_empty_text": "There are no players to show right now.",
+
+	"transfers_title": "Transfers",
+	"transfers_meta_description": "All Barcelos grassroots football transfers, newest first.",
+	"transfers_empty_title": "No transfers",
+	"transfers_empty_text": "There are no transfers to show right now.",
+	"transfers_login_title": "Sign in to see more",
+	"transfers_login_text": "Transfers from page 2 onwards are only available to signed-in users, as on the old site.",
+
+	"pagination_prev": "Previous",
+	"pagination_next": "Next",
+	"pagination_status": "Page {page} of {total}",
+
 	"article_not_found": "Article not found",
 	"article_download": "Download file",
 

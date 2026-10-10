@@ -135,3 +135,15 @@ export function formatMonthYear(iso: string) {
 		timeZone: GAME_TIME_ZONE
 	}).format(new Date(iso));
 }
+
+/** Compact numeric date (dd/mm/yyyy) in Europe/Lisbon, e.g. "15/04/2026". */
+export function formatNumericDate(iso: string) {
+	const parts = new Intl.DateTimeFormat('en-GB', {
+		day: '2-digit',
+		month: '2-digit',
+		year: 'numeric',
+		timeZone: GAME_TIME_ZONE
+	}).formatToParts(new Date(iso));
+	const get = (type: string) => parts.find((part) => part.type === type)?.value ?? '';
+	return `${get('day')}/${get('month')}/${get('year')}`;
+}

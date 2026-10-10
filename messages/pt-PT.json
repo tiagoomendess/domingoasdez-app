@@ -319,6 +319,27 @@
 	"player_admin": "Administração",
 	"player_admin_edit": "Editar jogador",
 
+	"clubs_index_title": "Todos os Clubes",
+	"clubs_index_meta_description": "Lista de todos os clubes do futebol popular de Barcelos.",
+	"clubs_index_empty_title": "Sem clubes",
+	"clubs_index_empty_text": "Não há clubes para mostrar de momento.",
+
+	"players_index_title": "Todos os Jogadores",
+	"players_index_meta_description": "Lista de todos os jogadores do futebol popular de Barcelos.",
+	"players_index_empty_title": "Sem jogadores",
+	"players_index_empty_text": "Não há jogadores para mostrar de momento.",
+
+	"transfers_title": "Transferências",
+	"transfers_meta_description": "Todas as transferências do futebol popular de Barcelos, das mais recentes às mais antigas.",
+	"transfers_empty_title": "Sem transferências",
+	"transfers_empty_text": "Não há transferências para mostrar de momento.",
+	"transfers_login_title": "Entra para ver mais",
+	"transfers_login_text": "As transferências a partir da página 2 só estão disponíveis para utilizadores com sessão iniciada, tal como no site antigo.",
+
+	"pagination_prev": "Anterior",
+	"pagination_next": "Seguinte",
+	"pagination_status": "Página {page} de {total}",
+
 	"article_not_found": "Artigo não encontrado",
 	"article_download": "Descarregar ficheiro",
 
