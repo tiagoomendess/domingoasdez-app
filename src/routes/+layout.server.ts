@@ -8,6 +8,7 @@ import {
 } from '#lib/preferences.ts';
 import { hasLiveGameNow } from '#lib/server/competition-page.ts';
 import { consumeScoreReportFlash } from '#lib/server/score-reports.ts';
+import { consumeFlashToast } from '#lib/server/flash-interview.ts';
 import { m } from '#lib/messages.ts';
 
 export const load: LayoutServerLoad = async ({ cookies, depends, locals }) => {
@@ -30,6 +31,19 @@ export const load: LayoutServerLoad = async ({ cookies, depends, locals }) => {
 				message: m.score_report_success({ home, away }),
 				tone: 'success'
 			};
+		}
+	}
+
+	if (!toast) {
+		const interview = consumeFlashToast(cookies);
+		if (interview === 'saved') {
+			toast = { message: m.flash_interview_saved(), tone: 'success' };
+		} else if (interview === 'notif_saved') {
+			toast = { message: m.flash_interview_notif_saved(), tone: 'success' };
+		} else if (interview === 'deadline') {
+			toast = { message: m.flash_interview_error_deadline(), tone: 'error' };
+		} else if (interview === 'invalid') {
+			toast = { message: m.flash_interview_notif_error_pin(), tone: 'error' };
 		}
 	}
 

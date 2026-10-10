@@ -108,6 +108,25 @@ export function formatDayMonth(day: string) {
 	}).format(parseDay(day));
 }
 
+/** Calendar day in Europe/Lisbon as d/m/Y (legacy game-date format). */
+export function formatLisbonDay(iso: string) {
+	return new Intl.DateTimeFormat(getLocale(), {
+		day: '2-digit',
+		month: '2-digit',
+		year: 'numeric',
+		timeZone: GAME_TIME_ZONE
+	}).format(new Date(iso));
+}
+
+/** Clock time in Europe/Lisbon as HH:mm (legacy deadline format). */
+export function formatLisbonTime(iso: string) {
+	return new Intl.DateTimeFormat(getLocale(), {
+		hour: '2-digit',
+		minute: '2-digit',
+		timeZone: GAME_TIME_ZONE
+	}).format(new Date(iso));
+}
+
 /** Short month + year for transfer history (e.g. "out 2024"), Europe/Lisbon. */
 export function formatMonthYear(iso: string) {
 	return new Intl.DateTimeFormat(getLocale(), {

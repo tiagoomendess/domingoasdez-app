@@ -720,7 +720,7 @@ async function loadFlashInterviewLink(
 		.limit(1);
 
 	if (!comment) return null;
-	return legacyUrl(`/flash-interview/${comment.uuid}?pin=${encodeURIComponent(comment.pin)}`);
+	return `/flash-interview/${comment.uuid}?pin=${encodeURIComponent(comment.pin)}`;
 }
 
 /** Full page payload for the game detail route. */

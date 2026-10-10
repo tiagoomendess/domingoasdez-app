@@ -331,7 +331,7 @@ export const gameComments = mysqlTable('game_comments', {
 	gameId: int('game_id', { unsigned: true }).notNull(),
 	teamId: int('team_id', { unsigned: true }).notNull(),
 	userId: int('user_id', { unsigned: true }),
-	content: text('content'),
+	content: text('content').notNull(),
 	used: boolean('used').notNull().default(false),
 	deadline: timestamp('deadline'),
 	createdAt: timestamp('created_at'),
