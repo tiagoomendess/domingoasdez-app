@@ -3,7 +3,7 @@ import { mediaUrl } from '#lib/server/media.ts';
 
 /**
  * Rewrite relative legacy media paths in HTML attributes to absolute URLs
- * served by the old site (MEDIA_BASE_URL).
+ * (MEDIA_BASE_URL, or the CDN when MEDIA_CDN_ENABLED is on).
  */
 export function rewriteLegacyMediaUrls(html: string): string {
 	return html.replace(

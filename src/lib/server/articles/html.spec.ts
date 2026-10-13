@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('$app/env/private', () => ({
-	MEDIA_BASE_URL: 'http://localhost:8000'
+	MEDIA_BASE_URL: 'http://localhost:8000',
+	MEDIA_CDN_ENABLED: false,
+	MEDIA_CDN_BASE_URL: 'https://cdn.domingoasdez.com'
 }));
 
 import { prepareArticleHtml, prepareCmsHtml, rewriteLegacyMediaUrls } from './html.ts';

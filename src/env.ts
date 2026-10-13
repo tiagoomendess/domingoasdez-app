@@ -37,6 +37,15 @@ export const variables = defineEnvVars({
 	MEDIA_BASE_URL: {
 		description: 'Origin of the legacy site that serves media files (e.g. http://localhost:8000).'
 	},
+	MEDIA_CDN_ENABLED: {
+		description:
+			'Serve public media from Cloudflare R2 via MEDIA_CDN_BASE_URL. Strips the legacy /storage prefix from paths.',
+		schema: flag(false)
+	},
+	MEDIA_CDN_BASE_URL: {
+		description: 'CDN origin for public media when MEDIA_CDN_ENABLED is on (e.g. https://cdn.domingoasdez.com).',
+		schema: (value) => optionalHttpUrl(value) || 'https://cdn.domingoasdez.com'
+	},
 	LEGACY_BASE_URL: {
 		description:
 			'Origin of the legacy site for backoffice / score-report / flash-interview links. Falls back to MEDIA_BASE_URL when empty.',
