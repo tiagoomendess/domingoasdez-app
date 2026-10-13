@@ -3,31 +3,19 @@ import { legacyUrl } from '#lib/server/legacy.ts';
 
 const DEFAULT_PROFILE = '/images/default-profile.png';
 
-/** Strip the legacy public-disk prefix; R2 keys start at media/... not storage/media/... */
-export function stripStoragePrefix(path: string): string {
-	const relative = path.startsWith('/') ? path : `/${path}`;
-	if (relative === '/storage') return '/';
-	if (relative.startsWith('/storage/')) return relative.slice('/storage'.length);
-	return relative;
-}
-
 /**
  * Turn a legacy relative media path into an absolute URL for the frontend.
  * Absolute http(s) URLs (YouTube, external images) pass through unchanged.
  *
- * When MEDIA_CDN_ENABLED is on, paths are rewritten for the R2/CDN layout:
- * `/storage/media/images/foo.jpg` → `https://cdn…/media/images/foo.jpg`.
+ * When MEDIA_CDN_ENABLED is on, the CDN base replaces MEDIA_BASE_URL. The bucket
+ * mirrors the legacy layout, so the stored path is kept as is:
+ * `/storage/media/images/foo.jpg` → `https://cdn…/storage/media/images/foo.jpg`.
  */
 export function mediaUrl(path: string | null | undefined): string | null {
 	if (!path) return null;
 	if (/^https?:\/\//i.test(path)) return path;
 
-	if (MEDIA_CDN_ENABLED) {
-		const base = MEDIA_CDN_BASE_URL.replace(/\/$/, '');
-		return `${base}${stripStoragePrefix(path)}`;
-	}
-
-	const base = (MEDIA_BASE_URL ?? '').replace(/\/$/, '');
+	const base = (MEDIA_CDN_ENABLED ? MEDIA_CDN_BASE_URL : (MEDIA_BASE_URL ?? '')).replace(/\/$/, '');
 	const relative = path.startsWith('/') ? path : `/${path}`;
 	return `${base}${relative}`;
 }

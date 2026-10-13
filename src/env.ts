@@ -39,11 +39,12 @@ export const variables = defineEnvVars({
 	},
 	MEDIA_CDN_ENABLED: {
 		description:
-			'Serve public media from Cloudflare R2 via MEDIA_CDN_BASE_URL. Strips the legacy /storage prefix from paths.',
+			'Serve public media from Cloudflare R2 via MEDIA_CDN_BASE_URL. Paths from the DB (/storage/...) are kept as is.',
 		schema: flag(false)
 	},
 	MEDIA_CDN_BASE_URL: {
-		description: 'CDN origin for public media when MEDIA_CDN_ENABLED is on (e.g. https://cdn.domingoasdez.com).',
+		description:
+			'CDN origin for public media when MEDIA_CDN_ENABLED is on (e.g. https://cdn.domingoasdez.com).',
 		schema: (value) => optionalHttpUrl(value) || 'https://cdn.domingoasdez.com'
 	},
 	LEGACY_BASE_URL: {

@@ -9,25 +9,6 @@ const env = vi.hoisted(() => ({
 
 vi.mock('$app/env/private', () => env);
 
-describe('stripStoragePrefix', () => {
-	beforeEach(() => {
-		vi.resetModules();
-	});
-
-	it('removes a leading /storage segment', async () => {
-		const { stripStoragePrefix } = await import('./media.ts');
-		expect(stripStoragePrefix('/storage/media/images/foo.jpg')).toBe('/media/images/foo.jpg');
-		expect(stripStoragePrefix('storage/media/images/foo.jpg')).toBe('/media/images/foo.jpg');
-		expect(stripStoragePrefix('/storage')).toBe('/');
-	});
-
-	it('leaves non-storage paths alone', async () => {
-		const { stripStoragePrefix } = await import('./media.ts');
-		expect(stripStoragePrefix('/images/default-profile.png')).toBe('/images/default-profile.png');
-		expect(stripStoragePrefix('/media/images/foo.jpg')).toBe('/media/images/foo.jpg');
-	});
-});
-
 describe('mediaUrl', () => {
 	beforeEach(() => {
 		vi.resetModules();
@@ -43,11 +24,11 @@ describe('mediaUrl', () => {
 		);
 	});
 
-	it('strips /storage and uses the CDN base when enabled', async () => {
+	it('keeps the stored path and uses the CDN base when enabled', async () => {
 		env.MEDIA_CDN_ENABLED = true;
 		const { mediaUrl } = await import('./media.ts');
 		expect(mediaUrl('/storage/media/images/foo.jpg')).toBe(
-			'https://cdn.domingoasdez.com/media/images/foo.jpg'
+			'https://cdn.domingoasdez.com/storage/media/images/foo.jpg'
 		);
 		expect(mediaUrl('/images/default-profile.png')).toBe(
 			'https://cdn.domingoasdez.com/images/default-profile.png'
