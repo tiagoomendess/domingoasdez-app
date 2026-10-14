@@ -82,12 +82,17 @@
 	}
 
 	/**
-	 * Distance from the selected pill's center to the center of the row.
+	 * The scrollLeft that puts the selected pill in the center of the row.
 	 * Null until the rail has been laid out — a zero rect is not "already centered".
+	 *
+	 * Built from offsetLeft (the rail is `relative`, so it is the pills' offsetParent), which
+	 * doesn't change as the rail scrolls. iOS Safari can update element rects a frame after a
+	 * programmatic scroll; a rect-based relative scroll then gets applied twice and overshoots
+	 * by a week or two. An absolute target can be re-applied any number of times safely.
 	 */
-	function centerDelta(rail: HTMLElement, day: string): number | null {
+	function centerTarget(rail: HTMLElement, day: string): number | null {
 		const pill = rail.querySelector<HTMLElement>(`[data-day="${day}"]`);
-		if (!pill || rail.clientWidth === 0 || pill.clientWidth === 0) return null;
+		if (!pill || rail.clientWidth === 0 || pill.offsetWidth === 0) return null;
 
 		const row = rail.closest('nav') ?? rail;
 		const rowRect = row.getBoundingClientRect();
@@ -98,8 +103,10 @@
 			rail.style.scrollPaddingLeft = snapPadding;
 		}
 
-		const pillRect = pill.getBoundingClientRect();
-		return pillRect.left + pillRect.width / 2 - (rowRect.left + rowRect.width / 2);
+		// Row center measured from the rail's padding edge, where offsetLeft starts
+		const rowCenter = rowRect.left + rowRect.width / 2 - (railRect.left + rail.clientLeft);
+		const target = pill.offsetLeft + pill.offsetWidth / 2 - rowCenter;
+		return Math.min(Math.max(0, target), rail.scrollWidth - rail.clientWidth);
 	}
 
 	function stopScrollAnimation(rail: HTMLElement) {
@@ -143,17 +150,18 @@
 		scrollFrame = requestAnimationFrame(step);
 	}
 
+	/** False when the rail has no box yet and nothing could be placed. */
 	function placeSelected(rail: HTMLElement, day: string, behavior: 'instant' | 'slide'): boolean {
-		const delta = centerDelta(rail, day);
-		if (delta == null) return false;
-		if (Math.abs(delta) < 1) return true;
+		const target = centerTarget(rail, day);
+		if (target == null) return false;
+		if (Math.abs(rail.scrollLeft - target) < 1) return true;
 		if (behavior === 'slide') {
-			animateScroll(rail, rail.scrollLeft + delta);
+			animateScroll(rail, target);
 			return true;
 		}
 		stopScrollAnimation(rail);
-		rail.scrollBy({ left: delta, behavior: 'instant' });
-		return false;
+		rail.scrollLeft = target;
+		return true;
 	}
 
 	/** Keep the visible window stable when the parent prepends older days. */
@@ -245,24 +253,30 @@
 
 		if (placedFor === day && extended && userScrolled) return release;
 
-		const delta = centerDelta(rail, day);
-		const far = delta != null && Math.abs(delta) > rail.clientWidth;
+		const target = centerTarget(rail, day);
+		const far = target != null && Math.abs(target - rail.scrollLeft) > rail.clientWidth;
 		const behavior = centered && !far && !prefersReducedMotion.current ? 'slide' : 'instant';
 
 		cancelAnimationFrame(settleFrame);
 		let attempts = 0;
+		let rechecked = false;
 		const settle = () => {
 			if (userScrolled && placedFor === day) return;
-			const done = placeSelected(rail, day, attempts === 0 ? behavior : 'instant');
+			const slide = attempts === 0 && behavior === 'slide';
+			const placed = placeSelected(rail, day, slide ? 'slide' : 'instant');
 			attempts += 1;
-			// First paint can report a zero-size rail. Keep trying until it has a box.
-			if (!done && behavior === 'instant' && attempts < 8) {
-				settleFrame = requestAnimationFrame(settle);
+			if (!placed) {
+				// First paint can report a zero-size rail. Keep trying until it has a box.
+				if (attempts < 8) settleFrame = requestAnimationFrame(settle);
 				return;
 			}
-			if (done || behavior === 'slide') {
-				centered = true;
-				placedFor = day;
+			centered = true;
+			placedFor = day;
+			// iOS Safari can apply a programmatic scroll a frame late. The target is absolute,
+			// so checking again on the next frame can only correct the position, never overshoot.
+			if (!slide && !rechecked) {
+				rechecked = true;
+				settleFrame = requestAnimationFrame(settle);
 			}
 		};
 		settle();
