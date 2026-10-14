@@ -2,6 +2,7 @@
 	import CalendarXIcon from 'phosphor-svelte/lib/CalendarXIcon';
 	import DesignSection from '../DesignSection.svelte';
 	import Specimen from '../Specimen.svelte';
+	import NavigationLoader from '#lib/components/shell/NavigationLoader.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
@@ -13,7 +14,16 @@
 	};
 
 	let { onopensheet, ontoast }: Props = $props();
+
+	let loaderVisible = $state(false);
+
+	function showLoader() {
+		loaderVisible = true;
+		setTimeout(() => (loaderVisible = false), 2000);
+	}
 </script>
+
+<NavigationLoader visible={loaderVisible} />
 
 <DesignSection
 	id="estado"
@@ -84,5 +94,11 @@
 				Toast de erro
 			</Button>
 		</div>
+	</Specimen>
+
+	<Specimen label="Navigation loader" note="Shown after 150 ms while a page change loads">
+		<Button variant="tinted" disabled={loaderVisible} onclick={showLoader}>
+			Simular carregamento
+		</Button>
 	</Specimen>
 </DesignSection>

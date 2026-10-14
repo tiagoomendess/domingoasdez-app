@@ -277,6 +277,11 @@ Primitives are in `src/lib/components/ui/`, the shell in `.../shell/`, and domai
 
 - **AppShell**: renders `{children}` inside `page-container`, the two scroll-edge fades, the floating buttons, the tab bar and the toast region. It also owns the view-transition wiring.
 - **BackButton**, **ThemeToggle**, **TabBar**: as described in section 3.
+- **NavigationLoader**: global feedback while a page change loads, which matters on slow networks, where the tab bar's droplet moves before the new page arrives.
+  - It shows for any navigation that changes the path: tabs, in-page links, `goto`, back and forward. Query-only updates on the same path (feed chips, the games date rail, competition views) are excluded, because they have their own in-page loading states.
+  - `<main>` becomes `inert` (and `aria-busy`) as soon as the navigation starts, so the page can't be tapped or focused. The tab bar and floating buttons are outside `<main>` and stay live: tapping another tab retargets the navigation, and back cancels it.
+  - The visuals wait 150 ms, so fast or preloaded navigations never flash. Then a `canvas` veil at 55% washes out the content, and a 56 px glass circle with an `accent` ring spinner materialises in the centre of the viewport. The veil sits at `z-35`, between the scroll-edge fades (30) and the chrome (40).
+  - Reduced motion: the veil and circle only fade, and the spinner turns more slowly instead of stopping, because it's essential feedback. The loading text is announced through an always-mounted `role="status"` region.
 - **PullToRefresh**: wraps a scrollable page (Home only for now).
   - It only engages when the page is already at the top and the user drags down.
   - The content follows the finger with rubber-band resistance. A 36 px glass circle with an arrow appears at the top centre, between the two floating buttons.

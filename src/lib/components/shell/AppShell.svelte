@@ -2,10 +2,10 @@
 	import type { Snippet } from 'svelte';
 	import { onMount } from 'svelte';
 	import { afterNavigate } from '$app/navigation';
-	import { page } from '$app/state';
+	import { navigating, page } from '$app/state';
 	import { watchTopAnchorOffset } from '#lib/top-anchor.ts';
 	import BackButton from './BackButton.svelte';
-	import NavigationProgress from './NavigationProgress.svelte';
+	import NavigationLoader from './NavigationLoader.svelte';
 	import ThemeToggle from './ThemeToggle.svelte';
 	import TabBar from './TabBar.svelte';
 	import Toast from '#lib/components/ui/Toast.svelte';
@@ -21,6 +21,8 @@
 	import { m } from '#lib/messages.ts';
 
 	const LIVE_POLL_MS = 30_000;
+	/** Fast and preloaded navigations finish before the loader shows, so it never flashes. */
+	const LOADER_DELAY_MS = 150;
 
 	type Props = {
 		children: Snippet;
@@ -50,6 +52,24 @@
 			pathname === '/rgpd' ||
 			pathname.startsWith('/rgpd/')
 	);
+
+	// A page change is loading. Query-only updates on the same path (feed chips, the games
+	// date rail, competition views) keep their own in-page loading states instead.
+	const pending = $derived.by(() => {
+		const { from, to, willUnload } = navigating;
+		if (!from || !to || willUnload) return false;
+		return from.url.pathname !== to.url.pathname;
+	});
+	let loaderVisible = $state(false);
+
+	$effect(() => {
+		if (!pending) return;
+		const id = setTimeout(() => (loaderVisible = true), LOADER_DELAY_MS);
+		return () => {
+			clearTimeout(id);
+			loaderVisible = false;
+		};
+	});
 
 	let toastVisible = $state(false);
 	let toastMessage = $state('');
@@ -107,8 +127,6 @@
 <svelte:document {onvisibilitychange} />
 
 <div data-app-root class={['contents', noTopChrome && 'no-top-chrome']}>
-	<NavigationProgress />
-
 	<div aria-hidden="true" class="scroll-edge-top z-30"></div>
 	<div aria-hidden="true" class="scroll-edge-bottom z-30"></div>
 
@@ -121,7 +139,12 @@
 		<ThemeToggle class="fixed top-(--chrome-top) right-(--chrome-inset) z-40" />
 	{/if}
 
-	<main class={['page-container', isReading && 'max-w-[42.5rem]!']}>
+	<!-- Inert while a page change loads; the chrome around it (tab bar, floating buttons) stays live -->
+	<main
+		inert={pending}
+		aria-busy={pending || undefined}
+		class={['page-container', isReading && 'max-w-[42.5rem]!']}
+	>
 		{@render children()}
 		<footer class="mt-10 border-t border-line pt-4 text-center text-footnote text-ink-tertiary">
 			<p>© 2014–{copyrightYear} {m.feed_brand()}</p>
@@ -136,6 +159,8 @@
 			{/if}
 		</footer>
 	</main>
+
+	<NavigationLoader visible={loaderVisible} />
 
 	<Toast bind:visible={toastVisible} message={toastMessage} tone={toastTone} duration={6000} />
 
