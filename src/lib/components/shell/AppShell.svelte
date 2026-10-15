@@ -13,6 +13,7 @@
 		getTabs,
 		getActiveTab,
 		setLastTab,
+		isNavigationLoaderRequested,
 		isTabRoot,
 		parentOf,
 		type TabId
@@ -53,12 +54,13 @@
 			pathname.startsWith('/rgpd/')
 	);
 
-	// A page change is loading. Query-only updates on the same path (feed chips, the games
-	// date rail, competition views) keep their own in-page loading states instead.
+	// A page change is loading. Query-only updates on the same path (the games date rail,
+	// competition views) keep their own in-page loading states, unless the page asks for
+	// this loader with withNavigationLoader (the feed chips do).
 	const pending = $derived.by(() => {
 		const { from, to, willUnload } = navigating;
 		if (!from || !to || willUnload) return false;
-		return from.url.pathname !== to.url.pathname;
+		return from.url.pathname !== to.url.pathname || isNavigationLoaderRequested();
 	});
 	let loaderVisible = $state(false);
 

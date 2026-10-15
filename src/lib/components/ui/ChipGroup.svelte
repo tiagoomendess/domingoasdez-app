@@ -33,7 +33,7 @@
 	}
 </script>
 
-<div role="group" aria-label={label} class="-mx-4 rail px-4 py-1">
+<div role="group" aria-label={label} class="-mx-4 rail scroll-px-4 px-4 py-1">
 	{#each options as option (option.value)}
 		<Chip
 			selected={value.includes(option.value)}

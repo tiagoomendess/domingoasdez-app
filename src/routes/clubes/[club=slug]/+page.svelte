@@ -101,7 +101,11 @@
 					onchange={onTeamPickerChange}
 				/>
 			{:else if data.teams.length > 3}
-				<div role="group" aria-label={m.club_team_picker_label()} class="-mx-4 rail px-4 py-1">
+				<div
+					role="group"
+					aria-label={m.club_team_picker_label()}
+					class="-mx-4 rail scroll-px-4 px-4 py-1"
+				>
 					{#each data.teams as team (team.id)}
 						<Chip selected={team.id === selectedTeamId} onclick={() => selectTeam(team.id)}>
 							{team.name}

@@ -80,7 +80,7 @@ export function isTabRoot(pathname: string): boolean {
 	return Object.values(TAB_ROOTS).includes(pathname);
 }
 
-const nav = $state({ lastTab: null as TabId | null });
+const nav = $state({ lastTab: null as TabId | null, loaderRequests: 0 });
 
 export function getActiveTab(pathname: string): TabId {
 	return nav.lastTab ?? tabFromPath(pathname);
@@ -88,4 +88,22 @@ export function getActiveTab(pathname: string): TabId {
 
 export function setLastTab(id: TabId) {
 	nav.lastTab = id;
+}
+
+/**
+ * Show the global navigation loader for a query-only update on the same page, which the
+ * AppShell skips by default (e.g. the feed chips). The loader still only appears while a
+ * navigation is in flight, so a request can never leave it stuck on screen.
+ */
+export async function withNavigationLoader<T>(navigation: Promise<T>): Promise<T> {
+	nav.loaderRequests += 1;
+	try {
+		return await navigation;
+	} finally {
+		nav.loaderRequests -= 1;
+	}
+}
+
+export function isNavigationLoaderRequested(): boolean {
+	return nav.loaderRequests > 0;
 }

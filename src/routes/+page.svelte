@@ -6,6 +6,7 @@
 	import { chipOptions } from '#lib/components/feed/registry.ts';
 	import { tiposQuery, type FeedItem, type FeedType } from '#lib/feed.ts';
 	import { m } from '#lib/messages.ts';
+	import { withNavigationLoader } from '#lib/navigation.svelte.ts';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -17,7 +18,9 @@
 	);
 
 	function onTypesChange(value: FeedType[]) {
-		goto(`/?tipos=${tiposQuery(value)}`, { replace: true, reset: false });
+		void withNavigationLoader(
+			goto(`/?tipos=${tiposQuery(value)}`, { replace: true, reset: false })
+		);
 	}
 
 	async function refresh() {
