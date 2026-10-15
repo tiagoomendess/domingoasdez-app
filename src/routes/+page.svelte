@@ -5,6 +5,7 @@
 	import HomeFeed from '#lib/components/feed/HomeFeed.svelte';
 	import { chipOptions } from '#lib/components/feed/registry.ts';
 	import { tiposQuery, type FeedItem, type FeedType } from '#lib/feed.ts';
+	import logo from '#lib/assets/logo.png';
 	import { m } from '#lib/messages.ts';
 	import { withNavigationLoader } from '#lib/navigation.svelte.ts';
 	import type { PageProps } from './$types';
@@ -35,7 +36,12 @@
 
 <PullToRefresh bind:refreshing onrefresh={refresh}>
 	<header class="px-1 pb-3">
-		<h1 class="text-large-title text-ink">{m.feed_brand()}</h1>
+		<h1
+			class="flex items-center gap-3 text-large-title whitespace-nowrap text-ink max-[22.5rem]:gap-2.5 max-[22.5rem]:text-title-1"
+		>
+			<img src={logo} alt="" width="44" height="44" class="size-11 shrink-0 max-[22.5rem]:size-9" />
+			{m.feed_brand()}
+		</h1>
 	</header>
 
 	<div class="mb-3">
