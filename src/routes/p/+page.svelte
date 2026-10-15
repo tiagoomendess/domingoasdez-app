@@ -45,6 +45,12 @@
 {/if}
 
 <div class="mt-6">
+	<ListGroup title={m.pages_info_group()} headingLevel={2}>
+		<ListRow title={m.pages_info()} subtitle={m.pages_info_subtitle()} href="/conta/informacao" />
+	</ListGroup>
+</div>
+
+<div class="mt-6">
 	<ListGroup title={m.pages_legal_group()} headingLevel={2}>
 		<ListRow title={m.pages_privacy()} href="/politica-de-privacidade" />
 		<ListRow title={m.pages_terms()} href="/termos-e-condicoes" />

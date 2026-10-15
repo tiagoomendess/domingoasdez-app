@@ -60,6 +60,8 @@ const PATH_OWNERS: { prefix: string; tab: TabId }[] = (
 		{ prefix: '/politica-de-privacidade', tab: 'pages' },
 		{ prefix: '/termos-e-condicoes', tab: 'pages' },
 		{ prefix: '/rgpd', tab: 'pages' },
+		// Opened from Páginas; kept at its old path so existing links still work
+		{ prefix: '/conta/informacao', tab: 'pages' },
 		{ prefix: '/conta', tab: 'account' }
 	] as const satisfies { prefix: string; tab: TabId }[]
 ).toSorted((a, b) => b.prefix.length - a.prefix.length);
