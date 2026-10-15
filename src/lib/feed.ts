@@ -1,22 +1,25 @@
 import type { PollAnswer, PollState } from '#lib/components/types.ts';
+import type { TransferView } from '#lib/transfers.ts';
 
 /** Internal feed type keys (stable across locales). */
-export type FeedType = 'article' | 'poll';
+export type FeedType = 'article' | 'poll' | 'transfer';
 
 /** Values used in `?tipos=` — Portuguese, matching the UI labels. */
-export type FeedTypeParam = 'artigos' | 'sondagens';
+export type FeedTypeParam = 'artigos' | 'sondagens' | 'transferencias';
 
 export const FEED_TYPE_PARAMS: Record<FeedType, FeedTypeParam> = {
 	article: 'artigos',
-	poll: 'sondagens'
+	poll: 'sondagens',
+	transfer: 'transferencias'
 };
 
 export const FEED_PARAM_TO_TYPE: Record<FeedTypeParam, FeedType> = {
 	artigos: 'article',
-	sondagens: 'poll'
+	sondagens: 'poll',
+	transferencias: 'transfer'
 };
 
-export const ALL_FEED_TYPES: FeedType[] = ['article', 'poll'];
+export const ALL_FEED_TYPES: FeedType[] = ['article', 'poll', 'transfer'];
 
 export type ArticleCardData = {
 	href: string;
@@ -37,9 +40,18 @@ export type PollCardData = {
 	resultsAt?: string;
 };
 
+/** One card per day: the day's first transfers, plus a link to the rest when there are more. */
+export type TransferDayCardData = {
+	day: string;
+	total: number;
+	transfers: TransferView[];
+	moreHref: string | null;
+};
+
 export type FeedItem =
 	| { type: 'article'; id: number; date: string; data: ArticleCardData }
-	| { type: 'poll'; id: number; date: string; data: PollCardData };
+	| { type: 'poll'; id: number; date: string; data: PollCardData }
+	| { type: 'transfer'; id: number; date: string; data: TransferDayCardData };
 
 /** Cursor for keyset pagination: date + type + id of the last item. */
 export type FeedCursor = {
@@ -57,10 +69,10 @@ export function encodeCursor(cursor: FeedCursor): string {
 export function decodeCursor(raw: string | null | undefined): FeedCursor | null {
 	if (!raw) return null;
 	const [date, type, idRaw] = raw.split('|');
-	if (!date || (type !== 'article' && type !== 'poll')) return null;
+	if (!date || !ALL_FEED_TYPES.includes(type as FeedType)) return null;
 	const id = Number(idRaw);
 	if (!Number.isFinite(id)) return null;
-	return { date, type, id };
+	return { date, type: type as FeedType, id };
 }
 
 /** Parse `?tipos=artigos,sondagens`. Missing or empty → all types. Invalid tokens ignored. */
@@ -90,6 +102,11 @@ export function compareFeedKeys(a: FeedKey, b: FeedKey): number {
 
 export function compareFeedItems(a: FeedItem, b: FeedItem): number {
 	return compareFeedKeys(a, b);
+}
+
+/** At the same date, `type` comes after `other` under {@link compareFeedKeys}. */
+export function sortsAfterAtSameDate(type: FeedType, other: FeedType): boolean {
+	return type > other;
 }
 
 /** True if `item` is strictly older than `cursor` under {@link compareFeedKeys}. */

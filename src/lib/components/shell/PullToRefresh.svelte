@@ -20,6 +20,7 @@
 
 	let dragging = $state(false);
 	let armed = $state(false);
+	let startX = 0;
 	let startY = 0;
 	let engaged = false;
 
@@ -35,6 +36,7 @@
 
 	function ontouchstart(event: TouchEvent) {
 		if (refreshing || window.scrollY > 0) return;
+		startX = event.touches[0]?.clientX ?? 0;
 		startY = event.touches[0]?.clientY ?? 0;
 		engaged = false;
 		dragging = true;
@@ -42,8 +44,14 @@
 
 	function ontouchmove(event: TouchEvent) {
 		if (!dragging || refreshing) return;
+		const x = event.touches[0]?.clientX ?? 0;
 		const y = event.touches[0]?.clientY ?? 0;
 		const delta = y - startY;
+		// A sideways swipe (a carousel in the feed) is not a pull, even if it drifts down
+		if (!engaged && Math.abs(x - startX) > Math.abs(delta)) {
+			dragging = false;
+			return;
+		}
 		if (delta <= 0 && !engaged) {
 			dragging = false;
 			return;

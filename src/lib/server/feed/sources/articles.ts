@@ -1,4 +1,4 @@
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 import { articleHref } from '#lib/articles.ts';
 import { db } from '#lib/server/db/index.ts';
 import { articles, media } from '#lib/server/db/schema.ts';
@@ -6,6 +6,7 @@ import { naiveToIso } from '#lib/server/dates.ts';
 import { mediaUrl } from '#lib/server/media.ts';
 import type { FeedCursor, FeedItem } from '#lib/feed.ts';
 import { isBeforeCursor } from '#lib/feed.ts';
+import { keysetFilter } from '../keyset.ts';
 
 function stripHtml(html: string): string {
 	return html
@@ -32,27 +33,10 @@ function coverUrl(articleId: number, thumbnailUrl: string | null): string | null
 	return mediaUrl(`/images/16_9_placeholder_${articleId % 10}.jpg`);
 }
 
-/** ISO → MySQL naive DATETIME string for keyset comparisons. */
-export function toMysqlDatetime(iso: string): string {
-	return iso.slice(0, 19).replace('T', ' ');
-}
-
 export type SourcePageArgs = {
 	before: FeedCursor | null;
 	limit: number;
 };
-
-/**
- * Articles sort before polls at the same timestamp. When the cursor is a poll,
- * only articles with a strictly older date belong on the next page.
- */
-function articleCursorFilter(before: FeedCursor) {
-	const naive = toMysqlDatetime(before.date);
-	if (before.type === 'poll') {
-		return sql`${articles.date} < ${naive}`;
-	}
-	return sql`(${articles.date} < ${naive} OR (${articles.date} = ${naive} AND ${articles.id} < ${before.id}))`;
-}
 
 export async function fetchArticlePage({ before, limit }: SourcePageArgs): Promise<FeedItem[]> {
 	const rows = await db
@@ -67,7 +51,12 @@ export async function fetchArticlePage({ before, limit }: SourcePageArgs): Promi
 		})
 		.from(articles)
 		.leftJoin(media, eq(articles.mediaId, media.id))
-		.where(and(eq(articles.visible, true), before ? articleCursorFilter(before) : undefined))
+		.where(
+			and(
+				eq(articles.visible, true),
+				before ? keysetFilter(articles.date, articles.id, 'article', before) : undefined
+			)
+		)
 		.orderBy(desc(articles.date), desc(articles.id))
 		.limit(limit);
 

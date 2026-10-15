@@ -6,7 +6,7 @@ import type { FeedCursor, FeedItem } from '#lib/feed.ts';
 import { isBeforeCursor } from '#lib/feed.ts';
 import type { PollAnswer } from '#lib/components/types.ts';
 import { pollClosed, pollState } from '../pollState.ts';
-import { toMysqlDatetime } from './articles.ts';
+import { keysetFilter } from '../keyset.ts';
 
 export type PollSourceCtx = {
 	/** Cookie reader: `poll{id}` → truthy means voted (legacy). */
@@ -19,18 +19,6 @@ export type PollSourcePageArgs = {
 	limit: number;
 	ctx: PollSourceCtx;
 };
-
-/**
- * Polls sort after articles at the same timestamp. When the cursor is an article,
- * polls with the same date still belong on the next page (along with older ones).
- */
-function pollCursorFilter(before: FeedCursor) {
-	const naive = toMysqlDatetime(before.date);
-	if (before.type === 'article') {
-		return sql`${polls.publishAfter} <= ${naive}`;
-	}
-	return sql`(${polls.publishAfter} < ${naive} OR (${polls.publishAfter} = ${naive} AND ${polls.id} < ${before.id}))`;
-}
 
 async function voteCountsByAnswer(answerIds: number[]): Promise<Map<number, number>> {
 	const counts = new Map<number, number>();
@@ -67,7 +55,12 @@ export async function fetchPollPage({
 			image: polls.image
 		})
 		.from(polls)
-		.where(and(eq(polls.visible, true), before ? pollCursorFilter(before) : undefined))
+		.where(
+			and(
+				eq(polls.visible, true),
+				before ? keysetFilter(polls.publishAfter, polls.id, 'poll', before) : undefined
+			)
+		)
 		.orderBy(desc(polls.publishAfter), desc(polls.id))
 		.limit(limit);
 

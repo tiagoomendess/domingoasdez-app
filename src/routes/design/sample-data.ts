@@ -1,5 +1,6 @@
 import type { Match, PollAnswer, PollState } from '#lib/components/types.ts';
 import { addDays } from '#lib/format.ts';
+import type { TransferView } from '#lib/transfers.ts';
 
 const svg = (markup: string) => `data:image/svg+xml,${encodeURIComponent(markup)}`;
 
@@ -181,7 +182,75 @@ type FeedPoll = {
 	answers: PollAnswer[];
 };
 
-export type FeedItem = FeedArticle | FeedPoll;
+type FeedTransferDay = {
+	type: 'transfer';
+	id: number;
+	date: string;
+	day: string;
+	total: number;
+	transfers: TransferView[];
+	moreHref: string | null;
+};
+
+export type FeedItem = FeedArticle | FeedPoll | FeedTransferDay;
+
+const transferPlayers = [
+	'Rui Fernandes',
+	'Tiago Moura (Moura)',
+	'André Pires',
+	'Hugo Lopes',
+	'Nuno Barbosa',
+	'Diogo Carvalho'
+];
+const transferRoutes: [keyof typeof clubs | null, keyof typeof clubs | null][] = [
+	['ribeira', 'montalegre'],
+	['serrana', 'castelo'],
+	[null, 'santaMarta'],
+	['vilaNova', null],
+	['pontes', 'lameiras'],
+	['castelo', 'ribeira']
+];
+
+function sampleTransfers(count: number, date: string): TransferView[] {
+	const side = (key: keyof typeof clubs | null) =>
+		key
+			? { label: `${clubs[key].name} (Seniores)`, href: '#feed', emblem: clubs[key].emblem }
+			: { label: 'Sem equipa', href: null, emblem: null };
+
+	return Array.from({ length: count }, (_, index) => {
+		const [fromKey, toKey] = transferRoutes[index % transferRoutes.length];
+		const from = side(fromKey);
+		const to = side(toKey);
+		return {
+			id: index + 1,
+			playerName: transferPlayers[index % transferPlayers.length],
+			picture: '',
+			href: '#feed',
+			fromLabel: from.label,
+			fromHref: from.href,
+			fromEmblem: from.emblem,
+			toLabel: to.label,
+			toHref: to.href,
+			toEmblem: to.emblem,
+			date,
+			editHref: null
+		};
+	});
+}
+
+/** Feed card for one transfer day: the first five, plus a link when there are more. */
+function transferDay(id: number, day: string, total: number): FeedTransferDay {
+	const date = `${day}T00:00:00.000Z`;
+	return {
+		type: 'transfer',
+		id,
+		date,
+		day,
+		total,
+		transfers: sampleTransfers(Math.min(total, 5), date),
+		moreHref: total > 5 ? '#feed' : null
+	};
+}
 
 export function sampleFeed(now: number): FeedItem[] {
 	const hoursAgo = (h: number) => new Date(now - h * 3_600_000).toISOString();
@@ -252,6 +321,13 @@ export function sampleFeed(now: number): FeedItem[] {
 			]
 		}
 	];
+
+	const today = new Date(now).toISOString().slice(0, 10);
+	items.push(
+		transferDay(6, today, 1),
+		transferDay(7, addDays(today, -1), 3),
+		transferDay(8, addDays(today, -3), 9)
+	);
 
 	return items.sort((a, b) => b.date.localeCompare(a.date));
 }

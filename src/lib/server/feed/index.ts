@@ -10,6 +10,7 @@ import {
 } from '#lib/feed.ts';
 import { fetchArticlePage } from './sources/articles.ts';
 import { fetchPollPage } from './sources/polls.ts';
+import { fetchTransferPage } from './sources/transfers.ts';
 
 export type GetFeedPageArgs = {
 	types?: FeedType[];
@@ -54,6 +55,9 @@ export async function getFeedPage({
 					limit,
 					ctx: { hasVoted: hasVotedFromCookies(cookies), now }
 				})
+			: Promise.resolve([] as FeedItem[]),
+		selected.has('transfer')
+			? fetchTransferPage({ before: cursor, limit })
 			: Promise.resolve([] as FeedItem[])
 	]);
 

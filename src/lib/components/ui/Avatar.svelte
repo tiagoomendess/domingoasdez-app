@@ -2,7 +2,7 @@
 	type Props = {
 		name: string;
 		src?: string | null;
-		size?: 24 | 28 | 40 | 72 | 128;
+		size?: 24 | 28 | 40 | 48 | 72 | 128;
 	};
 
 	let { name, src, size = 40 }: Props = $props();

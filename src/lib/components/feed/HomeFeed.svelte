@@ -90,8 +90,11 @@
 			{#if item.type === 'article'}
 				{@const Card = feedTypes.article.component}
 				<Card {...item.data} />
-			{:else}
+			{:else if item.type === 'poll'}
 				{@const Card = feedTypes.poll.component}
+				<Card {...item.data} />
+			{:else}
+				{@const Card = feedTypes.transfer.component}
 				<Card {...item.data} />
 			{/if}
 			{#if feedAdAtIndex(index)}

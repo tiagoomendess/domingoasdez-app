@@ -13,7 +13,7 @@
 		/** Lisbon "today" YYYY-MM-DD */
 		today: string;
 		/** Optional markers from the days API */
-		markers?: Record<string, 'games' | 'live'>;
+		markers?: Record<string, 'games' | 'transfers' | 'live'>;
 		/** Build href for a day (same as DateRail) */
 		hrefFor: (day: string) => string;
 		/** Called when a day is picked (parent closes the sheet) */

@@ -169,6 +169,7 @@
 	"feed_filter": "Show in feed",
 	"feed_articles": "Articles",
 	"feed_polls": "Polls",
+	"feed_transfers": "Transfers",
 	"feed_empty_title": "Nothing here",
 	"feed_empty_text": "There are no articles or polls to show. Pull to refresh.",
 	"feed_error": "Could not load the feed.",
@@ -330,11 +331,28 @@
 	"players_index_empty_text": "There are no players to show right now.",
 
 	"transfers_title": "Transfers",
-	"transfers_meta_description": "All Barcelos grassroots football transfers, newest first.",
-	"transfers_empty_title": "No transfers",
-	"transfers_empty_text": "There are no transfers to show right now.",
-	"transfers_login_title": "Sign in to see more",
-	"transfers_login_text": "Transfers from page 2 onwards are only available to signed-in users, as on the old site.",
+	"transfers_meta_description": "All Barcelos grassroots football transfers, day by day.",
+	"transfers_empty_title": "No transfers on this day",
+	"transfers_empty_text": "Pick another day from the date bar or the calendar.",
+	"transfers_previous_day": "Earlier transfers: {date}",
+	"transfer_card_label": "Transfer",
+	"transfer_card_count": [
+		{
+			"declarations": ["input count", "local countPlural = count: plural"],
+			"selectors": ["countPlural"],
+			"match": {
+				"countPlural=one": "{count} transfer",
+				"countPlural=other": "{count} transfers"
+			}
+		}
+	],
+	"transfer_see_all": "See all ({count})",
+	"transfer_see_all_text": "{count} more that day",
+	"transfer_carousel_label": "Transfers on {date}",
+	"transfer_slide_label": "{index} of {total}",
+	"transfer_prev": "Previous transfer",
+	"transfer_next": "Next transfer",
+	"transfer_to": "to",
 
 	"pagination_prev": "Previous",
 	"pagination_next": "Next",

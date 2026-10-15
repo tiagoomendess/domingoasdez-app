@@ -264,7 +264,7 @@ Primitives are in `src/lib/components/ui/`, the shell in `.../shell/`, and domai
 | **Switch**              | 51 × 31 iOS-style. On = `success`.                                                                                                                                                                                                                                                   | On, off, disabled                                                                                                                                                           |
 | **StatusPill**          | Capsule, `caption`. Variants: `live` (pulsing dot + live colour), `warmup`, `finished` (neutral), `postponed` (warning), `open`, `closed`.                                                                                                                                           | —                                                                                                                                                                           |
 | **Emblem**              | Competition logos sit on a white plate (`rounded-badge`, or a circle) with a hairline ring, because many are JPEGs. Club emblems are PNGs and have no plate in either theme (`plate={false}`). The image uses `object-contain`. Sizes 24 / 32 / 40 / 72. Missing image: initials.    | Loading (`fill` placeholder), error (initials)                                                                                                                              |
-| **Avatar**              | Circular user photo, sizes 28 / 40 / 72, initials fallback.                                                                                                                                                                                                                          | —                                                                                                                                                                           |
+| **Avatar**              | Circular user photo, sizes 28 / 40 / 48 / 72, initials fallback.                                                                                                                                                                                                                          | —                                                                                                                                                                           |
 | **Skeleton**            | `fill` blocks shaped like the content. A gentle opacity pulse with no shimmer, and static under reduced motion.                                                                                                                                                                      | —                                                                                                                                                                           |
 | **EmptyState**          | Centred 48 px icon in `ink-tertiary`, a `headline` title, `subhead` text, and an optional action.                                                                                                                                                                                    | —                                                                                                                                                                           |
 | **Sheet**               | Native `<dialog>` (focus trap and Esc for free). Phones: a bottom sheet with `glass-thick`, `rounded-sheet` top corners, a grab handle, drag-to-dismiss with velocity and a spring, and a `scrim`. ≥ 768 px: a centred dialog, max 440 px wide.                                      | Opening, open, dragging, closing                                                                                                                                            |
@@ -295,13 +295,18 @@ Primitives are in `src/lib/components/ui/`, the shell in `.../shell/`, and domai
 The feed must be easy to extend, so item types are registered rather than hard-coded:
 
 ```ts
-// src/lib/components/feed/registry.ts
-type FeedItem = { type: string; id: number; date: string; data: unknown };
+// src/lib/feed.ts
+type FeedItem =
+	| { type: 'article'; id: number; date: string; data: ArticleCardData }
+	| { type: 'poll'; id: number; date: string; data: PollCardData }
+	| { type: 'transfer'; id: number; date: string; data: TransferDayCardData };
 
+// src/lib/components/feed/registry.ts
 export const feedTypes = {
-	article: { component: ArticleCard, labelKey: 'feed.articles', icon: Newspaper },
-	poll: { component: PollCard, labelKey: 'feed.polls', icon: ChartBar }
-	// future types: add a card component + one entry here; the chips come from this list
+	article: { component: ArticleCard, label: () => m.feed_articles(), icon: NewspaperIcon, param: 'artigos' },
+	poll: { component: PollCard, label: () => m.feed_polls(), icon: ChartBarHorizontalIcon, param: 'sondagens' },
+	transfer: { component: TransferDayCard, label: () => m.feed_transfers(), icon: ArrowsLeftRightIcon, param: 'transferencias' }
+	// future types: a card component + one entry here + a server source in src/lib/server/feed/sources/
 };
 ```
 
@@ -313,6 +318,15 @@ The chips on Home are generated from `feedTypes`, so a new content type gets a c
   - Results visible: up to 3 horizontal result bars. The leading answer's bar is gold, the others `fill-strong`. Percentages use `tabular-nums`.
   - Voted, results not yet public: "Resultados a partir de {date}", following the legacy rule.
   - The whole card links to the poll page, which shows voting or results based on the same legacy logic (closed, voted, show-results-after).
+- **TransferDayCard**: transfers arrive in bursts (a single day can have hundreds), so the feed shows **one card per day**, never one per transfer.
+  - The day is the calendar date of `transfers.date` (the backoffice date, as the legacy site prints it). The card sorts at that day's midnight, so it sits after the day's articles and polls.
+  - Only real moves count. A transfer to the team the player was already in (including no team → no team) is a backoffice repeat and is never published, in the feed or on `/transferencias`; days with only repeats disappear.
+  - Compact by design (about 136 px tall): a `surface` card with `p-2.5`. Header: a "7 transferências · 2 out" link to `/transferencias?date=…` ("Transferência · 2 out" for one), with the position dots on the right.
+  - Slide: a horizontal `fill` row (`rounded-inner`, about 78 px): Avatar (48) wearing the new club's emblem as a small badge, then three truncated lines: name (`callout` 600), old club (`footnote`, ink-tertiary), and "↳ new club" (`footnote` 500, ink-secondary, accent arrow). The row is one link to the player page.
+  - One transfer that day: just the tile. Two or more: a horizontal scroll-snap carousel. The cover (first slide) is the most recent transfer; swiping reveals the next ones, up to 5. Slides are 86% wide and the track bleeds to the card edge, so the next one peeks.
+  - More than 5 that day: the 6th slide is a tinted "Ver todas (N)" link to `/transferencias?date=…`.
+  - Position dots sit in the header (decorative; the active one stretches into an `accent` pill). Precise pointers (mouse) see small previous/next buttons there instead, since they can't swipe.
+  - Semantics: the track is a labelled `region` with `aria-roledescription="carousel"`; each slide is a `group` labelled "1 de 6". PullToRefresh ignores sideways swipes so the carousel never triggers a refresh.
 
 
 
@@ -355,7 +369,7 @@ Every tab root starts with a `large-title` heading in the content (it scrolls aw
 
 ### Início `/`
 
-Brand wordmark as the title → ChipGroup (Artigos, Sondagens; at least one selected; selection kept in `?tipos=`) → a feed of ArticleCards and PollCards ordered by date, 12 px apart → infinite scroll with a date cursor (load the next page about 800 px before the end; skeleton cards while loading) → PullToRefresh.
+Brand wordmark as the title → ChipGroup (Artigos, Sondagens, Transferências; at least one selected; selection kept in `?tipos=`) → a feed of ArticleCards, PollCards and TransferDayCards ordered by date, 12 px apart → infinite scroll with a date cursor (load the next page about 800 px before the end; skeleton cards while loading) → PullToRefresh.
 
 ### Jogos `/jogos`
 
@@ -365,6 +379,7 @@ Brand wordmark as the title → ChipGroup (Artigos, Sondagens; at least one sele
 
 "Competições" title → one ListGroup in priority order. Each row: Emblem (40) on the left, the competition name, the current season as subtitle, and a chevron. ≥ 768 px: a 2-column card grid.
 Competition page: a header (Emblem 72, name, season), then a **SegmentedControl** for the deeper views from the old site: **Classificação · Jogos · Estatísticas**. Clubs, players, coaches and referees are reached by tapping into these (contextual navigation). Transfers is a ListRow at the bottom of the Competições root.
+Transfers `/transferencias`: a day-by-day page shaped like Jogos. "Transferências" title → DateRail (`?date=YYYY-MM-DD`; dots on days with transfers; calendar sheet) → that day's transfers as a ListGroup (Avatar 40, player name, "From → To" subtitle, destination emblem) → an empty state with "Transferências anteriores: {date}" when the day has none. Without `?date` it opens on the latest day that has transfers, since they're sparse. No login wall.
 
 ### Páginas `/p`
 

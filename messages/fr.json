@@ -169,6 +169,7 @@
 	"feed_filter": "Afficher dans le fil",
 	"feed_articles": "Articles",
 	"feed_polls": "Sondages",
+	"feed_transfers": "Transferts",
 	"feed_empty_title": "Rien ici",
 	"feed_empty_text": "Il n'y a ni articles ni sondages à afficher. Tirez pour actualiser.",
 	"feed_error": "Impossible de charger le fil.",
@@ -330,11 +331,28 @@
 	"players_index_empty_text": "Il n'y a aucun joueur à afficher pour le moment.",
 
 	"transfers_title": "Transferts",
-	"transfers_meta_description": "Tous les transferts du football populaire de Barcelos, du plus récent au plus ancien.",
-	"transfers_empty_title": "Aucun transfert",
-	"transfers_empty_text": "Il n'y a aucun transfert à afficher pour le moment.",
-	"transfers_login_title": "Connectez-vous pour en voir plus",
-	"transfers_login_text": "Les transferts à partir de la page 2 ne sont visibles que pour les utilisateurs connectés, comme sur l'ancien site.",
+	"transfers_meta_description": "Tous les transferts du football populaire de Barcelos, jour par jour.",
+	"transfers_empty_title": "Aucun transfert ce jour-là",
+	"transfers_empty_text": "Choisissez un autre jour dans la barre des dates ou dans le calendrier.",
+	"transfers_previous_day": "Transferts précédents : {date}",
+	"transfer_card_label": "Transfert",
+	"transfer_card_count": [
+		{
+			"declarations": ["input count", "local countPlural = count: plural"],
+			"selectors": ["countPlural"],
+			"match": {
+				"countPlural=one": "{count} transfert",
+				"countPlural=other": "{count} transferts"
+			}
+		}
+	],
+	"transfer_see_all": "Tout voir ({count})",
+	"transfer_see_all_text": "{count} de plus ce jour-là",
+	"transfer_carousel_label": "Transferts du {date}",
+	"transfer_slide_label": "{index} sur {total}",
+	"transfer_prev": "Transfert précédent",
+	"transfer_next": "Transfert suivant",
+	"transfer_to": "vers",
 
 	"pagination_prev": "Précédent",
 	"pagination_next": "Suivant",

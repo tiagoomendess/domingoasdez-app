@@ -10,7 +10,7 @@
 		days: string[];
 		selected: string;
 		today: string;
-		markers?: Record<string, 'games' | 'live'>;
+		markers?: Record<string, 'games' | 'transfers' | 'live'>;
 		hrefFor: (day: string) => string;
 		onselect?: (day: string, event: MouseEvent) => void;
 		oncalendar?: () => void;
