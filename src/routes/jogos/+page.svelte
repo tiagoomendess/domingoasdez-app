@@ -327,3 +327,11 @@
 		{/if}
 	</div>
 {/if}
+
+{#if data.adminScoresHref && data.selected === data.today}
+	<div class="mt-6">
+		<Button href={data.adminScoresHref} variant="tinted" size="lg" full>
+			{m.games_admin_update_scores()}
+		</Button>
+	</div>
+{/if}

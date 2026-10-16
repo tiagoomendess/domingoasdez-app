@@ -27,7 +27,7 @@ import {
 	transfers
 } from '#lib/server/db/schema.ts';
 import { emblemUrl } from '#lib/server/games.ts';
-import { legacyUrl } from '#lib/server/legacy.ts';
+import { adminUrl } from '#lib/server/admin.ts';
 import { mediaUrl, placeholder16x9, profilePicture } from '#lib/server/media.ts';
 
 export type ResolvedClub = {
@@ -210,7 +210,7 @@ async function loadTeamsBlock(
 		name: team.name,
 		agents: agentsByTeam.get(team.id) ?? [],
 		players: playersByTeam.get(team.id) ?? [],
-		editHref: hasPermission(perms, `teams.edit.${team.id}`) ? legacyUrl(`/teams/${team.id}`) : null
+		editHref: hasPermission(perms, `teams.edit.${team.id}`) ? adminUrl(`/teams/${team.id}`) : null
 	}));
 }
 
@@ -335,7 +335,7 @@ export async function loadClubPage(
 		teams: teamViews,
 		transfers: transferViews,
 		editClubHref: hasPermission(perms, `clubs.edit.${club.id}`)
-			? legacyUrl(`/clubs/${club.id}`)
+			? adminUrl(`/clubs/${club.id}`)
 			: null,
 		seo: {
 			title: club.name,

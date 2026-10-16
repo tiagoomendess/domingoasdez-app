@@ -84,6 +84,8 @@
 	"game_admin_edit": "Modifier le match",
 	"game_admin_add_home_goal": "Ajouter un but (domicile)",
 	"game_admin_add_away_goal": "Ajouter un but (extérieur)",
+	"games_admin_update_scores": "Mettre à jour les scores",
+	"account_backoffice": "Backoffice",
 	"game_admin_score_reports": "Scores envoyés",
 	"game_form_win": "V",
 	"game_form_draw": "N",

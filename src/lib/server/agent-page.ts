@@ -11,7 +11,7 @@ import { naiveToIso } from '#lib/server/dates.ts';
 import { db } from '#lib/server/db/index.ts';
 import { clubs, players, teamAgentHistory, teamAgents, teams } from '#lib/server/db/schema.ts';
 import { emblemUrl } from '#lib/server/games.ts';
-import { legacyUrl } from '#lib/server/legacy.ts';
+import { adminUrl } from '#lib/server/admin.ts';
 import { profilePicture } from '#lib/server/media.ts';
 
 export type ResolvedAgent = {
@@ -204,7 +204,7 @@ export async function loadAgentPage(
 		player,
 		history,
 		editHref: hasPermission(perms, 'team_agents.edit')
-			? legacyUrl(`/team_agents/${agent.id}`)
+			? adminUrl(`/team-agents/${agent.id}`)
 			: null,
 		seo: {
 			title: agent.name,

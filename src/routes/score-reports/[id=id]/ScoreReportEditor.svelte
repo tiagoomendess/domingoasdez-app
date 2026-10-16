@@ -13,7 +13,7 @@
 	import { clampScore } from '#lib/score-reports.ts';
 
 	type Club = { name: string; emblem: string | null };
-	type AlreadySent = { homeScore: number; awayScore: number; finished: boolean };
+	type AlreadySent = { id: number; homeScore: number; awayScore: number; finished: boolean };
 
 	type Props = {
 		initialHome: number;
@@ -255,7 +255,7 @@
 				{m.score_report_already_sent()}
 			</p>
 			<div class="flex flex-wrap gap-2">
-				{#each alreadySent as report (`${report.homeScore}-${report.awayScore}-${report.finished}`)}
+				{#each alreadySent as report (report.id)}
 					<span
 						class="inline-flex h-9 items-center rounded-full bg-fill px-4 text-subhead font-medium text-ink tabular-nums"
 					>

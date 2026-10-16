@@ -51,6 +51,12 @@
 			<ListRow title={m.account_profile()} href="/conta/perfil" />
 		</ListGroup>
 
+		{#if data.backofficeHref}
+			<ListGroup>
+				<ListRow title={m.account_backoffice()} href={data.backofficeHref} />
+			</ListGroup>
+		{/if}
+
 		{#if data.hasPassword}
 			<ListGroup title={m.account_privacy_group()}>
 				<ListRow title={m.account_change_password()} href="/conta/palavra-passe" />

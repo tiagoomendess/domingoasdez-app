@@ -18,7 +18,7 @@ import {
 	transfers
 } from '#lib/server/db/schema.ts';
 import { emblemUrl } from '#lib/server/games.ts';
-import { legacyUrl } from '#lib/server/legacy.ts';
+import { adminUrl } from '#lib/server/admin.ts';
 import { profilePicture } from '#lib/server/media.ts';
 
 export type ResolvedPlayer = {
@@ -163,7 +163,7 @@ async function loadTransfers(
 		const hasClub = row.teamId != null && row.clubName != null;
 		let href: string | null = null;
 		if (canEditTransfers) {
-			href = legacyUrl(`/transfers/${row.id}`);
+			href = adminUrl(`/transfers/${row.id}`);
 		} else if (hasClub && row.clubName) {
 			href = clubHref(row.clubName);
 		}
@@ -215,7 +215,7 @@ export async function loadPlayerPage(
 		transfers: shown,
 		remainingTransfers: remaining,
 		editHref: hasPermission(perms, 'players.edit')
-			? legacyUrl(`/players/${player.id}/edit`)
+			? adminUrl(`/players/${player.id}`)
 			: null,
 		seo: {
 			title: player.name,

@@ -59,6 +59,7 @@ export type ScoreReportBanView = {
 };
 
 export type ScoreReportAlreadySent = {
+	id: number;
 	homeScore: number;
 	awayScore: number;
 	finished: boolean;
@@ -219,6 +220,7 @@ async function loadAlreadySent(
 	const userMatch = userId != null ? eq(scoreReports.userId, userId) : sql`false`;
 	const rows = await db
 		.select({
+			id: scoreReports.id,
 			homeScore: scoreReports.homeScore,
 			awayScore: scoreReports.awayScore,
 			finished: scoreReports.finished
@@ -230,6 +232,7 @@ async function loadAlreadySent(
 		.orderBy(desc(scoreReports.id));
 
 	return rows.map((row) => ({
+		id: row.id,
 		homeScore: row.homeScore,
 		awayScore: row.awayScore,
 		finished: Boolean(row.finished)

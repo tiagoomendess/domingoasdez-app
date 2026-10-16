@@ -1,11 +1,13 @@
 import { dayRange, isValidDay } from '#lib/games.ts';
 import { todayInLisbon } from '#lib/format.ts';
+import { getUserPermissionNames, hasPermission } from '#lib/server/auth/permissions.ts';
+import { adminUrl } from '#lib/server/admin.ts';
 import { getDayMarkers, getGamesForDay, getNextGameDay } from '#lib/server/games.ts';
 import type { PageServerLoad } from './$types';
 
 const RAIL_RADIUS = 14;
 
-export const load: PageServerLoad = async ({ url, depends }) => {
+export const load: PageServerLoad = async ({ url, depends, locals }) => {
 	depends('app:games');
 
 	const today = todayInLisbon();
@@ -19,7 +21,12 @@ export const load: PageServerLoad = async ({ url, depends }) => {
 		getNextGameDay(selected)
 	]);
 
+	const canUpdateScores =
+		locals.user != null &&
+		hasPermission(await getUserPermissionNames(locals.user.id), 'score_update');
+
 	return {
+		adminScoresHref: canUpdateScores ? adminUrl('/today') : null,
 		today,
 		selected,
 		days,

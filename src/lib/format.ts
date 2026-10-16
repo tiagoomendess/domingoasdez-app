@@ -7,6 +7,11 @@ export function todayInLisbon() {
 	return new Intl.DateTimeFormat('en-CA', { timeZone: GAME_TIME_ZONE }).format(new Date());
 }
 
+/** Lisbon calendar day (YYYY-MM-DD) of an ISO instant. */
+export function lisbonDay(iso: string) {
+	return new Intl.DateTimeFormat('en-CA', { timeZone: GAME_TIME_ZONE }).format(new Date(iso));
+}
+
 function yearInLisbon(date: Date) {
 	return Number(
 		new Intl.DateTimeFormat('en-CA', {

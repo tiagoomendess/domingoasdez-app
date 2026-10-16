@@ -10,6 +10,7 @@ import { db } from '#lib/server/db/index.ts';
 import { pollAnswerVotes, pollAnswers, polls } from '#lib/server/db/schema.ts';
 import { naiveToIso, nowIso } from '#lib/server/dates.ts';
 import { pollClosed, pollState } from '#lib/server/feed/pollState.ts';
+import { adminUrl } from '#lib/server/admin.ts';
 import { legacyUrl } from '#lib/server/legacy.ts';
 import { mediaUrl } from '#lib/server/media.ts';
 
@@ -161,7 +162,7 @@ export async function loadPollPage(input: {
 		totalVotes,
 		loggedIn: Boolean(input.user),
 		recaptchaSiteKey: input.user ? null : input.recaptchaSiteKey,
-		editHref: hasPermission(perms, 'polls.edit') ? legacyUrl(`/polls/${poll.id}/edit`) : null,
+		editHref: hasPermission(perms, 'polls.edit') ? adminUrl(`/polls/${poll.id}`) : null,
 		image: mediaUrl(poll.image) ?? legacyUrl(DEFAULT_POLL_IMAGE)
 	};
 }

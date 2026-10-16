@@ -6,7 +6,7 @@ import { naiveToIso } from '#lib/server/dates.ts';
 import { db } from '#lib/server/db/index.ts';
 import { clubs, players, teams, transfers } from '#lib/server/db/schema.ts';
 import { emblemUrl } from '#lib/server/games.ts';
-import { legacyUrl } from '#lib/server/legacy.ts';
+import { adminUrl } from '#lib/server/admin.ts';
 import { profilePicture } from '#lib/server/media.ts';
 import {
 	TRANSFER_FEED_PREVIEW,
@@ -152,7 +152,7 @@ export async function buildTransferViews(
 			toHref: to.href,
 			toEmblem: to.emblem,
 			date: naiveToIso(row.date),
-			editHref: canEdit ? legacyUrl(`/transfers/${row.id}`) : null
+			editHref: canEdit ? adminUrl(`/transfers/${row.id}`) : null
 		};
 	});
 }

@@ -52,6 +52,11 @@ export const variables = defineEnvVars({
 			'Origin of the legacy site for backoffice / score-report / flash-interview links. Falls back to MEDIA_BASE_URL when empty.',
 		schema: optionalString
 	},
+	ADMIN_BASE_URL: {
+		description:
+			'Origin of the admin app. "Edit" shortcuts on public pages (game, club, player…) open it.',
+		schema: (value) => optionalHttpUrl(value).replace(/\/$/, '') || 'https://admin.domingoasdez.com'
+	},
 	NEW_SITE_DISCLAIMER_ENABLED: {
 		description:
 			'Show the construction disclaimer as the second item on the home feed. Set to false to remove it.',

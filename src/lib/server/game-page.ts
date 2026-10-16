@@ -42,7 +42,8 @@ import {
 } from '#lib/server/db/schema.ts';
 import type { ResolvedSeason } from '#lib/server/competition-page.ts';
 import { emblemUrl, goalCountsByGame, resolveScores } from '#lib/server/games.ts';
-import { legacyUrl } from '#lib/server/legacy.ts';
+import { lisbonDay } from '#lib/format.ts';
+import { adminUrl } from '#lib/server/admin.ts';
 import { mediaUrl, placeholder16x9, profilePicture } from '#lib/server/media.ts';
 
 const homeTeam = alias(teams, 'home_team');
@@ -369,7 +370,7 @@ async function loadGoalsForGame(
 			playerName: name || '__unknown__',
 			picture: profilePicture(row.playerPicture),
 			href: canEditGoals
-				? legacyUrl(`/goals/${row.id}`)
+				? adminUrl(`/goals/${row.id}`)
 				: row.playerId && row.playerName
 					? playerHref(row.playerId, row.playerName)
 					: null
@@ -819,7 +820,6 @@ export async function loadGamePage(
 	});
 
 	const seasonLabel = formatSeasonShort(season.startYear, season.endYear);
-	const returnTo = encodeURIComponent(pageUrl);
 
 	return {
 		id: game.id,
@@ -867,15 +867,15 @@ export async function loadGamePage(
 				? `/score-reports/${game.id}?returnTo=${encodeURIComponent(href)}`
 				: null,
 			flashInterview,
-			editGame: canEditGames ? legacyUrl(`/games/${game.id}/edit`) : null,
+			editGame: canEditGames ? adminUrl(`/games/${game.id}`) : null,
 			addHomeGoal: canCreateGoals
-				? legacyUrl(`/goals/create?game_id=${game.id}&team_id=${game.homeTeamId}`)
+				? adminUrl(`/goals/new?game=${game.id}&side=home`)
 				: null,
 			addAwayGoal: canCreateGoals
-				? legacyUrl(`/goals/create?game_id=${game.id}&team_id=${game.awayTeamId}`)
+				? adminUrl(`/goals/new?game=${game.id}&side=away`)
 				: null,
 			scoreReportsList: canScoreUpdate
-				? legacyUrl(`/jogos/${game.id}/resultados-enviados?back_to=${returnTo}`)
+				? adminUrl(`/today?day=${lisbonDay(kickoff)}`)
 				: null
 		},
 		seo: {

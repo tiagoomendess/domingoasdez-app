@@ -84,6 +84,8 @@
 	"game_admin_edit": "Edit game",
 	"game_admin_add_home_goal": "Add goal (home)",
 	"game_admin_add_away_goal": "Add goal (away)",
+	"games_admin_update_scores": "Update scores",
+	"account_backoffice": "Backoffice",
 	"game_admin_score_reports": "Submitted scores",
 	"game_form_win": "W",
 	"game_form_draw": "D",
