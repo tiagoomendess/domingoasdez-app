@@ -47,6 +47,11 @@
 <div class="mt-6">
 	<ListGroup title={m.pages_info_group()} headingLevel={2}>
 		<ListRow title={m.pages_info()} subtitle={m.pages_info_subtitle()} href="/conta/informacao" />
+		<ListRow
+			title={m.pages_old_site()}
+			subtitle={m.pages_old_site_subtitle()}
+			href={data.legacyHref}
+		/>
 	</ListGroup>
 </div>
 
