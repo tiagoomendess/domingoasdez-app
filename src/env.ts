@@ -57,6 +57,27 @@ export const variables = defineEnvVars({
 			'Origin of the admin app. "Edit" shortcuts on public pages (game, club, player…) open it.',
 		schema: (value) => optionalHttpUrl(value).replace(/\/$/, '') || 'https://admin.domingoasdez.com'
 	},
+	R2_ENDPOINT: {
+		description:
+			'Cloudflare R2 S3 endpoint (https://<ACCOUNT_ID>.r2.cloudflarestorage.com). Needed to upload profile pictures.',
+		schema: optionalHttpUrl
+	},
+	R2_ACCESS_KEY_ID: {
+		description: 'R2 API token access key id (Object Read & Write on the uploads bucket).',
+		schema: optionalString
+	},
+	R2_SECRET_ACCESS_KEY: {
+		description: 'R2 API token secret access key.',
+		schema: optionalString
+	},
+	R2_BUCKET: {
+		description: 'R2 bucket shared with the legacy site and the admin (keys mirror DB paths).',
+		schema: optionalString
+	},
+	R2_REGION: {
+		description: 'R2 region. Always "auto" for Cloudflare.',
+		schema: (value) => optionalString(value).trim() || 'auto'
+	},
 	NEW_SITE_DISCLAIMER_ENABLED: {
 		description:
 			'Show the construction disclaimer as the second item on the home feed. Set to false to remove it.',

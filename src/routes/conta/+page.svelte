@@ -3,6 +3,8 @@
 	import ListGroup from '#lib/components/ui/ListGroup.svelte';
 	import ListRow from '#lib/components/ui/ListRow.svelte';
 	import Avatar from '#lib/components/ui/Avatar.svelte';
+	import CameraIcon from 'phosphor-svelte/lib/CameraIcon';
+	import ProfilePhotoSheet from '#lib/components/account/ProfilePhotoSheet.svelte';
 	import PreferencesGroup from '#lib/components/account/PreferencesGroup.svelte';
 	import logo from '#lib/assets/logo.png';
 	import { m } from '#lib/messages.ts';
@@ -11,6 +13,7 @@
 	let { data }: PageProps = $props();
 
 	const user = $derived(data.user);
+	let photoOpen = $state(false);
 </script>
 
 <svelte:head>
@@ -26,10 +29,29 @@
 	<section
 		class="mb-6 flex items-center gap-3.5 rounded-card bg-surface px-4 py-3.5 ring-1 ring-line dark:ring-0"
 	>
-		<Avatar name={user.name} src={user.picture} size={72} />
+		<button
+			type="button"
+			class="relative shrink-0 pressable rounded-full"
+			aria-label={m.account_edit_photo()}
+			onclick={() => (photoOpen = true)}
+		>
+			<Avatar name={user.name} src={user.picture} size={72} />
+			<span
+				class="absolute -right-0.5 -bottom-0.5 grid size-7 place-items-center rounded-full bg-accent text-accent-fg ring-2 ring-surface"
+			>
+				<CameraIcon size={14} weight="fill" />
+			</span>
+		</button>
 		<div class="min-w-0 flex-1">
 			<h2 class="truncate text-headline text-ink">{user.name}</h2>
 			<p class="truncate text-footnote text-ink-secondary">{user.email}</p>
+			<button
+				type="button"
+				class="mt-1 text-footnote font-semibold text-accent-text"
+				onclick={() => (photoOpen = true)}
+			>
+				{m.account_edit_photo()}
+			</button>
 		</div>
 	</section>
 
@@ -80,6 +102,10 @@
 			<Button href="/conta/registar" variant="tinted" size="lg" full>{m.account_register()}</Button>
 		</div>
 	</section>
+{/if}
+
+{#if user}
+	<ProfilePhotoSheet bind:open={photoOpen} name={user.name} src={user.picture} />
 {/if}
 
 <PreferencesGroup

@@ -61,9 +61,11 @@
 		"#lib/*": "./src/lib/*"
 	},
 	"dependencies": {
+		"@aws-sdk/client-s3": "^3.1152.0",
 		"@inlang/paraglide-js": "^2.25.4",
 		"bcryptjs": "^3.0.3",
 		"isomorphic-dompurify": "^4.4.0",
-		"nodemailer": "^10.0.14"
+		"nodemailer": "^10.0.14",
+		"sharp": "^0.35.5"
 	}
 }
