@@ -129,6 +129,11 @@ export const variables = defineEnvVars({
 		schema: optionalString,
 		public: true
 	},
+	ADSENSE_ENABLED: {
+		description:
+			'Show AdSense ads on the public site. Set to false to turn every ad off for everyone; the consent banner and Analytics keep working.',
+		schema: flag(true)
+	},
 	MAIL_DRIVER: {
 		description: 'Mail transport. Only "smtp" is supported (same as the legacy site).',
 		schema: (value) => {

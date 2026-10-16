@@ -88,8 +88,7 @@
 				if (gaId) {
 					var gs = document.createElement('script');
 					gs.async = true;
-					gs.src =
-						'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(gaId);
+					gs.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(gaId);
 					document.head.appendChild(gs);
 					gtag('js', new Date());
 					gtag('config', gaId, {
@@ -107,7 +106,7 @@
 						encodeURIComponent(adsClient);
 					document.head.appendChild(as);
 				} else if (adsClient) {
-					// Permission disable_ads: keep the consent script, never request ads.
+					// Ads off (ADSENSE_ENABLED=false or the disable_ads permission): keep the consent script, never request ads.
 					var held = (window.adsbygoogle = window.adsbygoogle || []);
 					held.pauseAdRequests = 1;
 				}

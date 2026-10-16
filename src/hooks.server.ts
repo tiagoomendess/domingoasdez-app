@@ -1,6 +1,7 @@
 import type { Handle } from '@sveltejs/kit/hooks';
 import { sequence } from '@sveltejs/kit/hooks';
 import { PUBLIC_ADSENSE_CLIENT, PUBLIC_GA_MEASUREMENT_ID } from '$app/env/public';
+import { ADSENSE_ENABLED } from '$app/env/private';
 import { paraglideMiddleware } from '#lib/paraglide/server.js';
 import { SESSION_COOKIE, readSessionUserId } from '#lib/server/auth/session.ts';
 import { adsDisabled } from '#lib/ads.ts';
@@ -10,9 +11,12 @@ import { getAuthUserById } from '#lib/server/auth/users.ts';
 const authHandle: Handle = async ({ event, resolve }) => {
 	const userId = await readSessionUserId(event.cookies.get(SESSION_COOKIE));
 	event.locals.user = userId ? await getAuthUserById(userId) : null;
-	event.locals.adsDisabled = event.locals.user
-		? adsDisabled(await getUserPermissionNames(event.locals.user.id))
-		: false;
+	// ADSENSE_ENABLED=false turns ads off site-wide; otherwise the disable_ads permission does it per user.
+	event.locals.adsDisabled = !ADSENSE_ENABLED
+		? true
+		: event.locals.user
+			? adsDisabled(await getUserPermissionNames(event.locals.user.id))
+			: false;
 
 	// Funding Choices still loads so Analytics gets a consent update. Only the ad script is gated.
 	return resolve(event, {
