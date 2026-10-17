@@ -82,9 +82,14 @@
 		typeof document !== 'undefined' ? document.visibilityState === 'visible' : true
 	);
 
+	// The flash cookie is read once, but the root layout's data (and its toast) stays in
+	// page.data across client navigations until the layout reloads. Show each toast once.
+	let shownToast: unknown = null;
+
 	afterNavigate(() => {
 		const toast = page.data.toast;
-		if (!toast?.message) return;
+		if (!toast?.message || toast === shownToast) return;
+		shownToast = toast;
 		toastMessage = toast.message;
 		toastTone = toast.tone ?? 'info';
 		toastVisible = true;
@@ -164,7 +169,7 @@
 
 	<NavigationLoader visible={loaderVisible} />
 
-	<Toast bind:visible={toastVisible} message={toastMessage} tone={toastTone} duration={6000} />
+	<Toast bind:visible={toastVisible} message={toastMessage} tone={toastTone} />
 
 	<TabBar {tabs} {current} {onselect} live={liveNow} />
 </div>
