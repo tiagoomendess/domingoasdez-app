@@ -41,6 +41,21 @@ export function formatKickoffDay(iso: string, now = new Date()) {
 	return new Intl.DateTimeFormat(getLocale(), options).format(date);
 }
 
+/**
+ * Kick-off date split for narrow stacked columns (match lists): "28/11", plus the year
+ * on its own line only when it isn't the current year. Always Europe/Lisbon.
+ */
+export function kickoffDayParts(iso: string, now = new Date()) {
+	const date = new Date(iso);
+	const dayMonth = new Intl.DateTimeFormat(getLocale(), {
+		day: '2-digit',
+		month: '2-digit',
+		timeZone: GAME_TIME_ZONE
+	}).format(date);
+	const year = yearInLisbon(date);
+	return { dayMonth, year: year !== yearInLisbon(now) ? String(year) : null };
+}
+
 export function formatShortDate(iso: string) {
 	return new Intl.DateTimeFormat(getLocale(), {
 		day: 'numeric',

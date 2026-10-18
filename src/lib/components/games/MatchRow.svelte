@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Emblem from '#lib/components/ui/Emblem.svelte';
 	import type { Match, Team } from '#lib/components/types.ts';
-	import { formatKickoff, formatKickoffDay } from '#lib/format.ts';
+	import { formatKickoff, kickoffDayParts } from '#lib/format.ts';
 	import { m } from '#lib/messages.ts';
 	import { rollIn, rollOut } from '#lib/motion.ts';
 
@@ -61,7 +61,18 @@
 {#snippet row()}
 	<span class="flex w-12 shrink-0 flex-col items-center justify-center text-center">
 		{#if showDate}
-			<span class="mb-0.5 text-caption text-ink-tertiary">{formatKickoffDay(match.kickoff)}</span>
+			{@const day = kickoffDayParts(match.kickoff)}
+			<!-- Stacked so the narrow column grows down, not across: 28/11, then the year
+			     only when it isn't this year, then the status below -->
+			<time
+				datetime={match.kickoff}
+				class="mb-0.5 flex flex-col text-caption leading-tight text-ink-tertiary tabular-nums"
+			>
+				<span>{day.dayMonth}</span>
+				{#if day.year}
+					<span>{day.year}</span>
+				{/if}
+			</time>
 		{/if}
 		{#if match.status === 'live'}
 			<span
