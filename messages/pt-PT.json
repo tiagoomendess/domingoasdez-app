@@ -35,7 +35,6 @@
 	"game_penalty_goal": "Penalty",
 	"game_no_goals": "Não existem golos",
 	"game_referees": "Árbitros",
-	"game_no_referees": "Os árbitros para este jogo não são conhecidos",
 	"game_referee_main": "Principal",
 	"game_referee_assistant": "Assistente",
 	"game_referee_fourth_official": "Quarto árbitro",
@@ -53,6 +52,20 @@
 	"game_mvp_vote_login": "Votar no homem do jogo (faz login)",
 	"game_mvp_voted": "Votaste em {name} para homem do jogo",
 	"game_mvp_pick_title": "Escolhe o homem do jogo",
+	"game_mvp_pick_team": "De que equipa é o homem do jogo?",
+	"game_mvp_change_team": "Mudar",
+	"game_mvp_player_label": "Jogador",
+	"game_mvp_player_placeholder": "Escolhe um jogador",
+	"game_mvp_squad_count": [
+		{
+			"declarations": ["input count", "local countPlural = count: plural"],
+			"selectors": ["countPlural"],
+			"match": {
+				"countPlural=one": "{count} jogador",
+				"countPlural=other": "{count} jogadores"
+			}
+		}
+	],
 	"game_mvp_submit": "Votar",
 	"game_mvp_cancel": "Cancelar",
 	"game_mvp_error_closed": "A janela de voto não está aberta para este jogo",

@@ -123,17 +123,15 @@
 		{#if data.venue}
 			<button
 				type="button"
-				class="absolute top-3 left-3 z-10 inline-flex max-w-[min(100%-1.5rem,18rem)] min-h-9 items-center gap-1.5 rounded-full bg-black/55 px-3 text-footnote font-medium text-white backdrop-blur-sm ring-1 ring-white/15 hover:bg-black/65"
+				class="absolute top-3 left-3 z-10 inline-flex min-h-9 max-w-[min(100%-1.5rem,18rem)] items-center gap-1.5 rounded-full bg-black/55 px-3 text-footnote font-medium text-white ring-1 ring-white/15 backdrop-blur-sm hover:bg-black/65"
 				onclick={() => (directionsOpen = true)}
 			>
 				<MapPinIcon size={16} weight="bold" class="shrink-0" />
 				<span class="truncate">{data.venue.name}</span>
 			</button>
 		{/if}
-		<div
-			class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent pt-12"
-		>
-			<a href={data.competitionHref} class="flex items-center gap-3 px-4 pb-3 pt-1">
+		<div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent pt-12">
+			<a href={data.competitionHref} class="flex items-center gap-3 px-4 pt-1 pb-3">
 				<Emblem src={data.displayEmblem} name={data.displayName} size={24} decorative />
 				<span class="min-w-0 flex-1">
 					<span class="block truncate text-headline text-white">{data.displayName}</span>
@@ -190,38 +188,14 @@
 		</div>
 	{/if}
 
-	<div class="grid gap-4 lg:grid-cols-3">
+	<!-- Home and away goals side by side; referees span the full width below them -->
+	<div class="grid gap-4 md:grid-cols-2">
 		<GoalList
 			title={m.game_goals_from({ club: data.home.name })}
 			goals={data.homeGoals}
 			addGoalHref={data.links.addHomeGoal}
 			addGoalLabel={data.links.addHomeGoal ? m.game_admin_add_home_goal() : null}
 		/>
-
-		{#if data.referees.length > 0}
-			<ListGroup title={m.game_referees()} headingLevel={3}>
-				{#each data.referees as referee (referee.id)}
-					<ListRow
-						title={referee.name}
-						subtitle={refereeTypeLabel(referee.typeKey)}
-						href={referee.href}
-					>
-						{#snippet leading()}
-							<Avatar name={referee.name} src={referee.picture} size={40} />
-						{/snippet}
-					</ListRow>
-				{/each}
-			</ListGroup>
-		{:else}
-			<section>
-				<h3 class="mb-2 px-4 text-footnote font-semibold text-ink-secondary">
-					{m.game_referees()}
-				</h3>
-				<div class="rounded-card bg-surface px-4 py-6 text-center ring-1 ring-line dark:ring-0">
-					<p class="text-callout text-ink-secondary">{m.game_no_referees()}</p>
-				</div>
-			</section>
-		{/if}
 
 		<GoalList
 			title={m.game_goals_from({ club: data.away.name })}
@@ -230,6 +204,22 @@
 			addGoalLabel={data.links.addAwayGoal ? m.game_admin_add_away_goal() : null}
 		/>
 	</div>
+
+	{#if data.referees.length > 0}
+		<ListGroup title={m.game_referees()} headingLevel={3}>
+			{#each data.referees as referee (referee.id)}
+				<ListRow
+					title={referee.name}
+					subtitle={refereeTypeLabel(referee.typeKey)}
+					href={referee.href}
+				>
+					{#snippet leading()}
+						<Avatar name={referee.name} src={referee.picture} size={40} />
+					{/snippet}
+				</ListRow>
+			{/each}
+		</ListGroup>
+	{/if}
 
 	<HeadToHead
 		homeName={data.home.name}
@@ -266,6 +256,8 @@
 		gameId={data.id}
 		homeName={data.home.name}
 		awayName={data.away.name}
+		homeEmblem={data.home.emblem}
+		awayEmblem={data.away.emblem}
 		homePlayers={data.mvp.homePlayers}
 		awayPlayers={data.mvp.awayPlayers}
 	/>

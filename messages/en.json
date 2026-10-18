@@ -35,7 +35,6 @@
 	"game_penalty_goal": "Penalty",
 	"game_no_goals": "No goals",
 	"game_referees": "Referees",
-	"game_no_referees": "The referees for this game are not known",
 	"game_referee_main": "Referee",
 	"game_referee_assistant": "Assistant",
 	"game_referee_fourth_official": "Fourth official",
@@ -53,6 +52,20 @@
 	"game_mvp_vote_login": "Vote for man of the match (sign in)",
 	"game_mvp_voted": "You voted for {name} as man of the match",
 	"game_mvp_pick_title": "Choose the man of the match",
+	"game_mvp_pick_team": "Which team has the man of the match?",
+	"game_mvp_change_team": "Change",
+	"game_mvp_player_label": "Player",
+	"game_mvp_player_placeholder": "Choose a player",
+	"game_mvp_squad_count": [
+		{
+			"declarations": ["input count", "local countPlural = count: plural"],
+			"selectors": ["countPlural"],
+			"match": {
+				"countPlural=one": "{count} player",
+				"countPlural=other": "{count} players"
+			}
+		}
+	],
 	"game_mvp_submit": "Vote",
 	"game_mvp_cancel": "Cancel",
 	"game_mvp_error_closed": "Voting is not open for this game",

@@ -8,10 +8,7 @@ export type PlayerPosition = 'none' | 'striker' | 'midfielder' | 'defender' | 'g
 export const GUEST_TRANSFER_LIMIT = 2;
 
 /** Truncate a newest-first transfer list for guests; logged-in users see everything. */
-export function limitTransfers<T>(
-	list: T[],
-	isGuest: boolean
-): { shown: T[]; remaining: number } {
+export function limitTransfers<T>(list: T[], isGuest: boolean): { shown: T[]; remaining: number } {
 	if (!isGuest || list.length <= GUEST_TRANSFER_LIMIT) {
 		return { shown: list, remaining: 0 };
 	}
@@ -30,11 +27,25 @@ export function firstAndLastName(fullName: string): string {
 	return `${parts[0]} ${parts[parts.length - 1]}`;
 }
 
-/** Ports Player::displayName — `First Last` or `First Last (nickname)`. */
+function sameName(a: string, b: string): boolean {
+	const normalize = (text: string) =>
+		text
+			.normalize('NFD')
+			.replace(/\p{Diacritic}/gu, '')
+			.replace(/\s+/g, ' ')
+			.trim()
+			.toLowerCase();
+	return normalize(a) === normalize(b);
+}
+
+/**
+ * Ports Player::displayName — `First Last` or `First Last (nickname)`. A nickname that just
+ * repeats the name (many are filled in that way) is dropped: "Jorge Miranda (Jorge Miranda)".
+ */
 export function playerDisplayName(fullName: string, nickname?: string | null): string {
 	const base = firstAndLastName(fullName);
 	const nick = nickname?.trim();
-	if (nick) return `${base} (${nick})`;
+	if (nick && !sameName(nick, base) && !sameName(nick, fullName)) return `${base} (${nick})`;
 	return base;
 }
 

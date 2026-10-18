@@ -71,6 +71,8 @@
 	const CLICK_THROUGH_MS = 350;
 	let openedAt = 0;
 	let maxHeight = $state(360);
+	/** Fixed position of the popover, measured from the field when it opens. */
+	let box = $state({ left: 0, width: 0, top: 0, bottom: 0 });
 
 	let trigger: HTMLButtonElement | undefined;
 	let search: HTMLInputElement | undefined;
@@ -118,9 +120,20 @@
 		return filtered.findIndex((option) => !option.disabled);
 	}
 
-	function scrollActive(block: ScrollLogicalPosition = 'nearest') {
-		if (activeIndex < 0) return;
-		list?.querySelector(`#${CSS.escape(`${uid}-opt-${activeIndex}`)}`)?.scrollIntoView({ block });
+	/** Scroll only the list (never the page, which would close the popover) to show the highlight. */
+	function scrollActive(block: 'center' | 'nearest' = 'nearest') {
+		if (activeIndex < 0 || !list) return;
+		const row = list.querySelector<HTMLElement>(`#${CSS.escape(`${uid}-opt-${activeIndex}`)}`);
+		if (!row) return;
+		const box = list.getBoundingClientRect();
+		const rect = row.getBoundingClientRect();
+		if (block === 'center') {
+			list.scrollTop += rect.top - box.top - (box.height - rect.height) / 2;
+		} else if (rect.top < box.top) {
+			list.scrollTop += rect.top - box.top;
+		} else if (rect.bottom > box.bottom) {
+			list.scrollTop += rect.bottom - box.bottom;
+		}
 	}
 
 	function place() {
@@ -130,6 +143,12 @@
 		const above = rect.top - 16;
 		placement = below >= 240 || below >= above ? 'below' : 'above';
 		maxHeight = Math.max(160, Math.min(360, placement === 'below' ? below : above));
+		box = {
+			left: rect.left,
+			width: rect.width,
+			top: rect.bottom + 6,
+			bottom: window.innerHeight - rect.top + 6
+		};
 	}
 
 	async function openList(initialQuery = '') {
@@ -206,7 +225,9 @@
 				choose(filtered[activeIndex]);
 				break;
 			case 'Escape':
+				// Only the list closes, not a dialog the field happens to sit in
 				event.preventDefault();
+				event.stopPropagation();
 				close();
 				break;
 			case 'Tab':
@@ -234,18 +255,29 @@
 		if (list) list.scrollTop = 0;
 	}
 
-	/** Close the popover on a press outside it (the trigger toggles on its own). */
-	function dismissOutside(panel: HTMLElement) {
+	/**
+	 * Shows the popover in the top layer, so no scrolling card, sheet or dialog around the
+	 * field can clip it. It closes on a press outside, a resize, or a scroll anywhere but
+	 * inside the list itself, like a native select.
+	 */
+	function topLayerPopover(panel: HTMLElement) {
+		panel.showPopover?.();
 		const onpointerdown = (event: PointerEvent) => {
 			const target = event.target as Node;
 			if (panel.contains(target) || trigger?.contains(target)) return;
 			close(false);
 		};
+		const onscroll = (event: Event) => {
+			if (event.target instanceof Node && panel.contains(event.target)) return;
+			close(false);
+		};
 		const onresize = () => close(false);
 		window.addEventListener('pointerdown', onpointerdown, true);
+		window.addEventListener('scroll', onscroll, true);
 		window.addEventListener('resize', onresize);
 		return () => {
 			window.removeEventListener('pointerdown', onpointerdown, true);
+			window.removeEventListener('scroll', onscroll, true);
 			window.removeEventListener('resize', onresize);
 		};
 	}
@@ -402,13 +434,18 @@
 
 	{#if open && mode === 'popover'}
 		<div
-			{@attach dismissOutside}
+			popover="manual"
+			{@attach topLayerPopover}
 			transition:materialize={{ y: placement === 'below' ? -6 : 6, duration: 200 }}
 			class={[
 				// Solid, not glass: a list over busy content has to stay readable
-				'absolute inset-x-0 z-50 flex flex-col overflow-hidden rounded-[1.25rem] bg-surface shadow-xl ring-1 ring-line-strong',
-				placement === 'below' ? 'top-full mt-1.5 origin-top' : 'bottom-full mb-1.5 origin-bottom'
+				'fixed inset-auto m-0 flex flex-col overflow-hidden rounded-[1.25rem] border-0 bg-surface p-0 text-ink shadow-xl ring-1 ring-line-strong',
+				placement === 'below' ? 'origin-top' : 'origin-bottom'
 			]}
+			style:left="{box.left}px"
+			style:width="{box.width}px"
+			style:top={placement === 'below' ? `${box.top}px` : undefined}
+			style:bottom={placement === 'above' ? `${box.bottom}px` : undefined}
 			style:max-height="{maxHeight}px"
 		>
 			{@render panel()}

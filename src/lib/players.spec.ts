@@ -24,6 +24,18 @@ describe('playerDisplayName', () => {
 		expect(playerDisplayName('João Silva', '  ')).toBe('João Silva');
 		expect(playerDisplayName('João Silva', null)).toBe('João Silva');
 	});
+
+	it('omits a nickname that repeats the name', () => {
+		expect(playerDisplayName('Jorge Miranda', 'Jorge Miranda')).toBe('Jorge Miranda');
+		expect(playerDisplayName('Paulo Jorge Sousa', 'Paulo Sousa')).toBe('Paulo Sousa');
+		expect(playerDisplayName('Paulo Jorge Sousa', 'paulo  jorge sousa')).toBe('Paulo Sousa');
+		expect(playerDisplayName('João Moreira', 'Joao Moreira')).toBe('João Moreira');
+	});
+
+	it('keeps a nickname that only overlaps the name', () => {
+		expect(playerDisplayName('Paulo Sousa', 'Sousa')).toBe('Paulo Sousa (Sousa)');
+		expect(playerDisplayName('João Moreira', 'Joãozinho')).toBe('João Moreira (Joãozinho)');
+	});
 });
 
 describe('playerAge / isAdult', () => {

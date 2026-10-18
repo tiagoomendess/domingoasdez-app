@@ -8,8 +8,10 @@
 	import SectionHeader from '#lib/components/ui/SectionHeader.svelte';
 	import DateRail from '#lib/components/games/DateRail.svelte';
 	import MatchGroup from '#lib/components/games/MatchGroup.svelte';
+	import MvpVoteSheet from '#lib/components/games/MvpVoteSheet.svelte';
 	import { todayInLisbon } from '#lib/format.ts';
 	import {
+		clubs,
 		competitions,
 		sampleDayGroups,
 		sampleDays,
@@ -29,6 +31,37 @@
 
 	const isToday = $derived(selected === today);
 	const hasGames = $derived(isToday || !!markers[selected]);
+
+	let mvpOpen = $state(false);
+	const squad = (names: string[], from: number) =>
+		names.map((name, index) => ({ id: from + index, name, picture: '' }));
+	const mvpHome = squad(
+		[
+			'Rui Fernandes',
+			'Tiago Moura',
+			'André Pires',
+			'Hugo Lopes',
+			'Nuno Barbosa',
+			'Diogo Carvalho',
+			'João Araújo',
+			'Pedro Sá',
+			'Bruno Gonçalves'
+		],
+		1
+	);
+	const mvpAway = squad(
+		[
+			'Márcio Faria',
+			'Vítor Lima',
+			'Sérgio Costa',
+			'Filipe Rocha',
+			'Luís Pinto',
+			'Ricardo Neves',
+			'Paulo Matos',
+			'Hélder Vaz'
+		],
+		100
+	);
 
 	function scoreGoal() {
 		const match = live[0];
@@ -97,4 +130,20 @@
 			{/each}
 		</div>
 	{/if}
+
+	<Specimen label="Man of the match vote" note="Team first, then a searchable player list">
+		<Button variant="tinted" onclick={() => (mvpOpen = true)}>Votar no homem do jogo</Button>
+	</Specimen>
 </DesignSection>
+
+<MvpVoteSheet
+	bind:open={mvpOpen}
+	gameId={0}
+	homeName={clubs.montalegre.name}
+	awayName={clubs.ribeira.name}
+	homeEmblem={clubs.montalegre.emblem}
+	awayEmblem={clubs.ribeira.emblem}
+	homePlayers={mvpHome}
+	awayPlayers={mvpAway}
+	formAction="#"
+/>
