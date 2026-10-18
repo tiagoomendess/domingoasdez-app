@@ -10,6 +10,9 @@
 
 	"action_back": "Back",
 	"action_close": "Close",
+	"select_search": "Search",
+	"select_clear_search": "Clear search",
+	"select_no_results": "No results",
 	"theme_toggle": "Switch between light and dark mode",
 
 	"status_live": "Live",
@@ -549,6 +552,8 @@
 	"flash_interview_player_placeholder": "Choose an option",
 	"flash_interview_own_goal": "Opponent Own Goal",
 	"flash_interview_missing_player": "Unknown Player",
+	"flash_interview_group_other": "Other options",
+	"flash_interview_group_players": "Players",
 	"flash_interview_minute": "Minute",
 	"flash_interview_comment_question": "In {club}'s opinion, how was the game?",
 	"flash_interview_comment_label": "Comment",

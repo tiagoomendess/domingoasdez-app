@@ -5,10 +5,13 @@
 	import ArrowsLeftRightIcon from 'phosphor-svelte/lib/ArrowsLeftRightIcon';
 	import MicrophoneIcon from 'phosphor-svelte/lib/MicrophoneIcon';
 	import TrophyIcon from 'phosphor-svelte/lib/TrophyIcon';
+	import ArrowUDownLeftIcon from 'phosphor-svelte/lib/ArrowUDownLeftIcon';
+	import UserCircleDashedIcon from 'phosphor-svelte/lib/UserCircleDashedIcon';
 	import DesignSection from '../DesignSection.svelte';
 	import Specimen from '../Specimen.svelte';
 	import ChipGroup from '#lib/components/ui/ChipGroup.svelte';
 	import SegmentedControl from '#lib/components/ui/SegmentedControl.svelte';
+	import Select, { type SelectOption } from '#lib/components/ui/Select.svelte';
 	import Switch from '#lib/components/ui/Switch.svelte';
 	import TextField from '#lib/components/ui/TextField.svelte';
 	import { setThemePreference, type ThemePreference } from '#lib/theme.ts';
@@ -31,6 +34,35 @@
 	let goals = $state(true);
 	let email = $state('');
 	let password = $state('1234');
+	let scorer = $state('0');
+	let position = $state('');
+
+	const squad = [
+		'Rui Fernandes',
+		'Tiago Moura',
+		'André Pires',
+		'Hugo Lopes',
+		'Nuno Barbosa',
+		'Diogo Carvalho',
+		'João Araújo',
+		'Pedro Sá'
+	];
+	const scorerOptions: SelectOption[] = [
+		{
+			value: '-1',
+			label: 'Auto golo do adversário',
+			icon: ArrowUDownLeftIcon,
+			tone: 'warning',
+			group: 'Outras opções'
+		},
+		{ value: '0', label: 'Jogador em falta', icon: UserCircleDashedIcon, group: 'Outras opções' },
+		...squad.map((name, index) => ({
+			value: String(index + 1),
+			label: name,
+			image: null,
+			group: 'Jogadores'
+		}))
+	];
 
 	const selectedLabels = $derived(
 		feedTypes.filter((type) => selectedTypes.includes(type.value)).map((type) => type.label)
@@ -78,6 +110,24 @@
 		<Switch bind:checked={goals} label="Notificações de golos" />
 		<Switch checked={false} label="Desligado" />
 		<Switch checked disabled label="Indisponível" />
+	</Specimen>
+
+	<Specimen label="Select" note="Searchable; sheet on phones, popover with a mouse">
+		<div class="space-y-4 rounded-card bg-surface p-4 ring-1 ring-line dark:ring-0">
+			<Select label="Marcador" options={scorerOptions} bind:value={scorer} />
+			<Select
+				label="Posição"
+				placeholder="Escolhe uma posição"
+				options={[
+					{ value: 'goalkeeper', label: 'Guarda-redes' },
+					{ value: 'defender', label: 'Defesa' },
+					{ value: 'midfielder', label: 'Médio' },
+					{ value: 'striker', label: 'Avançado' }
+				]}
+				bind:value={position}
+			/>
+			<Select label="Indisponível" options={scorerOptions} value="-1" disabled />
+		</div>
 	</Specimen>
 
 	<Specimen label="Text fields" note="Label above, inline validation">

@@ -10,6 +10,9 @@
 
 	"action_back": "Retour",
 	"action_close": "Fermer",
+	"select_search": "Rechercher",
+	"select_clear_search": "Effacer la recherche",
+	"select_no_results": "Aucun résultat",
 	"theme_toggle": "Basculer entre le mode clair et sombre",
 
 	"status_live": "En direct",
@@ -549,6 +552,8 @@
 	"flash_interview_player_placeholder": "Choisir une option",
 	"flash_interview_own_goal": "But contre son camp adverse",
 	"flash_interview_missing_player": "Joueur inconnu",
+	"flash_interview_group_other": "Autres options",
+	"flash_interview_group_players": "Joueurs",
 	"flash_interview_minute": "Minute",
 	"flash_interview_comment_question": "Selon {club}, comment s'est passé le match ?",
 	"flash_interview_comment_label": "Commentaire",

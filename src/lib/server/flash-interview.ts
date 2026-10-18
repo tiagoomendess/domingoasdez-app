@@ -34,6 +34,8 @@ import {
 	teams
 } from '#lib/server/db/schema.ts';
 import { emblemUrl } from '#lib/server/games.ts';
+import { mediaUrl } from '#lib/server/media.ts';
+import { isAdult } from '#lib/players.ts';
 import { alias } from 'drizzle-orm/mysql-core';
 
 const homeTeam = alias(teams, 'home_team');
@@ -88,7 +90,13 @@ export function consumeFlashToast(cookies: Cookies): FlashToastKind | null {
 		: null;
 }
 
-export type FlashPlayer = { id: number; name: string; nickname: string | null };
+export type FlashPlayer = {
+	id: number;
+	name: string;
+	nickname: string | null;
+	/** Absolute URL, or null for no photo or an under-18 player (the picker shows initials). */
+	picture: string | null;
+};
 export type FlashGoalRow = { playerId: number | null; ownGoal: boolean; minute: number | null };
 
 export type FlashInterviewPage = {
@@ -161,7 +169,13 @@ export async function loadFlashInterviewPage(input: {
 	const amountOfGoals = isHome ? (match.goalsHome ?? 0) : (match.goalsAway ?? 0);
 
 	const playerRows = await db
-		.select({ id: players.id, name: players.name, nickname: players.nickname })
+		.select({
+			id: players.id,
+			name: players.name,
+			nickname: players.nickname,
+			picture: players.picture,
+			birthDate: players.birthDate
+		})
 		.from(players)
 		.where(and(eq(players.teamId, comment.teamId), eq(players.visible, true)))
 		.orderBy(asc(players.id));
@@ -196,7 +210,13 @@ export async function loadFlashInterviewPage(input: {
 		recipientClubName,
 		amountOfGoals: Math.max(0, amountOfGoals),
 		content: comment.content ?? '',
-		players: playerRows.map((p) => ({ id: p.id, name: p.name, nickname: p.nickname })),
+		players: playerRows.map((p) => ({
+			id: p.id,
+			name: p.name,
+			nickname: p.nickname,
+			// Same age rule as the rest of the public site: no photos of minors.
+			picture: isAdult(p.birthDate) ? mediaUrl(p.picture?.trim()) : null
+		})),
 		goals: goalRows.map((g) => ({
 			playerId: g.playerId,
 			ownGoal: Boolean(g.ownGoal),

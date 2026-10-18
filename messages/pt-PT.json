@@ -10,6 +10,9 @@
 
 	"action_back": "Voltar",
 	"action_close": "Fechar",
+	"select_search": "Pesquisar",
+	"select_clear_search": "Limpar pesquisa",
+	"select_no_results": "Sem resultados",
 	"theme_toggle": "Alternar entre modo claro e escuro",
 
 	"status_live": "Ao vivo",
@@ -549,6 +552,8 @@
 	"flash_interview_player_placeholder": "Escolha uma opção",
 	"flash_interview_own_goal": "Auto Golo do Adversário",
 	"flash_interview_missing_player": "Jogador em Falta",
+	"flash_interview_group_other": "Outras opções",
+	"flash_interview_group_players": "Jogadores",
 	"flash_interview_minute": "Minuto",
 	"flash_interview_comment_question": "Na opinião do {club} como foi o jogo?",
 	"flash_interview_comment_label": "Comentário",

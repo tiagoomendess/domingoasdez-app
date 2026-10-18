@@ -2,6 +2,9 @@
 	import { enhance } from '$app/forms';
 	import Button from '#lib/components/ui/Button.svelte';
 	import Emblem from '#lib/components/ui/Emblem.svelte';
+	import ArrowUDownLeftIcon from 'phosphor-svelte/lib/ArrowUDownLeftIcon';
+	import UserCircleDashedIcon from 'phosphor-svelte/lib/UserCircleDashedIcon';
+	import Select, { type SelectOption } from '#lib/components/ui/Select.svelte';
 	import Sheet from '#lib/components/ui/Sheet.svelte';
 	import TextArea from '#lib/components/ui/TextArea.svelte';
 	import TextField from '#lib/components/ui/TextField.svelte';
@@ -47,6 +50,31 @@
 		const failed = form?.content;
 		if (failed != null) content = failed;
 	});
+
+	// Own goal and missing player first, then the squad with photos. Values match the legacy form:
+	// -1 own goal, 0 missing player, otherwise the player id.
+	const scorerOptions = $derived<SelectOption[]>([
+		{
+			value: '-1',
+			label: m.flash_interview_own_goal(),
+			icon: ArrowUDownLeftIcon,
+			tone: 'warning',
+			group: m.flash_interview_group_other()
+		},
+		{
+			value: '0',
+			label: m.flash_interview_missing_player(),
+			icon: UserCircleDashedIcon,
+			group: m.flash_interview_group_other()
+		},
+		...interview.players.map((player) => ({
+			value: String(player.id),
+			label: playerDisplayName(player.name, player.nickname),
+			image: player.picture,
+			keywords: player.name,
+			group: m.flash_interview_group_players()
+		}))
+	]);
 
 	const scorersTitle = $derived(
 		interview.amountOfGoals === 1
@@ -120,35 +148,19 @@
 				<h2 class="text-headline text-ink">{scorersTitle}</h2>
 				<!-- eslint-disable-next-line @typescript-eslint/no-unused-vars — index-only iteration -->
 				{#each picks as _, i (i)}
-					<div class="flex items-end gap-3">
-						<span
-							aria-hidden="true"
-							class="flex h-13 w-6 shrink-0 items-center justify-center text-headline text-ink-tertiary tabular-nums"
-						>
-							{i + 1}
-						</span>
-						<div class="flex min-w-0 flex-1 flex-col gap-1.5">
-							<label for="player-{i}" class="px-1 text-footnote font-semibold text-ink-secondary">
-								{m.flash_interview_player_label()}
-							</label>
-							<select
-								id="player-{i}"
-								name="players[]"
-								bind:value={picks[i]}
-								disabled={!interview.canEdit || submitting}
-								class="h-13 w-full rounded-field border-0 bg-surface-muted px-4 text-body text-ink focus:ring-2 focus:ring-accent focus:ring-offset-0 focus:outline-none disabled:opacity-40"
-							>
-								<option value="" disabled>{m.flash_interview_player_placeholder()}</option>
-								<option value="-1">{m.flash_interview_own_goal()}</option>
-								{#each interview.players as player (player.id)}
-									<option value={String(player.id)}>
-										{playerDisplayName(player.name, player.nickname)}
-									</option>
-								{/each}
-								<option value="0">{m.flash_interview_missing_player()}</option>
-							</select>
-						</div>
-						<div class="w-28 shrink-0">
+					<div class="flex items-end gap-2.5">
+						<Select
+							class="min-w-0 flex-1"
+							label={interview.amountOfGoals > 1
+								? `${i + 1}. ${m.flash_interview_player_label()}`
+								: m.flash_interview_player_label()}
+							name="players[]"
+							options={scorerOptions}
+							placeholder={m.flash_interview_player_placeholder()}
+							bind:value={picks[i]}
+							disabled={!interview.canEdit || submitting}
+						/>
+						<div class="w-21 shrink-0">
 							<TextField
 								label={m.flash_interview_minute()}
 								name="minutes[]"
