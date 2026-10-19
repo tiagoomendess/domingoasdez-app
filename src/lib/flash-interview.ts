@@ -48,6 +48,34 @@ export function parseGoalPick(value: unknown): ParsedGoalPick {
 	return { kind: 'missing' };
 }
 
+/**
+ * One deadline for everything on the page: the comment and the goal scorers. Strictly
+ * before the deadline; no deadline (or an unreadable one) means closed, so old links can't
+ * edit anything.
+ */
+export function isFlashInterviewOpen(deadlineIso: string | null, now = new Date()): boolean {
+	if (!deadlineIso) return false;
+	const deadline = new Date(deadlineIso).getTime();
+	return Number.isFinite(deadline) && now.getTime() < deadline;
+}
+
+/**
+ * Every scorer pick must be own goal, missing player, or a player in `allowed` (the team's
+ * squad plus anyone already saved on these goals). Only the first `amount` picks are saved,
+ * so only those are checked.
+ */
+export function scorerPicksAllowed(
+	values: readonly unknown[],
+	amount: number,
+	allowed: ReadonlySet<number>
+): boolean {
+	for (let i = 0; i < amount; i += 1) {
+		const pick = parseGoalPick(values[i]);
+		if (pick.kind === 'player' && !allowed.has(pick.playerId)) return false;
+	}
+	return true;
+}
+
 /** Port the `minutes[]` rule: positive integers only, else null. */
 export function parseMinute(value: unknown): number | null {
 	const n = typeof value === 'number' ? value : Number.parseInt(String(value ?? ''), 10);

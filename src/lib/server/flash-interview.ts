@@ -12,9 +12,11 @@ import {
 	FLASH_TOAST_COOKIE,
 	flashPinCookieName,
 	isCorrectPin,
+	isFlashInterviewOpen,
 	isValidContactEmail,
 	parseGoalPick,
 	parseMinute,
+	scorerPicksAllowed,
 	parseNotificationsEnabled,
 	sanitizeComment,
 	validateComment,
@@ -192,7 +194,7 @@ export async function loadFlashInterviewPage(input: {
 
 	const recipientClubName = isHome ? match.homeClubName : match.awayClubName;
 	const deadlineIso = comment.deadline ? naiveToIso(comment.deadline) : null;
-	const canEdit = deadlineIso != null && now.getTime() < new Date(deadlineIso).getTime();
+	const canEdit = isFlashInterviewOpen(deadlineIso, now);
 
 	return {
 		uuid: comment.uuid,
@@ -244,29 +246,41 @@ export async function saveFlashInterview(input: {
 	if (!checkPin(input.pin, comment.pin)) return { ok: false, error: 'bad_pin' };
 
 	const now = input.now ?? new Date();
+	// Checked before any write: past the deadline neither the comment nor the scorers change.
 	const deadlineIso = comment.deadline ? naiveToIso(comment.deadline) : null;
-	if (deadlineIso == null || now.getTime() >= new Date(deadlineIso).getTime()) {
-		return { ok: false, error: 'closed' };
-	}
+	if (!isFlashInterviewOpen(deadlineIso, now)) return { ok: false, error: 'closed' };
 
 	if (!validateComment(input.content).ok) return { ok: false, error: 'invalid' };
+
+	// Scorers must come from the team's own squad: a link can't put any player id on a goal.
+	const goalContext = await loadGoalContext(comment);
+	if (
+		goalContext &&
+		!scorerPicksAllowed(input.playerValues, goalContext.amount, goalContext.allowedPlayerIds)
+	) {
+		return { ok: false, error: 'invalid' };
+	}
 
 	await db
 		.update(gameComments)
 		.set({ content: sanitizeComment(input.content), updatedAt: now })
 		.where(eq(gameComments.id, comment.id));
 
-	await upsertGoals(comment, input.playerValues, input.minuteValues, now);
+	if (goalContext)
+		await upsertGoals(comment, goalContext, input.playerValues, input.minuteValues, now);
 	return { ok: true };
 }
 
-/** Port `handleGoals`: update-or-create one row per goal of the comment's team. */
-async function upsertGoals(
-	comment: CommentRow,
-	playerValues: unknown[],
-	minuteValues: unknown[],
-	now: Date
-): Promise<void> {
+type GoalContext = {
+	gameId: number;
+	/** Goals the comment's team scored, so how many scorer rows there are. */
+	amount: number;
+	existing: { id: number; playerId: number | null }[];
+	/** The team's visible squad, plus players already saved as scorers (they may have moved on since). */
+	allowedPlayerIds: Set<number>;
+};
+
+async function loadGoalContext(comment: CommentRow): Promise<GoalContext | null> {
 	const [game] = await db
 		.select({
 			id: games.id,
@@ -277,17 +291,37 @@ async function upsertGoals(
 		.from(games)
 		.where(eq(games.id, comment.gameId))
 		.limit(1);
-	if (!game) return;
+	if (!game) return null;
 
 	const isHome = comment.teamId === game.homeTeamId;
 	const amount = Math.max(0, isHome ? (game.goalsHome ?? 0) : (game.goalsAway ?? 0));
 
-	const existing = await db
-		.select({ id: goals.id })
-		.from(goals)
-		.where(and(eq(goals.gameId, game.id), eq(goals.teamId, comment.teamId)))
-		.orderBy(asc(goals.id));
+	const [existing, squad] = await Promise.all([
+		db
+			.select({ id: goals.id, playerId: goals.playerId })
+			.from(goals)
+			.where(and(eq(goals.gameId, game.id), eq(goals.teamId, comment.teamId)))
+			.orderBy(asc(goals.id)),
+		db
+			.select({ id: players.id })
+			.from(players)
+			.where(and(eq(players.teamId, comment.teamId), eq(players.visible, true)))
+	]);
 
+	const allowedPlayerIds = new Set(squad.map((player) => player.id));
+	for (const goal of existing) if (goal.playerId != null) allowedPlayerIds.add(goal.playerId);
+
+	return { gameId: game.id, amount, existing, allowedPlayerIds };
+}
+
+/** Port `handleGoals`: update-or-create one row per goal of the comment's team. */
+async function upsertGoals(
+	comment: CommentRow,
+	{ gameId, amount, existing }: GoalContext,
+	playerValues: unknown[],
+	minuteValues: unknown[],
+	now: Date
+): Promise<void> {
 	for (let i = 0; i < amount; i += 1) {
 		const pick = parseGoalPick(playerValues[i]);
 		const minute = parseMinute(minuteValues[i]);
@@ -302,7 +336,7 @@ async function upsertGoals(
 			await db.insert(goals).values({
 				playerId: values.playerId,
 				teamId: comment.teamId,
-				gameId: game.id,
+				gameId,
 				ownGoal: values.ownGoal,
 				penalty: false,
 				minute: values.minute,

@@ -3,11 +3,13 @@ import {
 	FLASH_PIN_COOKIE_MAX_AGE,
 	flashPinCookieName,
 	isCorrectPin,
+	isFlashInterviewOpen,
 	isValidContactEmail,
 	parseGoalPick,
 	parseMinute,
 	parseNotificationsEnabled,
 	sanitizeComment,
+	scorerPicksAllowed,
 	validateComment
 } from './flash-interview.ts';
 
@@ -80,5 +82,43 @@ describe('parseNotificationsEnabled', () => {
 		expect(parseNotificationsEnabled(undefined)).toBe(false);
 		expect(parseNotificationsEnabled('false')).toBe(false);
 		expect(parseNotificationsEnabled('0')).toBe(false);
+	});
+});
+
+describe('isFlashInterviewOpen', () => {
+	const deadline = '2026-09-19T22:59:59.000Z';
+
+	it('is open until the deadline', () => {
+		expect(isFlashInterviewOpen(deadline, new Date('2026-09-19T22:59:58.000Z'))).toBe(true);
+	});
+
+	it('closes at the deadline and stays closed', () => {
+		expect(isFlashInterviewOpen(deadline, new Date('2026-09-19T22:59:59.000Z'))).toBe(false);
+		expect(isFlashInterviewOpen(deadline, new Date('2027-01-01T00:00:00.000Z'))).toBe(false);
+	});
+
+	it('treats a missing or unreadable deadline as closed', () => {
+		expect(isFlashInterviewOpen(null)).toBe(false);
+		expect(isFlashInterviewOpen('not a date')).toBe(false);
+	});
+});
+
+describe('scorerPicksAllowed', () => {
+	const squad = new Set([10, 11, 12]);
+
+	it('accepts squad players, own goal and missing player', () => {
+		expect(scorerPicksAllowed(['10', '-1', '0', '12'], 4, squad)).toBe(true);
+	});
+
+	it('rejects a player from outside the squad', () => {
+		expect(scorerPicksAllowed(['10', '999'], 2, squad)).toBe(false);
+	});
+
+	it('only checks the goals that get saved', () => {
+		expect(scorerPicksAllowed(['10', '999'], 1, squad)).toBe(true);
+	});
+
+	it('treats junk as a missing player, like the save does', () => {
+		expect(scorerPicksAllowed(['abc', '', undefined], 3, squad)).toBe(true);
 	});
 });
