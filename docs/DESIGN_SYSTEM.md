@@ -331,6 +331,14 @@ The chips on Home are generated from `feedTypes`, so a new content type gets a c
 
 
 
+- **ArticleComments** (end of an article, `#comentarios`): a SectionHeader "Comentários" with the count, then one `surface` card.
+  - Threads are separated by hairlines. A comment: Avatar (40), then name (`footnote` 600) · relative time (`footnote`, ink-tertiary), the text (`callout`, plain text, line breaks kept), and a quiet "Responder" link (`footnote` 600, ink-secondary). Replies sit one level in, aligned with the parent's text, with a 28 px Avatar.
+  - The author (or an admin) sees a trash icon button (44 px target, ink-tertiary). It opens a Sheet that quotes the comment and confirms with a destructive button.
+  - The composer is the card's last row: Avatar, then a `surface-muted` field that grows with the text, with a circular send button inside it (filled `accent` once there's text). A character counter appears in the last 40 of the 255 characters. Ctrl/⌘ + Enter posts; Enter adds a line.
+  - Replying opens a second composer under that thread, focused, headed "A responder a {nome}" with a close button. Only one is open at a time.
+  - A just-posted comment flashes `accent-tint` once (`animate-new-flash`, none under reduced motion) and scrolls into view.
+  - Guests see "Entra para comentar" with a tinted "Entrar" button instead of the composer. No comments yet: a small empty state inside the card.
+
 ### 4.4 Games
 
 - **DateRail**: a horizontal `rail` of date pills, each 52 × 60 px: weekday (`caption`, ink-tertiary) above the day number (`headline`). Today shows **"Hoje"** instead of a weekday. Selected = `accent` fill. On load, Today is centred. Previous dates are on the left and next dates on the right. More days load as the user nears either end (±14 days at a time).

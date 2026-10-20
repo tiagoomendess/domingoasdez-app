@@ -9,7 +9,6 @@ Each item's page doc has more detail where relevant.
 | Legacy route                                                    | What it did                                             | Now                                                         |
 | --------------------------------------------------------------- | ------------------------------------------------------- | ----------------------------------------------------------- |
 | `/arbitros/{id}/{slug}`                                         | Referee page                                            | No route. Game pages link here, so those links 404.         |
-| `/article_comments/…`                                           | Comments on articles (list, post, delete)               | Articles have no comments.                                  |
 | `/password/reset`, `/password/email` (Laravel `Auth::routes()`) | Forgot password                                         | No way to reset a password.                                 |
 | `/utilizador/perfil/download`                                   | Download my data (RGPD)                                 | Missing.                                                    |
 | `/perfil/apagar` (+ `/verificar`, `/cancelar`)                  | Delete account, with the request / verify / cancel flow | Missing.                                                    |

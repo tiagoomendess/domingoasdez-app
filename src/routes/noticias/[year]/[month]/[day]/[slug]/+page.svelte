@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import AdSenseUnit from '#lib/components/ads/AdSenseUnit.svelte';
+	import ArticleComments from '#lib/components/articles/ArticleComments.svelte';
 	import ArticleMedia from '#lib/components/articles/ArticleMedia.svelte';
 	import PartnerGrid from '#lib/components/partners/PartnerGrid.svelte';
 	import { adSlots } from '#lib/ads.ts';
@@ -73,5 +74,7 @@
 		<AdSenseUnit adSlot={adSlots.articleEnd} />
 	</div>
 {/key}
+
+<ArticleComments comments={data.comments} user={data.user} returnTo={page.url.pathname} />
 
 <PartnerGrid partners={data.partners} />

@@ -105,6 +105,15 @@
 
 	--animate-live-pulse: live-pulse 2s ease-in-out infinite;
 	--animate-reject-shake: reject-shake 240ms var(--ease-snappy);
+	--animate-new-flash: new-flash 1.6s var(--ease-exit);
+
+	/* A just-posted item: starts tinted, settles to its own background */
+	@keyframes new-flash {
+		0%,
+		30% {
+			background-color: var(--accent-tint);
+		}
+	}
 
 	@keyframes live-pulse {
 		0%,

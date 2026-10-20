@@ -53,6 +53,19 @@ export const articles = mysqlTable('articles', {
 	updatedAt: timestamp('updated_at')
 });
 
+export const articleComments = mysqlTable('article_comments', {
+	id: int('id', { unsigned: true }).primaryKey().autoincrement(),
+	articleId: int('article_id', { unsigned: true }).notNull(),
+	/** Parent comment for replies; null for a top-level comment. */
+	articleCommentId: int('article_comment_id', { unsigned: true }),
+	/** Nulled by the legacy account-deletion job (ProcessDeleteRequest). */
+	content: text('content'),
+	userId: int('user_id', { unsigned: true }).notNull(),
+	deleted: boolean('deleted').notNull().default(false),
+	createdAt: timestamp('created_at'),
+	updatedAt: timestamp('updated_at')
+});
+
 export const polls = mysqlTable('polls', {
 	id: int('id').primaryKey().autoincrement(),
 	question: varchar('question', { length: 144 }).notNull(),
