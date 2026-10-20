@@ -1,6 +1,6 @@
 # Domingo às Dez — Design System
 
-The visual and interaction language for the new public app, built to deliver what `MIGRATION_PLAN.md` asks for: modern and minimalist, based on Apple's Liquid Glass, light and dark, mobile first, no top or side navigation, and a floating bottom tab bar.
+The visual and interaction language for the new public app, built to deliver the product rules in [`PROJECT.md`](PROJECT.md): modern and minimalist, based on Apple's Liquid Glass, light and dark, mobile first, no top or side navigation, and a floating bottom tab bar.
 
 The tokens described here are implemented in `src/routes/layout.css` (Tailwind v4). Components are specified here and will live in `src/lib/components/`.
 

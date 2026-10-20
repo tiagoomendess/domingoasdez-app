@@ -26,3 +26,6 @@ test-results
 
 # Paraglide / inlang generated caches (compiled output is ignored via src/lib/paraglide/.gitignore)
 project.inlang/cache
+
+# `npm run db:pull` introspection output (reference only)
+/drizzle

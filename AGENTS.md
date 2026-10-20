@@ -32,5 +32,17 @@ After completing the code, ask the user if they want a playground link. Only cal
 
 ## Project Context
 
-**Project Goal**: @MIGRATION_PLAN.md
-**Design System**: @DESIGN_SYSTEM.md
+**Project rules**: @docs/PROJECT.md
+**Design System**: @docs/DESIGN_SYSTEM.md
+
+Before building a feature, check `docs/known-gaps.md` for legacy features and design-system items that aren't built yet. It isn't loaded automatically.
+
+## Page Documentation
+
+Every page of the app has a short doc in `docs/pages/<tab>/`: what it does, how it works, and its edge cases and pitfalls. `docs/README.md` is the index (route → doc file) and lists the rules every page shares. Redirects, JSON endpoints and legacy hand-offs are in `docs/routes-without-pages.md`.
+
+These docs are not loaded automatically. Read them only when you need them:
+
+- Before changing a route under `src/routes/`, or the server helpers it uses, read that page's doc. Find it in the index in `docs/README.md` (or by route in `docs/pages/`) instead of opening the whole folder.
+- When your change alters what a doc describes (behaviour, rules, edge cases), update that doc in the same change.
+- When you add a page, add its doc and a row in the `docs/README.md` index, following the template at the end of that file.

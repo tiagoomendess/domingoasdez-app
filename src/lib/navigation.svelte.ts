@@ -40,7 +40,7 @@ const TAB_ROOTS: Record<TabId, string> = {
 	account: '/conta'
 };
 
-/** Longest-prefix ownership for deep links (DESIGN_SYSTEM §3.3). */
+/** Longest-prefix ownership for deep links (docs/DESIGN_SYSTEM.md §3.3). */
 const PATH_OWNERS: { prefix: string; tab: TabId }[] = (
 	[
 		{ prefix: '/noticias', tab: 'home' },

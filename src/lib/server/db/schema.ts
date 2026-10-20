@@ -1,6 +1,7 @@
 /**
- * Read-only mirror of the legacy Laravel schema. Do not push or migrate.
- * Column names and types match E:\Projetos\DomingoAsDez migrations.
+ * Mirror of the tables this app uses. The schema is owned by domingoasdez-admin's migrations
+ * (its src/lib/server/db/schema.ts and drizzle/migrations): never push or migrate from here.
+ * After an admin migration, `npm run db:pull` and port the columns this app needs.
  */
 import {
 	mysqlTable,
