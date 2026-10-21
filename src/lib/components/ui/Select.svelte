@@ -32,6 +32,10 @@
 		options: SelectOption[];
 		value?: string;
 		label: string;
+		/** Keep the label for screen readers only, when a heading above already names the field. */
+		hideLabel?: boolean;
+		/** `field` sits inside a card; `surface` is a card-like trigger straight on the page canvas. */
+		variant?: 'field' | 'surface';
 		/** Submitted with the form through a hidden input, like a native select. */
 		name?: string;
 		placeholder?: string;
@@ -47,6 +51,8 @@
 		options,
 		value = $bindable(''),
 		label,
+		hideLabel = false,
+		variant = 'field',
 		name,
 		placeholder = '',
 		disabled = false,
@@ -399,7 +405,11 @@
 {/snippet}
 
 <div class={['relative flex flex-col gap-1.5', className]}>
-	<label id={labelId} for={triggerId} class="px-1 text-footnote font-semibold text-ink-secondary">
+	<label
+		id={labelId}
+		for={triggerId}
+		class={hideLabel ? 'sr-only' : 'px-1 text-footnote font-semibold text-ink-secondary'}
+	>
 		{label}
 	</label>
 	<button
@@ -411,7 +421,12 @@
 		aria-controls={open ? listId : undefined}
 		aria-labelledby="{labelId} {triggerId}"
 		{disabled}
-		class="flex h-13 w-full items-center gap-2.5 rounded-field bg-surface-muted pr-2.5 pl-3 text-left text-callout text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-40"
+		class={[
+			'flex h-13 w-full items-center gap-2.5 pr-2.5 text-left text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-40',
+			variant === 'surface'
+				? 'pressable rounded-card bg-surface pl-4 text-headline ring-1 ring-line dark:ring-0'
+				: 'rounded-field bg-surface-muted pl-3 text-callout'
+		]}
 		onclick={() => (open ? close() : openList())}
 		onkeydown={onTriggerKeydown}
 	>

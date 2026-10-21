@@ -3,7 +3,7 @@
 	import PaperPlaneRightIcon from 'phosphor-svelte/lib/PaperPlaneRightIcon';
 	import XIcon from 'phosphor-svelte/lib/XIcon';
 	import Avatar from '#lib/components/ui/Avatar.svelte';
-	import { COMMENT_MAX_LENGTH, commentLength, normalizeComment } from '#lib/article-comments.ts';
+	import { COMMENT_MAX_LENGTH, commentLength, normalizeComment } from '#lib/comments.ts';
 	import { m } from '#lib/messages.ts';
 
 	type Props = {
@@ -31,15 +31,15 @@
 	function errorMessage(code: unknown): string {
 		switch (code) {
 			case 'empty':
-				return m.article_comments_error_empty();
+				return m.comments_error_empty();
 			case 'too_long':
-				return m.article_comments_error_too_long({ max: COMMENT_MAX_LENGTH });
+				return m.comments_error_too_long({ max: COMMENT_MAX_LENGTH });
 			case 'too_fast':
-				return m.article_comments_error_too_fast();
+				return m.comments_error_too_fast();
 			case 'parent_not_found':
-				return m.article_comments_error_parent();
+				return m.comments_error_parent();
 			default:
-				return m.article_comments_error_generic();
+				return m.comments_error_generic();
 		}
 	}
 
@@ -98,12 +98,12 @@
 		{#if replyTo}
 			<div class="mb-1.5 flex items-center gap-1 px-1">
 				<p class="min-w-0 flex-1 truncate text-footnote text-ink-tertiary">
-					{m.article_comments_replying_to({ name: replyTo.name })}
+					{m.comments_replying_to({ name: replyTo.name })}
 				</p>
 				<button
 					type="button"
 					class="-my-3 -mr-3 grid size-11 shrink-0 pressable place-items-center rounded-full text-ink-tertiary hover:bg-fill"
-					aria-label={m.article_comments_cancel_reply()}
+					aria-label={m.comments_cancel_reply()}
 					onclick={() => oncancel?.()}
 				>
 					<XIcon size={16} weight="bold" />
@@ -113,7 +113,7 @@
 		{/if}
 
 		<label for="{uid}-field" class="sr-only">
-			{replyTo ? m.article_comments_reply_label() : m.article_comments_label()}
+			{replyTo ? m.comments_reply_label() : m.comments_label()}
 		</label>
 		<div
 			class={[
@@ -129,9 +129,7 @@
 				rows="1"
 				bind:value
 				{onkeydown}
-				placeholder={replyTo
-					? m.article_comments_reply_placeholder()
-					: m.article_comments_placeholder()}
+				placeholder={replyTo ? m.comments_reply_placeholder() : m.comments_placeholder()}
 				aria-invalid={error || left < 0 ? true : undefined}
 				aria-describedby={error || left < COUNTER_FROM ? `${uid}-hint` : undefined}
 				class="max-h-40 min-h-11 flex-1 resize-none border-0 bg-transparent px-0 py-2.5 text-body text-ink placeholder:text-ink-tertiary focus:ring-0 focus:outline-none"
@@ -139,7 +137,7 @@
 			<button
 				type="submit"
 				disabled={!canSend}
-				aria-label={m.article_comments_send()}
+				aria-label={m.comments_send()}
 				class={[
 					'grid size-11 shrink-0 pressable place-items-center rounded-full transition-colors duration-(--dur-fast)',
 					canSend ? 'bg-accent text-accent-fg' : 'text-ink-tertiary',
@@ -160,7 +158,7 @@
 					!error && 'tabular-nums'
 				]}
 			>
-				{error ?? m.article_comments_remaining({ count: left })}
+				{error ?? m.comments_remaining({ count: left })}
 			</p>
 		{/if}
 	</div>

@@ -4,13 +4,12 @@
 	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
 	import UsersThreeIcon from 'phosphor-svelte/lib/UsersThreeIcon';
 	import Avatar from '#lib/components/ui/Avatar.svelte';
-	import Chip from '#lib/components/ui/Chip.svelte';
 	import Emblem from '#lib/components/ui/Emblem.svelte';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
 	import ListGroup from '#lib/components/ui/ListGroup.svelte';
 	import ListRow from '#lib/components/ui/ListRow.svelte';
 	import SectionHeader from '#lib/components/ui/SectionHeader.svelte';
-	import SegmentedControl from '#lib/components/ui/SegmentedControl.svelte';
+	import Select from '#lib/components/ui/Select.svelte';
 	import { formatArticleDate } from '#lib/format.ts';
 	import { m } from '#lib/messages.ts';
 	import type { PageProps } from './$types';
@@ -88,30 +87,24 @@
 
 <div class="mt-6 grid gap-6 lg:grid-cols-3">
 	<section class="min-w-0 space-y-4 lg:col-span-2">
-		<SectionHeader title={m.club_teams()} />
+		<SectionHeader
+			title={m.club_teams()}
+			count={data.teams.length > 1 ? data.teams.length : undefined}
+		/>
 
 		{#if data.teams.length === 0}
 			<EmptyState icon={UsersThreeIcon} title={m.club_no_teams()} />
 		{:else}
-			{#if data.teams.length >= 2 && data.teams.length <= 3}
-				<SegmentedControl
+			<!-- A pull-down, not tabs: team names are long and a club can have any number of them. -->
+			{#if data.teams.length > 1}
+				<Select
 					options={teamOptions}
 					value={teamPickerValue}
 					label={m.club_team_picker_label()}
+					hideLabel
+					variant="surface"
 					onchange={onTeamPickerChange}
 				/>
-			{:else if data.teams.length > 3}
-				<div
-					role="group"
-					aria-label={m.club_team_picker_label()}
-					class="-mx-4 rail scroll-px-4 px-4 py-1"
-				>
-					{#each data.teams as team (team.id)}
-						<Chip selected={team.id === selectedTeamId} onclick={() => selectTeam(team.id)}>
-							{team.name}
-						</Chip>
-					{/each}
-				</div>
 			{/if}
 
 			{#if activeTeam}

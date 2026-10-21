@@ -60,6 +60,10 @@
 		vista = data.vista as Vista;
 	});
 
+	const metaDescription = $derived(
+		m.competition_meta_description({ name: data.displayName, season: data.seasonLabel })
+	);
+
 	const hasPointsGroup = $derived(data.groups.some((g) => g.rules.type === 'points'));
 
 	const vistaOptions = $derived.by(() => {
@@ -140,13 +144,14 @@
 
 <svelte:head>
 	<title>{data.displayName} · {m.feed_brand()}</title>
-	<meta
-		name="description"
-		content={m.competition_meta_description({
-			name: data.displayName,
-			season: data.seasonLabel
-		})}
-	/>
+	<meta name="description" content={metaDescription} />
+	<meta property="og:title" content={data.displayName} />
+	<meta property="og:description" content={metaDescription} />
+	<meta property="og:type" content="website" />
+	<!-- Without it, link previews pick a random club emblem from the page. -->
+	{#if data.emblem}
+		<meta property="og:image" content={data.emblem} />
+	{/if}
 </svelte:head>
 
 <header class="flex flex-col gap-4 px-1 pb-4">

@@ -37,13 +37,16 @@ All three use `legacyUrl()`, which reads `LEGACY_BASE_URL`, then `MEDIA_BASE_URL
 
 ## JSON endpoints
 
-| Route                                    | Used by                                    | Notes                                         |
-| ---------------------------------------- | ------------------------------------------ | --------------------------------------------- |
-| `GET /api/feed?tipos=&cursor=`           | Home feed infinite scroll                  | Same `getFeedPage` as the home page load.     |
-| `GET /api/jogos/dia?date=`               | `/jogos` live polling (every 5 s on today) | `no-store`. An invalid date means today.      |
-| `GET /api/jogos/dias?from=&to=`          | Games date rail and month picker dots      | Max 62 days; `from` must be ≤ `to`, else 400. |
-| `GET /api/jogos/live`                    | Tab bar live pulse (every 30 s)            | `no-store`. Returns `{ live: boolean }`.      |
-| `GET /api/transferencias/dias?from=&to=` | Transfers date rail dots                   | Same limits as `/api/jogos/dias`.             |
+| Route                                                | Used by                                    | Notes                                                                                                                                                                                                                        |
+| ---------------------------------------------------- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /api/feed?tipos=&cursor=`                       | Home feed infinite scroll                  | Same `getFeedPage` as the home page load.                                                                                                                                                                                    |
+| `GET /api/jogos/dia?date=`                           | `/jogos` live polling (every 5 s on today) | `no-store`. An invalid date means today.                                                                                                                                                                                     |
+| `GET /api/jogos/dias?from=&to=`                      | Games date rail and month picker dots      | Max 62 days; `from` must be ≤ `to`, else 400.                                                                                                                                                                                |
+| `GET /api/jogos/live`                                | Tab bar live pulse (every 30 s)            | `no-store`. Returns `{ live: boolean }`.                                                                                                                                                                                     |
+| `GET /api/jogos/{id}/anteriores?offset=`             | Game page head to head, "Ver mais"         | Next 10 past meetings and `nextOffset` (null on the last page). Signed-in only (401); unknown or hidden game 404.                                                                                                            |
+| `POST /api/jogos/{id}/comentarios/{comment}/voto`    | Game page comment votes                    | JSON `{ value: 1 \| -1 \| 0 }` (0 removes the vote), returns `{ score, myVote }`. Only `application/json` (400 otherwise, or for a bad value). Guests 401, own comment 403, comment missing, deleted or on another game 404. |
+| `POST /api/noticias/{id}/comentarios/{comment}/voto` | Article comment votes                      | Same contract as the game comment vote above, on `article_comment_votes`.                                                                                                                                                    |
+| `GET /api/transferencias/dias?from=&to=`             | Transfers date rail dots                   | Same limits as `/api/jogos/dias`.                                                                                                                                                                                            |
 
 ## Pitfalls
 

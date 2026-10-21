@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { createSubscriber } from 'svelte/reactivity';
+	import FormGameSheet from '#lib/components/games/FormGameSheet.svelte';
+	import { formClasses, formLabel, formSentence } from '#lib/components/games/form.ts';
 	import Emblem from '#lib/components/ui/Emblem.svelte';
 	import StatusPill from '#lib/components/ui/StatusPill.svelte';
-	import type { MatchStatus } from '#lib/components/types.ts';
-	import type { FormResult } from '#lib/games.ts';
+	import type { FormChip, MatchStatus } from '#lib/components/types.ts';
 	import { formatKickoff, formatKickoffDay } from '#lib/format.ts';
 	import { m } from '#lib/messages.ts';
 	import { rollIn, rollOut } from '#lib/motion.ts';
 
 	type ClubSide = { name: string; emblem: string | null; href: string };
-	type FormChip = { result: FormResult; href: string };
 	type MvpWinner = { name: string; picture: string };
 
 	type Props = {
@@ -109,26 +109,26 @@
 		return 'font-normal text-ink-secondary';
 	}
 
-	function formLabel(result: FormChip['result']): string {
-		switch (result) {
-			case 'V':
-				return m.game_form_win();
-			case 'E':
-				return m.game_form_draw();
-			case 'D':
-				return m.game_form_loss();
+	/** The chip whose game is previewed; kept after closing so the sheet doesn't blank mid-exit. */
+	let preview = $state<{ chip: FormChip; teamName: string } | null>(null);
+	let previewOpen = $state(false);
+
+	function openPreview(event: MouseEvent, chip: FormChip, teamName: string) {
+		// Ctrl/⌘/Shift/middle click keep the link's own behaviour (new tab or window).
+		if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+			return;
 		}
+		event.preventDefault();
+		preview = { chip, teamName };
+		previewOpen = true;
 	}
 
-	function formClasses(result: FormChip['result']): string {
-		switch (result) {
-			case 'V':
-				return 'bg-success/14 text-success';
-			case 'E':
-				return 'bg-fill text-ink-secondary';
-			case 'D':
-				return 'bg-danger/12 text-danger';
-		}
+	/** "Águias da Graça venceu · Necessidades 2–1", so the chip says more than one letter. */
+	function chipLabel(chip: FormChip, teamName: string): string {
+		const opponent = chip.side === 'home' ? chip.match.away.name : chip.match.home.name;
+		const { homeScore, awayScore } = chip.match;
+		const score = homeScore != null && awayScore != null ? ` ${homeScore}–${awayScore}` : '';
+		return `${formSentence(chip.result, teamName)} · ${opponent}${score}`;
 	}
 </script>
 
@@ -142,9 +142,12 @@
 		</a>
 		{#if form.length > 0}
 			<div class="flex flex-wrap justify-center gap-1">
-				{#each form as chip, i (`${chip.href}-${i}`)}
+				{#each form as chip, i (`${chip.match.href}-${i}`)}
 					<a
-						href={chip.href}
+						href={chip.match.href}
+						aria-haspopup="dialog"
+						aria-label={chipLabel(chip, side.name)}
+						onclick={(event) => openPreview(event, chip, side.name)}
 						class={[
 							'inline-flex size-7 items-center justify-center rounded-full text-caption font-semibold',
 							formClasses(chip.result)
@@ -279,3 +282,9 @@
 		</div>
 	{/if}
 </section>
+
+<FormGameSheet
+	bind:open={previewOpen}
+	chip={preview?.chip ?? null}
+	teamName={preview?.teamName ?? ''}
+/>

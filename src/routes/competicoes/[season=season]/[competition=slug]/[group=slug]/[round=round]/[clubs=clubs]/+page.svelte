@@ -3,7 +3,9 @@
 	import { page } from '$app/state';
 	import { createSubscriber } from 'svelte/reactivity';
 	import MapPinIcon from 'phosphor-svelte/lib/MapPinIcon';
+	import Comments from '#lib/components/comments/Comments.svelte';
 	import DirectionsSheet from '#lib/components/games/DirectionsSheet.svelte';
+	import GamePrediction from '#lib/components/games/GamePrediction.svelte';
 	import GameScoreboard from '#lib/components/games/GameScoreboard.svelte';
 	import GoalList from '#lib/components/games/GoalList.svelte';
 	import HeadToHead from '#lib/components/games/HeadToHead.svelte';
@@ -188,22 +190,36 @@
 		</div>
 	{/if}
 
-	<!-- Home and away goals side by side; referees span the full width below them -->
-	<div class="grid gap-4 md:grid-cols-2">
-		<GoalList
-			title={m.game_goals_from({ club: data.home.name })}
-			goals={data.homeGoals}
-			addGoalHref={data.links.addHomeGoal}
-			addGoalLabel={data.links.addHomeGoal ? m.game_admin_add_home_goal() : null}
+	<!-- Keyed so an open editor and its draft reset when moving to another game. -->
+	{#key data.id}
+		<GamePrediction
+			prediction={data.prediction}
+			home={data.home}
+			away={data.away}
+			{user}
+			returnTo={page.url.pathname}
 		/>
+	{/key}
 
-		<GoalList
-			title={m.game_goals_from({ club: data.away.name })}
-			goals={data.awayGoals}
-			addGoalHref={data.links.addAwayGoal}
-			addGoalLabel={data.links.addAwayGoal ? m.game_admin_add_away_goal() : null}
-		/>
-	</div>
+	<!-- Home and away goals side by side; referees span the full width below them.
+	     Only once the game has started (same rule as the score), so no empty cards before. -->
+	{#if data.showScore}
+		<div class="grid gap-4 md:grid-cols-2">
+			<GoalList
+				title={m.game_goals_from({ club: data.home.name })}
+				goals={data.homeGoals}
+				addGoalHref={data.links.addHomeGoal}
+				addGoalLabel={data.links.addHomeGoal ? m.game_admin_add_home_goal() : null}
+			/>
+
+			<GoalList
+				title={m.game_goals_from({ club: data.away.name })}
+				goals={data.awayGoals}
+				addGoalHref={data.links.addAwayGoal}
+				addGoalLabel={data.links.addAwayGoal ? m.game_admin_add_away_goal() : null}
+			/>
+		</div>
+	{/if}
 
 	{#if data.referees.length > 0}
 		<ListGroup title={m.game_referees()} headingLevel={3}>
@@ -221,14 +237,31 @@
 		</ListGroup>
 	{/if}
 
-	<HeadToHead
-		homeName={data.home.name}
-		awayName={data.away.name}
-		stats={data.h2hStats}
-		pastGamesShown={data.pastGamesShown}
-		remainingCount={data.remainingPastGamesCount}
-		{loginHref}
-	/>
+	<!-- Keyed so pages loaded with "Ver mais" reset when moving to another game. -->
+	{#key data.id}
+		<HeadToHead
+			gameId={data.id}
+			homeName={data.home.name}
+			awayName={data.away.name}
+			stats={data.h2hStats}
+			pastGamesShown={data.pastGamesShown}
+			total={data.pastGamesTotal}
+			nextOffset={data.pastGamesNextOffset}
+			remainingCount={data.remainingPastGamesCount}
+			{loginHref}
+		/>
+	{/key}
+
+	<!-- Keyed so votes and the open reply box reset when moving to another game. -->
+	{#key data.id}
+		<Comments
+			comments={data.comments}
+			{user}
+			returnTo={page.url.pathname}
+			apiBase="/api/jogos/{data.id}/comentarios"
+			emptyText={m.match_comments_empty_text()}
+		/>
+	{/key}
 
 	{#if hasAdminLinks}
 		<ListGroup title={m.game_admin()} headingLevel={2}>

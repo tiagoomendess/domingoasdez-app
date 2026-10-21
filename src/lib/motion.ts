@@ -34,3 +34,22 @@ export function rollOut(_node: Element, { distance = 70 } = {}): TransitionConfi
 		css: (t) => `transform: translateY(${(t - 1) * distance}%); opacity: ${t}`
 	};
 }
+
+/** A counter changing (comment score): the new number rolls in from below when it goes up. */
+export function countIn(_node: Element, { direction = 1 } = {}): TransitionConfig {
+	if (prefersReducedMotion.current) return fade();
+	return {
+		duration: 240,
+		easing: quintOut,
+		css: (t) => `transform: translateY(${(1 - t) * 60 * direction}%); opacity: ${t}`
+	};
+}
+
+export function countOut(_node: Element, { direction = 1 } = {}): TransitionConfig {
+	if (prefersReducedMotion.current) return fade();
+	return {
+		duration: 160,
+		easing: quintOut,
+		css: (t) => `transform: translateY(${(t - 1) * 60 * direction}%); opacity: ${t}`
+	};
+}

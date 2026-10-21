@@ -11,8 +11,7 @@ A club's page: its teams (senior, B team, youth…), each team's staff and playe
 - A cover picture (the club's venue) with the emblem and name.
 - **Equipas**: a team picker, then the selected team's staff (links to [técnico](tecnico.md) pages) and a grid of players (links to [jogador](jogador.md) pages).
   - 1 team: no picker.
-  - 2–3 teams: a SegmentedControl.
-  - 4 or more: a horizontally scrolling chip row.
+  - 2 or more: the header shows the count ("Equipas 3") and a pull-down **Select** (`variant="surface"`, label hidden) shows the current team. Tapping it opens a bottom sheet on phones or a popover with a mouse; search appears above 7 teams. Tabs and chips were dropped because team names are long ("Seniores Feminino") and the number of teams has no limit, so they never fit.
 - **Transferências** (side column on desktop): recent moves in and out, with a green ← for arrivals and a red → for departures.
 - Admin links to the admin app: edit club (`clubs.edit.{clubId}`), edit team (`teams.edit.{teamId}`).
 

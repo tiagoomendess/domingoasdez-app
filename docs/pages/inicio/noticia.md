@@ -2,7 +2,7 @@
 
 - **Route:** `/noticias/{year}/{month}/{day}/{slug}`
 - **Tab:** Início
-- **Files:** `src/routes/noticias/[year]/[month]/[day]/[slug]/`, `src/lib/server/articles/index.ts`, `src/lib/components/articles/ArticleMedia.svelte`, `src/lib/server/article-comments.ts`, `src/lib/article-comments.ts`, `src/lib/components/articles/ArticleComments.svelte` and `CommentComposer.svelte`
+- **Files:** `src/routes/noticias/[year]/[month]/[day]/[slug]/`, `src/lib/server/articles/index.ts`, `src/lib/components/articles/ArticleMedia.svelte`, `src/lib/server/article-comments.ts`, `src/lib/comments.ts`, `src/lib/components/comments/` (shared with the game page), `src/routes/api/noticias/[id=id]/comentarios/[comment=id]/voto/`
 
 Shows one news article. Reached from an `ArticleCard` in the home feed or from a shared link.
 
@@ -13,7 +13,7 @@ Shows one news article. Reached from an `ArticleCard` in the home feed or from a
 - The description (lead), when set.
 - The article body, rendered as HTML in `prose rich-text`.
 - An ad after the lead, an ad at the end, and the partner grid.
-- **Comments** (`#comentarios`), after the end ad: threads oldest first, each with its replies indented below. Signed-in readers get a composer at the bottom of the card and a "Responder" link on every comment; guests get a "Entra para comentar" prompt that signs them in and brings them back to `#comentarios`.
+- **Comments** (`#comentarios`), after the end ad: threads sorted by most upvoted (or newest / oldest, from 2 threads), each with its replies indented below, oldest first. Every comment has up/down votes. Signed-in readers get a composer at the bottom of the card and a "Responder" link on every comment; guests get a "Entra para comentar" prompt that signs them in and brings them back to `#comentarios`.
 
 ## How it works
 
@@ -23,6 +23,7 @@ Shows one news article. Reached from an `ArticleCard` in the home feed or from a
 - Comments port the legacy `ArticleCommentsController`s on the shared `article_comments` table. The page load reads them with the article; posting and deleting are the `?/comment` and `?/deleteComment` form actions, which work without JavaScript too. With JavaScript, the list refreshes in place and a new comment flashes `accent-tint` once.
 - Legacy rules kept: a comment is required and at most 255 characters (trimmed, counted in code points like Laravel's `max`); a user can post once every 10 seconds, across all articles; deleting is a soft delete (`deleted = 1`) by the author or a user with the `admin` permission.
 - Replies use `article_comment_id`. Threads are one level deep: replying to a reply stores the thread's top-level comment as the parent. The legacy UI never offered replies, so old data has none.
+- **Votes and sort** (new here, the legacy site had neither) work exactly as on the game page: see [jogo.md](../competicoes/jogo.md), "Comments". Votes are stored in `article_comment_votes` and sent to `POST /api/noticias/{id}/comentarios/{comment}/voto`.
 
 ## Edge cases and pitfalls
 

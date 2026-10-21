@@ -22,6 +22,7 @@ Example: `/competicoes/2025-26/campeonato-distrital`.
 - The view is in `?vista=`. Jogos is the default and has no query. Switching uses `goto(..., { replace: true })`, so it doesn't add history entries. Season links keep the current view.
 - Each group opens on its **default round**: the highest round with at least one finished game, or the first round. The round is local state, not in the URL.
 - Standings are built on the client from `standingsGroup` for the selected round, using the group's tie-breaker (AFPB 2018 or plain points). Zones come from `group_rules_positions` when set, otherwise the legacy promotes/relegates counts.
+- The emblem is the season's picture, falling back to the competition's (legacy `Season::getDisplayPicture`). It's also the `og:image`, so a shared link previews the competition logo. Without it, Facebook picks a random club emblem from the table or games. A season and competition with no picture have no `og:image`.
 
 ### URL canonicalisation
 

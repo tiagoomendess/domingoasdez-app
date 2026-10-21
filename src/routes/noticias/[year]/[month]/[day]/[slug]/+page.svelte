@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import AdSenseUnit from '#lib/components/ads/AdSenseUnit.svelte';
-	import ArticleComments from '#lib/components/articles/ArticleComments.svelte';
 	import ArticleMedia from '#lib/components/articles/ArticleMedia.svelte';
+	import Comments from '#lib/components/comments/Comments.svelte';
 	import PartnerGrid from '#lib/components/partners/PartnerGrid.svelte';
 	import { adSlots } from '#lib/ads.ts';
 	import { formatArticleDate } from '#lib/format.ts';
@@ -75,6 +75,12 @@
 	</div>
 {/key}
 
-<ArticleComments comments={data.comments} user={data.user} returnTo={page.url.pathname} />
+<Comments
+	comments={data.comments}
+	user={data.user}
+	returnTo={page.url.pathname}
+	apiBase="/api/noticias/{data.article.id}/comentarios"
+	class="mt-10"
+/>
 
 <PartnerGrid partners={data.partners} />

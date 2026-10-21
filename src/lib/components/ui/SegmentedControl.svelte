@@ -10,12 +10,8 @@
 
 	let { options, value = $bindable(), label, onchange }: Props = $props();
 
-	const index = $derived(
-		Math.max(
-			0,
-			options.findIndex((o) => o.value === value)
-		)
-	);
+	const found = $derived(options.findIndex((o) => o.value === value));
+	const index = $derived(Math.max(0, found));
 
 	function select(option: T) {
 		if (option === value) return;
@@ -31,7 +27,11 @@
 >
 	<span
 		aria-hidden="true"
-		class="absolute inset-y-0.5 left-0.5 rounded-inner bg-surface shadow-[0_1px_3px_rgb(0_0_0/0.12)] transition-[translate] duration-(--dur-base) ease-fluid motion-reduce:transition-none dark:bg-fill-strong dark:shadow-none"
+		class={[
+			'absolute inset-y-0.5 left-0.5 rounded-inner bg-surface shadow-[0_1px_3px_rgb(0_0_0/0.12)] transition-[translate,opacity] duration-(--dur-base) ease-fluid motion-reduce:transition-none dark:bg-fill-strong dark:shadow-none',
+			// Nothing chosen yet (a value outside the options): no thumb, rather than a fake pick.
+			found < 0 && 'opacity-0'
+		]}
 		style:width="calc((100% - 0.25rem) / {options.length})"
 		style:translate="{index * 100}% 0"
 	></span>

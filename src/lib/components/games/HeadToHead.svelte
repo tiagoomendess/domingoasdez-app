@@ -7,15 +7,55 @@
 	import { m } from '#lib/messages.ts';
 
 	type Props = {
+		gameId: number;
 		homeName: string;
 		awayName: string;
 		stats: HeadToHeadStats | null;
 		pastGamesShown: Match[];
+		total: number;
+		/** Offset of the next page from the server; null when there's none (or for guests). */
+		nextOffset: number | null;
 		remainingCount: number;
 		loginHref: string;
 	};
 
-	let { homeName, awayName, stats, pastGamesShown, remainingCount, loginHref }: Props = $props();
+	let {
+		gameId,
+		homeName,
+		awayName,
+		stats,
+		pastGamesShown,
+		total,
+		nextOffset: initialOffset,
+		remainingCount,
+		loginHref
+	}: Props = $props();
+
+	let extra = $state.raw<Match[]>([]);
+	/** `undefined` means "use the server offset"; set after the first page loads here. */
+	let clientOffset = $state<number | null | undefined>(undefined);
+	let loadingMore = $state(false);
+	let failed = $state(false);
+
+	const matches = $derived([...pastGamesShown, ...extra]);
+	const nextOffset = $derived(clientOffset === undefined ? initialOffset : clientOffset);
+
+	async function loadMore() {
+		if (loadingMore || nextOffset == null) return;
+		loadingMore = true;
+		failed = false;
+		try {
+			const res = await fetch(`/api/jogos/${gameId}/anteriores?offset=${nextOffset}`);
+			if (!res.ok) throw new Error(`HTTP ${res.status}`);
+			const page = (await res.json()) as { matches: Match[]; nextOffset: number | null };
+			extra = [...extra, ...page.matches];
+			clientOffset = page.nextOffset;
+		} catch {
+			failed = true;
+		} finally {
+			loadingMore = false;
+		}
+	}
 
 	function pct(value: number): string {
 		return value.toLocaleString(undefined, {
@@ -84,19 +124,30 @@
 	<div>
 		<h3 class="mb-2 px-1 text-footnote font-semibold text-ink-secondary">{m.game_h2h_past()}</h3>
 
-		{#if pastGamesShown.length === 0}
+		{#if matches.length === 0}
 			<div class="rounded-card bg-surface px-4 py-6 text-center ring-1 ring-line dark:ring-0">
 				<p class="text-callout text-ink-secondary">{m.game_h2h_empty()}</p>
 			</div>
 		{:else}
 			<div class="overflow-hidden rounded-card bg-surface ring-1 ring-line dark:ring-0">
 				<ul>
-					{#each pastGamesShown as match (match.id)}
+					{#each matches as match (match.id)}
 						<li class="match">
 							<MatchRow {match} showDate />
 						</li>
 					{/each}
 				</ul>
+			</div>
+		{/if}
+
+		{#if nextOffset != null}
+			<div class="mt-3 flex flex-col items-center gap-2 text-center">
+				<p class="text-footnote text-ink-tertiary tabular-nums" aria-live="polite">
+					{failed ? m.game_h2h_error() : m.game_h2h_count({ shown: matches.length, total })}
+				</p>
+				<Button variant="tinted" loading={loadingMore} onclick={loadMore}>
+					{failed ? m.game_h2h_retry() : m.game_h2h_show_more()}
+				</Button>
 			</div>
 		{/if}
 	</div>

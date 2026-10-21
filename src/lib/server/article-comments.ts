@@ -1,17 +1,24 @@
 /**
  * Article comments. Ports Front\ArticleCommentsController (comment, delete) and
  * Api\ArticleCommentsController@get from the legacy site, on the same `article_comments` table.
+ * Up/down votes (`article_comment_votes`) are new here, as on match comments.
  */
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, sql } from 'drizzle-orm';
 import {
 	buildCommentTree,
 	commentCooldownLeft,
 	validateComment,
-	type ArticleComment
-} from '#lib/article-comments.ts';
+	type CommentVote,
+	type VotedComment
+} from '#lib/comments.ts';
 import { getUserPermissionNames, hasPermission } from '#lib/server/auth/permissions.ts';
 import { db } from '#lib/server/db/index.ts';
-import { articleComments, userProfiles, users } from '#lib/server/db/schema.ts';
+import {
+	articleCommentVotes,
+	articleComments,
+	userProfiles,
+	users
+} from '#lib/server/db/schema.ts';
 import { naiveToIso } from '#lib/server/dates.ts';
 import { mediaUrl } from '#lib/server/media.ts';
 
@@ -20,11 +27,17 @@ async function isAdmin(userId: number) {
 	return hasPermission(await getUserPermissionNames(userId), 'admin');
 }
 
+function toVote(value: number | null | undefined): CommentVote {
+	return value == null || value === 0 ? 0 : value > 0 ? 1 : -1;
+}
+
+const scoreSum = sql<number>`COALESCE(SUM(${articleCommentVotes.value}), 0)`.mapWith(Number);
+
 export async function listArticleComments(
 	articleId: number,
 	viewerId: number | null
-): Promise<ArticleComment[]> {
-	const [rows, admin] = await Promise.all([
+): Promise<VotedComment[]> {
+	const [rows, votes, admin] = await Promise.all([
 		db
 			.select({
 				id: articleComments.id,
@@ -41,21 +54,45 @@ export async function listArticleComments(
 			.innerJoin(users, eq(articleComments.userId, users.id))
 			.leftJoin(userProfiles, eq(userProfiles.userId, users.id))
 			.where(eq(articleComments.articleId, articleId)),
+		db
+			.select({
+				commentId: articleCommentVotes.articleCommentId,
+				score: scoreSum,
+				myVote:
+					viewerId == null
+						? sql<number>`0`.mapWith(Number)
+						: sql<number>`COALESCE(MAX(CASE WHEN ${articleCommentVotes.userId} = ${viewerId} THEN ${articleCommentVotes.value} END), 0)`.mapWith(
+								Number
+							)
+			})
+			.from(articleCommentVotes)
+			.innerJoin(articleComments, eq(articleComments.id, articleCommentVotes.articleCommentId))
+			.where(eq(articleComments.articleId, articleId))
+			.groupBy(articleCommentVotes.articleCommentId),
 		viewerId == null ? false : isAdmin(viewerId)
 	]);
 
+	const votesById = new Map(votes.map((vote) => [vote.commentId, vote]));
+
 	return buildCommentTree(
-		rows.map((row) => ({
-			id: row.id,
-			parentId: row.parentId,
-			deleted: row.deleted,
-			content: row.content ?? '',
-			// Same fallback as the signed-in user's name (toAuthUser).
-			authorName: row.name?.trim() || row.email?.split('@')[0] || 'Utilizador',
-			authorPicture: mediaUrl(row.picture),
-			date: row.createdAt ? naiveToIso(row.createdAt) : new Date(0).toISOString(),
-			canDelete: viewerId != null && (admin || row.userId === viewerId)
-		}))
+		rows.map((row) => {
+			const vote = votesById.get(row.id);
+			const mine = viewerId != null && row.userId === viewerId;
+			return {
+				id: row.id,
+				parentId: row.parentId,
+				deleted: row.deleted,
+				content: row.content ?? '',
+				// Same fallback as the signed-in user's name (toAuthUser).
+				authorName: row.name?.trim() || row.email?.split('@')[0] || 'Utilizador',
+				authorPicture: mediaUrl(row.picture),
+				date: row.createdAt ? naiveToIso(row.createdAt) : new Date(0).toISOString(),
+				canDelete: viewerId != null && (admin || mine),
+				score: vote?.score ?? 0,
+				myVote: toVote(vote?.myVote),
+				mine
+			};
+		})
 	);
 }
 
@@ -152,4 +189,63 @@ export async function deleteArticleComment(input: {
 
 	console.info(`[article-comments] user ${input.userId} deleted comment ${input.commentId}`);
 	return { ok: true };
+}
+
+export type VoteCommentResult =
+	| { ok: true; score: number; myVote: CommentVote }
+	| { ok: false; error: 'not_found' | 'own_comment' };
+
+/** One vote per user and comment: +1 / -1 sets it, 0 removes it. Not on your own comment. */
+export async function voteArticleComment(input: {
+	articleId: number;
+	commentId: number;
+	userId: number;
+	value: CommentVote;
+}): Promise<VoteCommentResult> {
+	const [comment] = await db
+		.select({ id: articleComments.id, userId: articleComments.userId })
+		.from(articleComments)
+		.where(
+			and(
+				eq(articleComments.id, input.commentId),
+				eq(articleComments.articleId, input.articleId),
+				eq(articleComments.deleted, false)
+			)
+		)
+		.limit(1);
+	if (!comment) return { ok: false, error: 'not_found' };
+	if (comment.userId === input.userId) return { ok: false, error: 'own_comment' };
+
+	if (input.value === 0) {
+		await db
+			.delete(articleCommentVotes)
+			.where(
+				and(
+					eq(articleCommentVotes.articleCommentId, comment.id),
+					eq(articleCommentVotes.userId, input.userId)
+				)
+			);
+	} else {
+		const now = new Date();
+		await db
+			.insert(articleCommentVotes)
+			.values({
+				articleCommentId: comment.id,
+				userId: input.userId,
+				value: input.value,
+				createdAt: now,
+				updatedAt: now
+			})
+			.onDuplicateKeyUpdate({ set: { value: input.value, updatedAt: now } });
+	}
+
+	const [total] = await db
+		.select({ score: scoreSum })
+		.from(articleCommentVotes)
+		.where(eq(articleCommentVotes.articleCommentId, comment.id));
+
+	console.info(
+		`[article-comments] user ${input.userId} voted ${input.value} on comment ${comment.id}`
+	);
+	return { ok: true, score: total?.score ?? 0, myVote: input.value };
 }

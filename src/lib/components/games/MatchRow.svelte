@@ -9,9 +9,11 @@
 		match: Match;
 		showDate?: boolean;
 		onliveclick?: (match: Match) => void;
+		/** False renders a plain row (no link), e.g. inside a preview that has its own button. */
+		interactive?: boolean;
 	};
 
-	let { match, showDate = false, onliveclick }: Props = $props();
+	let { match, showDate = false, onliveclick, interactive = true }: Props = $props();
 
 	const showScore = $derived(match.status === 'live' || match.status === 'finished');
 	const interceptLive = $derived(match.status === 'live' && !!onliveclick);
@@ -103,7 +105,11 @@
 	</span>
 {/snippet}
 
-{#if interceptLive}
+{#if !interactive}
+	<div class="flex min-h-16 w-full items-center gap-3 px-4 py-3 text-left">
+		{@render row()}
+	</div>
+{:else if interceptLive}
 	<button type="button" class={rowClass} onclick={() => onliveclick?.(match)}>
 		{@render row()}
 	</button>

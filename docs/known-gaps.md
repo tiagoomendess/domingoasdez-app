@@ -47,4 +47,8 @@ These old URLs 404 here. Old emails, bookmarks and search results may still use 
 - No "resend verification email" on `/conta/registar/verificar/{email}`.
 - The legal pages (privacy, terms, RGPD) are Portuguese only, and their text is hard-coded in `src/lib/content/legal.ts`.
 - The error page shows the same copy for every 404; the specific messages from load functions aren't displayed.
+- **Comment moderation:** the admin app has no page for article or match comments. Only the author or a user with `admin` can delete one, from the public page.
+- **Account deletion and comments:** the Laravel `ProcessDeleteRequest` job wipes `article_comments` content but not `match_comments`, and leaves the votes (`match_comment_votes`, `article_comment_votes`) in place. The app hides match comments by anonymised accounts in the meantime; fix it when the background jobs move off Laravel.
+- **Predictions have no points or leaderboard.** Each game shows a verdict, but nothing adds them up per user yet.
+- **Two-legged ties aren't modelled.** Their legs are judged one game at a time, so a level first leg has "no winner" for predictions.
 - `/demo` and `/demo/playwright` are scaffold leftovers, and the Playwright test there is the only e2e test.

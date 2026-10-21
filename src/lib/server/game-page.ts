@@ -6,7 +6,7 @@ import { and, asc, desc, eq, inArray, or, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/mysql-core';
 import type { AuthUser } from '#lib/auth/user.ts';
 import { formatSeasonShort, seasonNameSlug } from '#lib/competitions.ts';
-import type { Match } from '#lib/components/types.ts';
+import type { FormChip, Match } from '#lib/components/types.ts';
 import {
 	allowScoreReports,
 	competitionHref,
@@ -16,7 +16,6 @@ import {
 	hasStarted,
 	headToHeadStats,
 	isMvpVoteOpen,
-	type FormResult,
 	type HeadToHeadStats
 } from '#lib/games.ts';
 import { isAdult, playerDisplayName } from '#lib/players.ts';
@@ -142,11 +141,6 @@ export type GameRefereeView = {
 	href: string;
 };
 
-export type FormChip = {
-	result: FormResult;
-	href: string;
-};
-
 export type MvpPlayerView = {
 	id: number;
 	name: string;
@@ -182,8 +176,12 @@ export type GamePageData = {
 	referees: GameRefereeView[];
 	homeForm: FormChip[];
 	awayForm: FormChip[];
-	pastGames: Match[];
+	/** First page of past meetings (2 for guests). */
 	pastGamesShown: Match[];
+	pastGamesTotal: number;
+	/** Offset for the next /api/jogos/{id}/anteriores page; null when there's none or for guests. */
+	pastGamesNextOffset: number | null;
+	/** Guests only: past games hidden behind the login wall. */
 	remainingPastGamesCount: number;
 	h2hStats: HeadToHeadStats | null;
 	mvp: {
@@ -481,16 +479,53 @@ async function loadTeamLastGames(
 		.limit(limit);
 }
 
-async function loadPastH2H(
-	homeTeamId: number,
-	awayTeamId: number,
-	beforeDate: string | Date
-): Promise<TeamGameRow[]> {
+/** Past games listed per page (and per "Ver mais") in the head to head. */
+export const PAST_GAMES_PAGE_SIZE = 10;
+
+/** Legacy past_games filter: finished, visible meetings of the two teams before this game. */
+function pastH2HWhere(homeTeamId: number, awayTeamId: number, beforeDate: string | Date) {
 	const beforeNaive =
 		beforeDate instanceof Date
 			? beforeDate.toISOString().slice(0, 19).replace('T', ' ')
 			: String(beforeDate).slice(0, 19).replace('T', ' ');
 
+	return and(
+		eq(games.visible, true),
+		eq(games.finished, true),
+		sql`${games.date} < ${beforeNaive}`,
+		or(
+			and(eq(games.homeTeamId, homeTeamId), eq(games.awayTeamId, awayTeamId)),
+			and(eq(games.homeTeamId, awayTeamId), eq(games.awayTeamId, homeTeamId))
+		)
+	);
+}
+
+/** Every past meeting, without joins: enough for the stats bar and the total. */
+async function loadPastH2HScores(
+	homeTeamId: number,
+	awayTeamId: number,
+	beforeDate: string | Date
+) {
+	return db
+		.select({
+			id: games.id,
+			goalsHome: games.goalsHome,
+			goalsAway: games.goalsAway,
+			homeTeamId: games.homeTeamId,
+			awayTeamId: games.awayTeamId
+		})
+		.from(games)
+		.where(pastH2HWhere(homeTeamId, awayTeamId, beforeDate));
+}
+
+/** One page of past meetings, newest first (legacy order; id breaks ties so pages never overlap). */
+async function loadPastH2H(
+	homeTeamId: number,
+	awayTeamId: number,
+	beforeDate: string | Date,
+	limit: number,
+	offset = 0
+): Promise<TeamGameRow[]> {
 	return db
 		.select({
 			id: games.id,
@@ -522,18 +557,10 @@ async function loadPastH2H(
 		.innerJoin(homeClub, eq(homeTeam.clubId, homeClub.id))
 		.innerJoin(awayTeam, eq(games.awayTeamId, awayTeam.id))
 		.innerJoin(awayClub, eq(awayTeam.clubId, awayClub.id))
-		.where(
-			and(
-				eq(games.visible, true),
-				eq(games.finished, true),
-				sql`${games.date} < ${beforeNaive}`,
-				or(
-					and(eq(games.homeTeamId, homeTeamId), eq(games.awayTeamId, awayTeamId)),
-					and(eq(games.homeTeamId, awayTeamId), eq(games.awayTeamId, homeTeamId))
-				)
-			)
-		)
-		.orderBy(desc(games.date));
+		.where(pastH2HWhere(homeTeamId, awayTeamId, beforeDate))
+		.orderBy(desc(games.date), desc(games.id))
+		.limit(limit)
+		.offset(offset);
 }
 
 function toMatch(row: TeamGameRow, counts: Map<number, Map<number, number>>, now: Date): Match {
@@ -579,7 +606,7 @@ function toFormChips(
 	if (rows.length <= 1) return [];
 	return rows.map((row) => {
 		const { homeScore, awayScore } = resolveScores(row, counts);
-		const match = toMatch(row, counts, now);
+		const display = displayName(row.seasonName, row.competitionName);
 		return {
 			result: formResult(
 				{
@@ -590,7 +617,11 @@ function toFormChips(
 				},
 				teamId
 			),
-			href: match.href
+			match: toMatch(row, counts, now),
+			side: row.homeTeamId === teamId ? 'home' : 'away',
+			competitionName: display,
+			groupName: row.groupName?.trim() || display,
+			round: row.round
 		};
 	});
 }
@@ -775,14 +806,20 @@ export async function loadGamePage(
 		loadFlashInterviewLink(game, user)
 	]);
 
+	// Guests see 2 past games behind a login wall (legacy addPastGamesLoginWallData);
+	// signed-in users get pages of PAST_GAMES_PAGE_SIZE, the rest via /api/jogos/{id}/anteriores.
+	const isGuest = !user;
+	const pastLimit = isGuest ? 2 : PAST_GAMES_PAGE_SIZE;
+
 	const loadForm = !started && !game.finished;
-	const [homeLast, awayLast, pastRows] = await Promise.all([
+	const [homeLast, awayLast, pastRows, pastScores] = await Promise.all([
 		loadForm ? loadTeamLastGames(game.homeTeamId, game.date) : Promise.resolve([]),
 		loadForm ? loadTeamLastGames(game.awayTeamId, game.date) : Promise.resolve([]),
-		loadPastH2H(game.homeTeamId, game.awayTeamId, game.date)
+		loadPastH2H(game.homeTeamId, game.awayTeamId, game.date, pastLimit),
+		loadPastH2HScores(game.homeTeamId, game.awayTeamId, game.date)
 	]);
 
-	const formIds = [...homeLast, ...awayLast, ...pastRows]
+	const formIds = [...homeLast, ...awayLast, ...pastScores]
 		.filter((r) => r.goalsHome == null || r.goalsAway == null)
 		.map((r) => r.id);
 	const formCounts = await goalCountsByGame(formIds);
@@ -790,8 +827,7 @@ export async function loadGamePage(
 	const homeForm = toFormChips(homeLast, game.homeTeamId, formCounts, now);
 	const awayForm = toFormChips(awayLast, game.awayTeamId, formCounts, now);
 
-	const pastMatches = pastRows.map((row) => toMatch(row, formCounts, now));
-	const h2hInput = pastRows.map((row) => {
+	const h2hInput = pastScores.map((row) => {
 		const scores = resolveScores(row, formCounts);
 		return {
 			homeTeamId: row.homeTeamId,
@@ -800,12 +836,13 @@ export async function loadGamePage(
 			awayScore: scores.awayScore
 		};
 	});
-	const h2hStats = pastRows.length > 0 ? headToHeadStats(h2hInput, game.homeTeamId) : null;
+	const h2hStats = pastScores.length > 0 ? headToHeadStats(h2hInput, game.homeTeamId) : null;
 
-	const isGuest = !user;
-	const maxShown = isGuest ? 2 : pastMatches.length;
-	const pastGamesShown = pastMatches.slice(0, maxShown);
-	const remainingPastGamesCount = Math.max(0, pastMatches.length - maxShown);
+	const pastGamesTotal = pastScores.length;
+	const pastGamesShown = pastRows.map((row) => toMatch(row, formCounts, now));
+	const remainingPastGamesCount = isGuest ? Math.max(0, pastGamesTotal - pastLimit) : 0;
+	const pastGamesNextOffset =
+		!isGuest && pastGamesTotal > pastGamesShown.length ? pastGamesShown.length : null;
 
 	const mvp = await loadMvpBlock(game, user, perms, kickoff, now);
 
@@ -857,8 +894,9 @@ export async function loadGamePage(
 		referees: refs,
 		homeForm,
 		awayForm,
-		pastGames: pastMatches,
 		pastGamesShown,
+		pastGamesTotal,
+		pastGamesNextOffset,
 		remainingPastGamesCount,
 		h2hStats,
 		mvp,
@@ -868,15 +906,9 @@ export async function loadGamePage(
 				: null,
 			flashInterview,
 			editGame: canEditGames ? adminUrl(`/games/${game.id}`) : null,
-			addHomeGoal: canCreateGoals
-				? adminUrl(`/goals/new?game=${game.id}&side=home`)
-				: null,
-			addAwayGoal: canCreateGoals
-				? adminUrl(`/goals/new?game=${game.id}&side=away`)
-				: null,
-			scoreReportsList: canScoreUpdate
-				? adminUrl(`/today?day=${lisbonDay(kickoff)}`)
-				: null
+			addHomeGoal: canCreateGoals ? adminUrl(`/goals/new?game=${game.id}&side=home`) : null,
+			addAwayGoal: canCreateGoals ? adminUrl(`/goals/new?game=${game.id}&side=away`) : null,
+			scoreReportsList: canScoreUpdate ? adminUrl(`/today?day=${lisbonDay(kickoff)}`) : null
 		},
 		seo: {
 			title: `${game.homeClubName} vs ${game.awayClubName} - ${display} ${seasonLabel}`,
@@ -884,6 +916,46 @@ export async function loadGamePage(
 			ogImage:
 				mediaUrl(game.image?.trim()) || displayPicture(season.picture, season.competitionPicture)
 		}
+	};
+}
+
+export type PastGamesPage = { matches: Match[]; nextOffset: number | null };
+
+/** A later page of the head to head's past games, for the "Ver mais" button. Null for unknown or hidden games. */
+export async function loadPastGamesPage(
+	gameId: number,
+	offset: number,
+	now = new Date()
+): Promise<PastGamesPage | null> {
+	const [game] = await db
+		.select({
+			date: games.date,
+			homeTeamId: games.homeTeamId,
+			awayTeamId: games.awayTeamId,
+			visible: games.visible
+		})
+		.from(games)
+		.where(eq(games.id, gameId))
+		.limit(1);
+
+	if (!game || !game.visible) return null;
+
+	// One extra row tells whether another page follows.
+	const rows = await loadPastH2H(
+		game.homeTeamId,
+		game.awayTeamId,
+		game.date,
+		PAST_GAMES_PAGE_SIZE + 1,
+		offset
+	);
+	const pageRows = rows.slice(0, PAST_GAMES_PAGE_SIZE);
+	const counts = await goalCountsByGame(
+		pageRows.filter((r) => r.goalsHome == null || r.goalsAway == null).map((r) => r.id)
+	);
+
+	return {
+		matches: pageRows.map((row) => toMatch(row, counts, now)),
+		nextOffset: rows.length > PAST_GAMES_PAGE_SIZE ? offset + PAST_GAMES_PAGE_SIZE : null
 	};
 }
 

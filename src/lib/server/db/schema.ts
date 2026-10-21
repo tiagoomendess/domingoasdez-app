@@ -16,6 +16,7 @@ import {
 	date,
 	decimal,
 	mysqlEnum,
+	tinyint,
 	index
 } from 'drizzle-orm/mysql-core';
 
@@ -62,6 +63,39 @@ export const articleComments = mysqlTable('article_comments', {
 	content: text('content'),
 	userId: int('user_id', { unsigned: true }).notNull(),
 	deleted: boolean('deleted').notNull().default(false),
+	createdAt: timestamp('created_at'),
+	updatedAt: timestamp('updated_at')
+});
+
+/** One vote per user and article comment; `value` is +1 or -1 (no row = no vote). */
+export const articleCommentVotes = mysqlTable('article_comment_votes', {
+	id: int('id', { unsigned: true }).primaryKey().autoincrement(),
+	articleCommentId: int('article_comment_id', { unsigned: true }).notNull(),
+	userId: int('user_id', { unsigned: true }).notNull(),
+	value: tinyint('value').notNull(),
+	createdAt: timestamp('created_at'),
+	updatedAt: timestamp('updated_at')
+});
+
+/** Comments on a game (not the flash interviews, which are `game_comments`). */
+export const matchComments = mysqlTable('match_comments', {
+	id: int('id', { unsigned: true }).primaryKey().autoincrement(),
+	gameId: int('game_id', { unsigned: true }).notNull(),
+	/** Parent comment for replies; null for a top-level comment. */
+	matchCommentId: int('match_comment_id', { unsigned: true }),
+	content: text('content'),
+	userId: int('user_id', { unsigned: true }).notNull(),
+	deleted: boolean('deleted').notNull().default(false),
+	createdAt: timestamp('created_at'),
+	updatedAt: timestamp('updated_at')
+});
+
+/** One vote per user and match comment; `value` is +1 or -1 (no row = no vote). */
+export const matchCommentVotes = mysqlTable('match_comment_votes', {
+	id: int('id', { unsigned: true }).primaryKey().autoincrement(),
+	matchCommentId: int('match_comment_id', { unsigned: true }).notNull(),
+	userId: int('user_id', { unsigned: true }).notNull(),
+	value: tinyint('value').notNull(),
 	createdAt: timestamp('created_at'),
 	updatedAt: timestamp('updated_at')
 });
@@ -177,6 +211,18 @@ export const gameGroups = mysqlTable('game_groups', {
 	name: varchar('name', { length: 155 }),
 	seasonId: int('season_id', { unsigned: true }).notNull(),
 	groupRulesId: int('group_rules_id', { unsigned: true }).notNull(),
+	createdAt: timestamp('created_at'),
+	updatedAt: timestamp('updated_at')
+});
+
+/** Score predictions: one per user and game; `penaltyWinner` only for level knockout picks. */
+export const gamePredictions = mysqlTable('game_predictions', {
+	id: int('id', { unsigned: true }).primaryKey().autoincrement(),
+	gameId: int('game_id', { unsigned: true }).notNull(),
+	userId: int('user_id', { unsigned: true }).notNull(),
+	goalsHome: tinyint('goals_home', { unsigned: true }).notNull(),
+	goalsAway: tinyint('goals_away', { unsigned: true }).notNull(),
+	penaltyWinner: mysqlEnum('penalty_winner', ['home', 'away']),
 	createdAt: timestamp('created_at'),
 	updatedAt: timestamp('updated_at')
 });
