@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 	import TrophyIcon from 'phosphor-svelte/lib/TrophyIcon';
@@ -15,6 +16,12 @@
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
 	import IconButton from '#lib/components/ui/IconButton.svelte';
 	import SegmentedControl from '#lib/components/ui/SegmentedControl.svelte';
+	import {
+		ROUNDS_PARAM,
+		parseRoundParams,
+		roundParams,
+		type RoundGroup
+	} from '#lib/competitions.ts';
 	import { m } from '#lib/messages.ts';
 	import {
 		buildStandings,
@@ -40,25 +47,27 @@
 		return next;
 	}
 
+	function roundGroups(groups: Group[]): RoundGroup[] {
+		return groups.map((g) => ({
+			id: g.id,
+			nameSlug: g.nameSlug,
+			rounds: g.rounds.map((r) => r.number)
+		}));
+	}
+
+	/** Each group's default round, overridden by `?jornada=` so coming back keeps the selection. */
+	function initialRounds(groups: Group[], params: string[]): Record<number, number> {
+		return { ...defaultRounds(groups), ...parseRoundParams(params, roundGroups(groups)) };
+	}
+
 	let seasonSheetOpen = $state(false);
-	let selectedRounds = $state<Record<number, number>>(
-		untrack(() => defaultRounds(data.groups))
-	);
-	let seededSeasonId = untrack(() => data.seasonId);
-	let vista = $state<Vista>(untrack(() => data.vista as Vista));
-
-	$effect(() => {
-		const seasonId = data.seasonId;
-		const groups = data.groups;
-		if (seasonId !== seededSeasonId) {
-			seededSeasonId = seasonId;
-			selectedRounds = defaultRounds(groups);
-		}
+	// A primitive, so reloads of the same season (view switch, pull-to-refresh) don't re-seed
+	const seasonId = $derived(data.seasonId);
+	let selectedRounds = $derived.by<Record<number, number>>(() => {
+		void seasonId;
+		return untrack(() => initialRounds(data.groups, page.url.searchParams.getAll(ROUNDS_PARAM)));
 	});
-
-	$effect(() => {
-		vista = data.vista as Vista;
-	});
+	let vista = $derived<Vista>(data.vista as Vista);
 
 	const metaDescription = $derived(
 		m.competition_meta_description({ name: data.displayName, season: data.seasonLabel })
@@ -80,9 +89,7 @@
 	const seasonIndex = $derived(data.seasons.findIndex((s) => s.id === data.seasonId));
 	// seasons are newest → oldest; "prev" = older = higher index, "next" = newer = lower index
 	const olderSeason = $derived(
-		seasonIndex >= 0 && seasonIndex < data.seasons.length - 1
-			? data.seasons[seasonIndex + 1]
-			: null
+		seasonIndex >= 0 && seasonIndex < data.seasons.length - 1 ? data.seasons[seasonIndex + 1] : null
 	);
 	const newerSeason = $derived(seasonIndex > 0 ? data.seasons[seasonIndex - 1] : null);
 
@@ -132,6 +139,18 @@
 		const next = numbers[idx + delta];
 		if (next == null) return;
 		selectedRounds = { ...selectedRounds, [groupId]: next };
+		syncRoundsUrl();
+	}
+
+	// No load reads `jornada`, so this only rewrites the URL: nothing is refetched.
+	function syncRoundsUrl() {
+		const url = new URL(window.location.href);
+		url.searchParams.delete(ROUNDS_PARAM);
+		const groups = roundGroups(data.groups);
+		for (const value of roundParams(selectedRounds, defaultRounds(data.groups), groups)) {
+			url.searchParams.append(ROUNDS_PARAM, value);
+		}
+		void goto(`${url.pathname}${url.search}`, { replace: true, reset: false });
 	}
 
 	function currentRoundGames(groupId: number) {

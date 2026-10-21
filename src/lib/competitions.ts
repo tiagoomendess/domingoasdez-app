@@ -55,3 +55,46 @@ export function parseSeasonSlug(slug: string): [number, number] | null {
 export function isLegacyFullYearSlug(slug: string): boolean {
 	return /^\d{4}-\d{4}$/.test(slug);
 }
+
+export type RoundGroup = { id: number; nameSlug: string; rounds: number[] };
+
+/** Query param for the selected rounds on the competition page (repeated, one per group). */
+export const ROUNDS_PARAM = 'jornada';
+
+/**
+ * Reads `?jornada=` values: a bare round (`5`) when the season has one group, otherwise
+ * `{group slug}.{round}` (`serie-a.5`). Unknown groups and rounds are ignored.
+ */
+export function parseRoundParams(values: string[], groups: RoundGroup[]): Record<number, number> {
+	const selected: Record<number, number> = {};
+	for (const value of values) {
+		const match = /^(?:(.+)\.)?(\d+)$/.exec(value.trim());
+		if (!match) continue;
+		const [, slug, round] = match;
+		const group =
+			slug == null
+				? groups.length === 1
+					? groups[0]
+					: undefined
+				: groups.find((g) => g.nameSlug === slug);
+		if (group && !(group.id in selected) && group.rounds.includes(Number(round))) {
+			selected[group.id] = Number(round);
+		}
+	}
+	return selected;
+}
+
+/** The `?jornada=` values for the rounds moved away from each group's default, in group order. */
+export function roundParams(
+	selected: Record<number, number>,
+	defaults: Record<number, number>,
+	groups: RoundGroup[]
+): string[] {
+	const values: string[] = [];
+	for (const group of groups) {
+		const round = selected[group.id];
+		if (round == null || round === defaults[group.id]) continue;
+		values.push(groups.length === 1 ? String(round) : `${group.nameSlug}.${round}`);
+	}
+	return values;
+}

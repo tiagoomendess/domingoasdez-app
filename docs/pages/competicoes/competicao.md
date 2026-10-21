@@ -1,6 +1,6 @@
 # Competição (competition season)
 
-- **Route:** `/competicoes/{season}/{competition}` (optional `?vista=classificacao|estatisticas`)
+- **Route:** `/competicoes/{season}/{competition}` (optional `?vista=classificacao|estatisticas`, `?jornada=`)
 - **Tab:** Competições
 - **Files:** `src/routes/competicoes/[season=season]/[competition=slug]/`, `src/lib/server/competition-page.ts`, `src/lib/server/competition-stats.ts`, `src/lib/standings.ts`, `src/lib/components/competitions/`
 
@@ -20,7 +20,9 @@ Example: `/competicoes/2025-26/campeonato-distrital`.
 ## How it works
 
 - The view is in `?vista=`. Jogos is the default and has no query. Switching uses `goto(..., { replace: true })`, so it doesn't add history entries. Season links keep the current view.
-- Each group opens on its **default round**: the highest round with at least one finished game, or the first round. The round is local state, not in the URL.
+- Each group opens on its **default round**: the highest round with at least one finished game, or the first round.
+- **The selected rounds are kept in `?jornada=`**, so going into a game and back (or reloading, or sharing the link) shows the same rounds. One value per group the user moved off its default, in group order: a bare round when the season has one group (`?jornada=5`), otherwise `{group slug}.{round}` (`?jornada=serie-a.24&jornada=serie-b.23`). Moving a group back to its default drops its value, so an untouched page keeps its clean URL. The helpers are `parseRoundParams` / `roundParams` in `src/lib/competitions.ts`.
+- Changing round rewrites the URL with `goto(..., { replace: true, reset: false })`. No load reads `jornada`, so nothing is refetched and no history entry is added. Both views share the selection, and switching view keeps the param. Season links drop it, since another season has other groups.
 - Standings are built on the client from `standingsGroup` for the selected round, using the group's tie-breaker (AFPB 2018 or plain points). Zones come from `group_rules_positions` when set, otherwise the legacy promotes/relegates counts.
 - The emblem is the season's picture, falling back to the competition's (legacy `Season::getDisplayPicture`). It's also the `og:image`, so a shared link previews the competition logo. Without it, Facebook picks a random club emblem from the table or games. A season and competition with no picture have no `og:image`.
 
@@ -40,7 +42,9 @@ The query string is kept on these redirects.
 - The group heading is hidden when there's a single group with the same name as the competition.
 - **The live banner is global.** `hasLiveGames` is true when _any_ visible game today is live, not just one in this competition.
 - `getSeasonGroups` loads every game of the season **without** a `games.visible` filter, matching the legacy page. Hidden games still count here.
-- When the season changes (new `seasonId`), the selected rounds are re-seeded. Within the same season they're kept, so navigating views doesn't reset the round.
+- When the season changes (new `seasonId`), the selected rounds are re-seeded from the defaults and `?jornada=`. Within the same season they're kept, so switching views or a pull-to-refresh doesn't reset the round.
+- `?jornada=` values for unknown groups or rounds are ignored (the group falls back to its default). Groups are matched by `nameSlug`, so renaming a group breaks its round in old links, and two groups with the same slug would share one value (the first wins).
+- The rounds are read from `page.url` when the page mounts, not in the server load, which is what keeps round changes from refetching. Don't move the parsing into `+page.server.ts`.
 - **The competition slug depends on the season's display name.** The lookup first matches `slugify(season name or competition name)`, then falls back to `slugify(competition name)`. So a link with the plain competition name still works and redirects to the season's own name. But renaming a season from one custom name to another breaks the old links (404), because the old slug matches neither.
 - Only visible seasons of visible competitions are found. Hiding a season 404s its page.
 - Old URLs:

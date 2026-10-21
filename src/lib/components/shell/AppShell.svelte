@@ -1,11 +1,12 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import { onMount } from 'svelte';
-	import { afterNavigate } from '$app/navigation';
+	import { afterNavigate, refreshAll } from '$app/navigation';
 	import { navigating, page } from '$app/state';
 	import { watchTopAnchorOffset } from '#lib/top-anchor.ts';
 	import BackButton from './BackButton.svelte';
 	import NavigationLoader from './NavigationLoader.svelte';
+	import PullToRefresh from './PullToRefresh.svelte';
 	import ThemeToggle from './ThemeToggle.svelte';
 	import TabBar from './TabBar.svelte';
 	import Toast from '#lib/components/ui/Toast.svelte';
@@ -19,6 +20,7 @@
 		type TabId
 	} from '#lib/navigation.svelte.ts';
 	import { showPrivacySettings } from '#lib/google.ts';
+	import { pullRefresh } from '#lib/pull-to-refresh.svelte.ts';
 	import { m } from '#lib/messages.ts';
 
 	const LIVE_POLL_MS = 30_000;
@@ -152,19 +154,21 @@
 		aria-busy={pending || undefined}
 		class={['page-container', isReading && 'max-w-[42.5rem]!']}
 	>
-		{@render children()}
-		<footer class="mt-10 border-t border-line pt-4 text-center text-footnote text-ink-tertiary">
-			<p>© 2014–{copyrightYear} {m.feed_brand()}</p>
-			{#if !adsDisabled}
-				<button
-					type="button"
-					class="mt-1 font-medium text-accent-text hover:underline"
-					onclick={showPrivacySettings}
-				>
-					{m.pages_privacy_cookie_settings()}
-				</button>
-			{/if}
-		</footer>
+		<PullToRefresh bind:refreshing={pullRefresh.refreshing} onrefresh={refreshAll}>
+			{@render children()}
+			<footer class="mt-10 border-t border-line pt-4 text-center text-footnote text-ink-tertiary">
+				<p>© 2014–{copyrightYear} {m.feed_brand()}</p>
+				{#if !adsDisabled}
+					<button
+						type="button"
+						class="mt-1 font-medium text-accent-text hover:underline"
+						onclick={showPrivacySettings}
+					>
+						{m.pages_privacy_cookie_settings()}
+					</button>
+				{/if}
+			</footer>
+		</PullToRefresh>
 	</main>
 
 	<NavigationLoader visible={loaderVisible} />

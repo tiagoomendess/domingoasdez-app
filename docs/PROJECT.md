@@ -13,7 +13,13 @@ This app is only the public site. These live elsewhere:
 
 - The legacy site runs in Docker at http://localhost:8000/. Run `docker ps` to see what's running.
 - The local dev database is `host=localhost db=dad_db user=root password=rootpassword`.
-  - **When you query it by hand, only read. Never write to it.** (The app itself writes rows through its normal flows, see below.)
+  - It runs in the `local-mysql` container: `docker exec local-mysql mysql -uroot -prootpassword --default-character-set=utf8mb4 dad_db -e "…"`.
+  - **You may change data in this local database, only to set up a test case you want to check in the UI.** For example: move a game's date, change a score, add votes or comments.
+    - Only the local Docker database. Never any other database.
+    - Data only. No schema changes (DDL), even locally. Real schema and data changes always go through migrations in domingoasdez-admin (see Database below).
+    - Before changing anything, save the original values (select the rows first). After the test, put everything back as it was when possible: restore the old values and delete the rows you inserted. If something can't be restored, tell the user what's left.
+    - Keep changes narrow: update or delete by primary key, never by broad conditions.
+  - The app itself also writes rows through its normal flows (see Database below).
 
 ## Database
 

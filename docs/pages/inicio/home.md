@@ -12,7 +12,7 @@ A social-media style feed that mixes news articles, polls and transfer days, new
 - A chip row to pick which content types to show: Artigos, Sondagens, Transferências. The chips come from `feedTypes` in `src/lib/components/feed/registry.ts`.
 - The feed itself: `ArticleCard`, `PollCard` and `TransferDayCard`, 12 per page, with infinite scroll.
 - Inserts between cards: an AdSense unit (first item, then every 10th from the 10th), a partner card after every 3rd item, and the "new site" disclaimer card.
-- Pull down at the top to refresh (`PullToRefresh` → `refreshAll()`).
+- Pull down at the top to refresh. The shell's `PullToRefresh` runs `refreshAll()`, and Home shows skeleton cards while `pullRefresh.refreshing` is true.
 
 ## How it works
 

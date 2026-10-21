@@ -283,10 +283,12 @@ Primitives are in `src/lib/components/ui/`, the shell in `.../shell/`, and domai
   - `<main>` becomes `inert` (and `aria-busy`) as soon as the navigation starts, so the page can't be tapped or focused. The tab bar and floating buttons are outside `<main>` and stay live: tapping another tab retargets the navigation, and back cancels it.
   - The visuals wait 150 ms, so fast or preloaded navigations never flash. Then a `canvas` veil at 55% washes out the content, and a 56 px glass circle with an `accent` ring spinner materialises in the centre of the viewport. The veil sits at `z-35`, between the scroll-edge fades (30) and the chrome (40).
   - Reduced motion: the veil and circle only fade, and the spinner turns more slowly instead of stopping, because it's essential feedback. The loading text is announced through an always-mounted `role="status"` region.
-- **PullToRefresh**: wraps a scrollable page (Home only for now).
-  - It only engages when the page is already at the top and the user drags down.
+- **PullToRefresh**: AppShell wraps the content of `<main>` (the page and the footer) in it, so every page has it. It runs `refreshAll()`, which reruns every load function without remounting the page, so form fields and drafts are kept.
+  - It only engages when the page is already at the top and the user drags down with one finger. Touches that start inside a `dialog` or `[popover]` (sheets, Select) are ignored, and so is pinch-zoom, or any drag while the page is zoomed in.
+  - Pages that want their own loading state while it runs read `pullRefresh.refreshing` from `src/lib/pull-to-refresh.svelte.ts`. Home swaps the feed for skeletons.
+  - The content only gets a `transform` while it's being pulled, so `position: fixed` elements inside a page aren't broken at rest.
   - The content follows the finger with rubber-band resistance. A 36 px glass circle with an arrow appears at the top centre, between the two floating buttons.
-  - At 72 px of pull the arrow flips (with a tiny vibration where supported). Releasing past that point keeps the indicator spinning while `refreshAll()` runs, then springs back. Releasing before it springs back without refreshing.
+  - At 72 px of pull the arrow flips (with a 10 ms `navigator.vibrate`, which Android Chrome supports and iOS Safari doesn't). Releasing past that point swaps the arrow for an `accent` ring spinner (the NavigationLoader's, at 18 px, in the same 36 px circle) while `refreshAll()` runs. The spinner stays until the circle has sprung back, so the arrow never flashes on the way out. Releasing before it springs back without refreshing.
   - Because `overscroll-behavior-y: none` is set on `<html>`, the browser's own pull-to-refresh won't fire at the same time.
 
 
@@ -391,7 +393,7 @@ Every tab root starts with a `large-title` heading in the content (it scrolls aw
 
 ### Início `/`
 
-Brand wordmark as the title → ChipGroup (Artigos, Sondagens, Transferências; at least one selected; selection kept in `?tipos=`) → a feed of ArticleCards, PollCards and TransferDayCards ordered by date, 12 px apart → infinite scroll with a date cursor (load the next page about 800 px before the end; skeleton cards while loading) → PullToRefresh.
+Brand wordmark as the title → ChipGroup (Artigos, Sondagens, Transferências; at least one selected; selection kept in `?tipos=`) → a feed of ArticleCards, PollCards and TransferDayCards ordered by date, 12 px apart → infinite scroll with a date cursor (load the next page about 800 px before the end; skeleton cards while loading), with skeletons in place of the feed during a pull-to-refresh.
 
 ### Jogos `/jogos`
 
