@@ -16,6 +16,7 @@
 	"theme_toggle": "Basculer entre le mode clair et sombre",
 
 	"status_live": "En direct",
+	"status_goal": "But !",
 	"status_warmup": "Échauff.",
 	"status_finished": "Fin",
 	"status_postponed": "Reporté",
@@ -271,8 +272,6 @@
 	"competition_empty_text": "Rien n'a encore été ajouté à cette saison.",
 	"competition_group_empty": "Il n'y a aucun match dans ce groupe.",
 	"competition_no_standings": "Il n'y a pas de classement pour cette compétition.",
-	"competition_live_warning": "Les résultats de cette page ne sont pas mis à jour automatiquement. Pour suivre tous les résultats en temps réel, visitez la page Résultats en direct.",
-	"competition_live_link": "Résultats en direct",
 	"competition_legend": "Légende",
 	"competition_legend_champion": "Champion",
 	"competition_legend_promotion": "Promotion",
@@ -499,6 +498,7 @@
 	"prefs_language": "Langue",
 	"prefs_back_button": "Bouton retour",
 	"prefs_theme_button": "Bouton de thème",
+	"prefs_goal_sound": "Son des buts",
 
 	"login_title": "Se connecter",
 	"login_meta_description": "Connectez-vous à votre compte Domingo às Dez.",

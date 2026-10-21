@@ -1,6 +1,6 @@
 import { invalidate } from '$app/navigation';
 import { setThemePreference, type ThemePreference } from '#lib/theme.ts';
-import { BACK_BUTTON_COOKIE, THEME_BUTTON_COOKIE } from '#lib/preferences.ts';
+import { BACK_BUTTON_COOKIE, GOAL_SOUND_COOKIE, THEME_BUTTON_COOKIE } from '#lib/preferences.ts';
 
 const YEAR = 31_536_000;
 
@@ -24,5 +24,10 @@ export async function setBackButton(enabled: boolean) {
 
 export async function setThemeButton(enabled: boolean) {
 	writeCookie(THEME_BUTTON_COOKIE, enabled ? null : 'off');
+	await invalidate('app:preferences');
+}
+
+export async function setGoalSound(enabled: boolean) {
+	writeCookie(GOAL_SOUND_COOKIE, enabled ? null : 'off');
 	await invalidate('app:preferences');
 }

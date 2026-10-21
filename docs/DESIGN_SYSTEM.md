@@ -163,7 +163,9 @@ Motion should feel physical: it responds instantly, can be interrupted, and uses
 - **Springs** for gestures and anything that can be interrupted (pull-to-refresh, sheet drag, the tab bar selection indicator). Use Svelte's built-in `Spring` from `svelte/motion`, so no extra dependency is needed. Default to no bounce. Add a little bounce only after a flick.
 - **Glass materialises.** It arrives with opacity 0→1, scale 0.9→1 and blur, rather than a plain fade.
 - **Page transitions** use the View Transitions API through SvelteKit's `onNavigate`. Going deeper slides content in from the right; going back reverses it. Switching tabs cross-fades because tabs are peers. The tab bar and floating buttons have their own `view-transition-name`, so they stay still while pages change.
-- **Live score change**: the old digit rolls up and out, the new one rolls in from below, and the row briefly flashes `live-tint` (600 ms).
+- **Live score change**: the old digit rolls up and out, the new one rolls in from below, and the digit briefly flashes `live-tint` (600 ms).
+  - On `/jogos` (live poll) a goal goes further. The whole row lights up in `live` at 18% (`animate-goal-flash`, behind the content). It holds for about 3 s, then eases out and is gone at **7 s**. For **10 s** (3 s after the row has faded), the scorer's number is `live` red and "Ao vivo" reads "Golo!". The digit skips its own tint. A new goal restarts the flash. Under reduced motion it's the same colour fade (nothing moves).
+  - A soft double "bloop" (`src/lib/goal-sound.ts`, Web Audio, no file) plays once per poll that brings a goal. A score corrected downwards flashes but is silent. It can be turned off in Conta → Preferências → "Som dos golos".
 - **Reduced motion** (`prefers-reduced-motion`): slides and springs become 150 ms cross-fades, there's no overshoot or shake, and the live dot stays solid instead of pulsing.
 
 

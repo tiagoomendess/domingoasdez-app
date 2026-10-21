@@ -5,7 +5,6 @@
 	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 	import TrophyIcon from 'phosphor-svelte/lib/TrophyIcon';
-	import WarningCircleIcon from 'phosphor-svelte/lib/WarningCircleIcon';
 	import CompetitionStats from '#lib/components/competitions/CompetitionStats.svelte';
 	import RoundNavigator from '#lib/components/competitions/RoundNavigator.svelte';
 	import SeasonSheet from '#lib/components/competitions/SeasonSheet.svelte';
@@ -227,21 +226,6 @@
 		/>
 	{/if}
 </header>
-
-{#if vista === 'jogos' && data.hasLiveGames}
-	<aside
-		class="mb-6 flex gap-3 rounded-card bg-live-tint px-4 py-3 text-callout text-ink"
-		role="status"
-	>
-		<WarningCircleIcon size={20} weight="fill" class="mt-0.5 shrink-0 text-live" />
-		<p>
-			{m.competition_live_warning()}
-			<a href="/jogos" class="font-semibold text-accent-text underline-offset-2 hover:underline">
-				{m.competition_live_link()}
-			</a>
-		</p>
-	</aside>
-{/if}
 
 {#if vista === 'estatisticas'}
 	<CompetitionStats

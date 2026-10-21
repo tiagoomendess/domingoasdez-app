@@ -4,7 +4,13 @@
 	import Switch from '#lib/components/ui/Switch.svelte';
 	import ChoiceSheet from '#lib/components/account/ChoiceSheet.svelte';
 	import { m, getLocale } from '#lib/messages.ts';
-	import { setAppearance, setBackButton, setThemeButton } from '#lib/preferences.client.ts';
+	import {
+		setAppearance,
+		setBackButton,
+		setGoalSound,
+		setThemeButton
+	} from '#lib/preferences.client.ts';
+	import { playGoalSound, unlockGoalSound } from '#lib/goal-sound.ts';
 	import type { ThemePreference } from '#lib/theme.ts';
 	import { setLocale, locales, type Locale } from '#lib/paraglide/runtime.js';
 
@@ -12,9 +18,10 @@
 		theme: ThemePreference;
 		backButton: boolean;
 		themeButton: boolean;
+		goalSound: boolean;
 	};
 
-	let { theme, backButton, themeButton }: Props = $props();
+	let { theme, backButton, themeButton, goalSound }: Props = $props();
 
 	let appearanceOpen = $state(false);
 	let languageOpen = $state(false);
@@ -61,6 +68,15 @@
 	async function onThemeButton(checked: boolean) {
 		await setThemeButton(checked);
 	}
+
+	async function onGoalSound(checked: boolean) {
+		// Turning it on previews the sound, and the tap also unlocks audio for this visit.
+		if (checked) {
+			unlockGoalSound();
+			playGoalSound();
+		}
+		await setGoalSound(checked);
+	}
 </script>
 
 <ListGroup title={m.prefs_group()} headingLevel={2}>
@@ -84,6 +100,11 @@
 	<ListRow title={m.prefs_theme_button()}>
 		{#snippet trailing()}
 			<Switch checked={themeButton} label={m.prefs_theme_button()} onchange={onThemeButton} />
+		{/snippet}
+	</ListRow>
+	<ListRow title={m.prefs_goal_sound()}>
+		{#snippet trailing()}
+			<Switch checked={goalSound} label={m.prefs_goal_sound()} onchange={onGoalSound} />
 		{/snippet}
 	</ListRow>
 </ListGroup>

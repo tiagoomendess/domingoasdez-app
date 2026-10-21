@@ -16,6 +16,7 @@
 	"theme_toggle": "Switch between light and dark mode",
 
 	"status_live": "Live",
+	"status_goal": "Goal!",
 	"status_warmup": "Warm-up",
 	"status_finished": "FT",
 	"status_postponed": "Postponed",
@@ -271,8 +272,6 @@
 	"competition_empty_text": "Nothing has been added to this season yet.",
 	"competition_group_empty": "There are no games in this group.",
 	"competition_no_standings": "There is no points table for this competition.",
-	"competition_live_warning": "Results on this page are not updated automatically. For the latest scores, visit the Live Results page.",
-	"competition_live_link": "Live Results",
 	"competition_legend": "Legend",
 	"competition_legend_champion": "Champion",
 	"competition_legend_promotion": "Promotion",
@@ -499,6 +498,7 @@
 	"prefs_language": "Language",
 	"prefs_back_button": "Back button",
 	"prefs_theme_button": "Theme button",
+	"prefs_goal_sound": "Goal sound",
 
 	"login_title": "Sign in",
 	"login_meta_description": "Sign in to your Domingo às Dez account.",

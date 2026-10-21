@@ -106,6 +106,26 @@
 	--animate-live-pulse: live-pulse 2s ease-in-out infinite;
 	--animate-reject-shake: reject-shake 240ms var(--ease-snappy);
 	--animate-new-flash: new-flash 1.6s var(--ease-exit);
+	/* 7s: gone 3s before the scorer's red number and "Golo!" clear (GOAL_FLASH_MS, 10s, /jogos) */
+	--animate-goal-flash: goal-flash 7s linear forwards;
+
+	/* A goal on /jogos: the row lights up in the live colour, holds ~3s, then fades back slowly */
+	@keyframes goal-flash {
+		0% {
+			opacity: 0;
+			animation-timing-function: var(--ease-snappy);
+		}
+		4% {
+			opacity: 1;
+		}
+		45% {
+			opacity: 1;
+			animation-timing-function: ease-in-out;
+		}
+		100% {
+			opacity: 0;
+		}
+	}
 
 	/* A just-posted item: starts tinted, settles to its own background */
 	@keyframes new-flash {

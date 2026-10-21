@@ -3,7 +3,7 @@
 	import Emblem from '#lib/components/ui/Emblem.svelte';
 	import MatchRow from '#lib/components/games/MatchRow.svelte';
 	import { m } from '#lib/messages.ts';
-	import type { Match } from '#lib/components/types.ts';
+	import type { GoalFlash, Match } from '#lib/components/types.ts';
 
 	type Props = {
 		name: string;
@@ -12,9 +12,11 @@
 		href?: string;
 		matches: Match[];
 		onliveclick?: (match: Match) => void;
+		/** Goals to highlight, by match id. */
+		goals?: Record<number, GoalFlash>;
 	};
 
-	let { name, subtitle, emblem, href, matches, onliveclick }: Props = $props();
+	let { name, subtitle, emblem, href, matches, onliveclick, goals }: Props = $props();
 
 	let open = $state(true);
 	let contentHeight = $state(0);
@@ -59,7 +61,10 @@
 		{/if}
 		<button
 			type="button"
-			class={['flex w-12 shrink-0 cursor-pointer items-center justify-center border-l border-line', press]}
+			class={[
+				'flex w-12 shrink-0 cursor-pointer items-center justify-center border-l border-line',
+				press
+			]}
 			aria-expanded={open}
 			aria-label={open ? m.games_section_collapse({ name }) : m.games_section_expand({ name })}
 			onclick={toggle}
@@ -84,7 +89,7 @@
 		<ul bind:clientHeight={contentHeight}>
 			{#each matches as match (match.id)}
 				<li class="match">
-					<MatchRow {match} {onliveclick} />
+					<MatchRow {match} {onliveclick} goal={goals?.[match.id]} />
 				</li>
 			{/each}
 		</ul>

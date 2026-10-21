@@ -15,7 +15,7 @@ Example: `/competicoes/2025-26/campeonato-distrital`.
 - **Jogos**: for each group, a RoundNavigator and that round's games (MatchRow with dates).
 - **Classificação**: for each group, the table up to the selected round, with promotion/relegation zones and a legend.
 - **Estatísticas**: top scorers, best/worst attack and defence.
-- A live banner ("results aren't updated automatically, see Jogos") while games are live, and the season's `obs` note at the bottom.
+- The season's `obs` note at the bottom.
 
 ## How it works
 
@@ -40,7 +40,6 @@ The query string is kept on these redirects.
 
 - **Classificação only appears when a group uses points rules.** A cup-only season shows just Jogos and Estatísticas, and a `?vista=classificacao` link silently shows the standings view's "no standings" text for non-points groups.
 - The group heading is hidden when there's a single group with the same name as the competition.
-- **The live banner is global.** `hasLiveGames` is true when _any_ visible game today is live, not just one in this competition.
 - `getSeasonGroups` loads every game of the season **without** a `games.visible` filter, matching the legacy page. Hidden games still count here.
 - When the season changes (new `seasonId`), the selected rounds are re-seeded from the defaults and `?jornada=`. Within the same season they're kept, so switching views or a pull-to-refresh doesn't reset the round.
 - `?jornada=` values for unknown groups or rounds are ignored (the group falls back to its default). Groups are matched by `nameSlug`, so renaming a group breaks its round in old links, and two groups with the same slug would share one value (the first wins).

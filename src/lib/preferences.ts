@@ -4,10 +4,12 @@ export type Preferences = {
 	theme: ThemePreference;
 	backButton: boolean;
 	themeButton: boolean;
+	goalSound: boolean;
 };
 
 export const BACK_BUTTON_COOKIE = 'back_button';
 export const THEME_BUTTON_COOKIE = 'theme_button';
+export const GOAL_SOUND_COOKIE = 'goal_sound';
 
 export function parseThemeCookie(value: string | undefined): ThemePreference {
 	if (value === 'light' || value === 'dark') return value;
@@ -19,5 +21,9 @@ export function parseBackButtonCookie(value: string | undefined): boolean {
 }
 
 export function parseThemeButtonCookie(value: string | undefined): boolean {
+	return value !== 'off';
+}
+
+export function parseGoalSoundCookie(value: string | undefined): boolean {
 	return value !== 'off';
 }

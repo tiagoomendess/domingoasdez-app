@@ -16,6 +16,7 @@
 	"theme_toggle": "Alternar entre modo claro e escuro",
 
 	"status_live": "Ao vivo",
+	"status_goal": "Golo!",
 	"status_warmup": "Aquec.",
 	"status_finished": "Fim",
 	"status_postponed": "Adiado",
@@ -271,8 +272,6 @@
 	"competition_empty_text": "Ainda nada foi adicionado a esta época.",
 	"competition_group_empty": "Não existem jogos neste grupo.",
 	"competition_no_standings": "Não existe tabela de pontos para esta competição.",
-	"competition_live_warning": "Os resultados nesta página não são atualizados automaticamente. Para seguir todos os resultados com as atualizações mais recentes visita a página Resultados em Direto.",
-	"competition_live_link": "Resultados em Direto",
 	"competition_legend": "Legenda",
 	"competition_legend_champion": "Campeão",
 	"competition_legend_promotion": "Promoção",
@@ -499,6 +498,7 @@
 	"prefs_language": "Idioma",
 	"prefs_back_button": "Botão voltar",
 	"prefs_theme_button": "Botão de tema",
+	"prefs_goal_sound": "Som dos golos",
 
 	"login_title": "Entrar",
 	"login_meta_description": "Entra na tua conta Domingo às Dez.",

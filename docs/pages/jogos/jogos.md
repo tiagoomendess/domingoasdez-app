@@ -22,6 +22,7 @@ Merges the legacy "jogos do dia" (`/hoje`) and "em direto" (`/direto`) pages int
 - Groups are sorted by competition priority (highest first), then competition id, then the earliest kick-off in the group.
 - While today is selected and the tab is visible, the page polls `GET /api/jogos/dia` **every 5 s** (the legacy `/direto` cadence) and swaps the live and day lists in place. It also flips today's rail dot between live and normal.
 - Scrolling near either end of the rail loads 14 more days and their dots from `GET /api/jogos/dias`. Changing month in the picker loads that month's dots too.
+- **Goal feedback**: each poll is compared with the previous one, by match id. A live game whose score changed is highlighted. The row flashes red, holds for about 3 s and has faded out by 7 s. For 10 s its status reads "Golo!", and the scorer's number is red. If any score went **up** and the "Som dos golos" preference is on, a short sound plays once (`src/lib/goal-sound.ts`).
 - Tapping a **live** game opens a small sheet: "Enviar resultado" (score report) or "Detalhes do jogo". Other games link straight to the game page.
 
 ## Edge cases and pitfalls
@@ -33,4 +34,7 @@ Merges the legacy "jogos do dia" (`/hoje`) and "em direto" (`/direto`) pages int
 - The skeleton only shows while navigating to `/jogos` itself (a date change). The global navigation loader skips query-only changes here.
 - The marker endpoints refuse ranges over 62 days and `from > to` (400).
 - The Games tab's red pulse in the tab bar is a separate check: `AppShell` polls `GET /api/jogos/live` every 30 s.
+- Goals are only detected between two polls. The first load, a day change and coming back to a hidden tab never flash, but a goal scored while the tab was hidden does flash on the first poll after it's visible again. Games must be `live` in both snapshots, so warm-up → live never counts.
+- Browsers only allow sound after a gesture. The page unlocks audio on any pointerdown or keydown, and turning the switch on in `/conta` also does. Chrome and Android also allow it after any earlier tap in the app (sticky activation). Until then a goal still flashes, but silently. iOS also mutes it with the silent switch.
+- To test, use the game in the `variables.test_game_id` row: move its date to about 20 minutes ago (UTC), set `finished=0`, and change `goals_home`/`goals_away` while `/jogos` is open.
 - Legacy `/hoje?date=…` and `/direto` redirect here (301).

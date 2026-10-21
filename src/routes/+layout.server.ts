@@ -1,7 +1,9 @@
 import type { LayoutServerLoad } from './$types';
 import {
 	BACK_BUTTON_COOKIE,
+	GOAL_SOUND_COOKIE,
 	parseBackButtonCookie,
+	parseGoalSoundCookie,
 	parseThemeButtonCookie,
 	parseThemeCookie,
 	THEME_BUTTON_COOKIE
@@ -60,7 +62,8 @@ export const load: LayoutServerLoad = async ({ cookies, depends, locals }) => {
 		preferences: {
 			theme: parseThemeCookie(cookies.get('theme')),
 			backButton: parseBackButtonCookie(cookies.get(BACK_BUTTON_COOKIE)),
-			themeButton: parseThemeButtonCookie(cookies.get(THEME_BUTTON_COOKIE))
+			themeButton: parseThemeButtonCookie(cookies.get(THEME_BUTTON_COOKIE)),
+			goalSound: parseGoalSoundCookie(cookies.get(GOAL_SOUND_COOKIE))
 		},
 		toast,
 		liveNow

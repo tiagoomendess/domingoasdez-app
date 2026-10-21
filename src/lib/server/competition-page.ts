@@ -103,7 +103,6 @@ export type CompetitionPageData = {
 	obs: string | null;
 	groups: CompetitionPageGroup[];
 	seasons: CompetitionSeasonOption[];
-	hasLiveGames: boolean;
 };
 
 function displayName(seasonName: string | null, competitionName: string): string {
@@ -516,10 +515,9 @@ export async function loadCompetitionPage(
 	const slug = slugify(name);
 	const seasonSlug = seasonNameSlug(season.startYear, season.endYear);
 
-	const [groups, seasonOptions, live] = await Promise.all([
+	const [groups, seasonOptions] = await Promise.all([
 		getSeasonGroups(season),
-		listCompetitionSeasons(season.competitionId),
-		hasLiveGameNow()
+		listCompetitionSeasons(season.competitionId)
 	]);
 
 	return {
@@ -534,7 +532,6 @@ export async function loadCompetitionPage(
 		endYear: season.endYear,
 		obs: season.obs,
 		groups,
-		seasons: seasonOptions,
-		hasLiveGames: live
+		seasons: seasonOptions
 	};
 }

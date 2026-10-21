@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Emblem from '#lib/components/ui/Emblem.svelte';
-	import type { Match, Team } from '#lib/components/types.ts';
+	import type { GoalFlash, Match, Team } from '#lib/components/types.ts';
 	import { formatKickoff, kickoffDayParts } from '#lib/format.ts';
 	import { m } from '#lib/messages.ts';
 	import { rollIn, rollOut } from '#lib/motion.ts';
@@ -11,9 +11,11 @@
 		onliveclick?: (match: Match) => void;
 		/** False renders a plain row (no link), e.g. inside a preview that has its own button. */
 		interactive?: boolean;
+		/** Set while a just-scored goal is highlighted (/jogos live poll). */
+		goal?: GoalFlash | null;
 	};
 
-	let { match, showDate = false, onliveclick, interactive = true }: Props = $props();
+	let { match, showDate = false, onliveclick, interactive = true, goal = null }: Props = $props();
 
 	const showScore = $derived(match.status === 'live' || match.status === 'finished');
 	const interceptLive = $derived(match.status === 'live' && !!onliveclick);
@@ -27,7 +29,7 @@
 	});
 
 	const rowClass =
-		'flex min-h-16 w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-fill active:bg-fill-strong';
+		'relative isolate flex min-h-16 w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-fill active:bg-fill-strong';
 </script>
 
 {#snippet team(team: Team, score: number | null | undefined, side: 'home' | 'away')}
@@ -47,11 +49,16 @@
 			<span
 				class={[
 					'grid min-w-6 text-right text-headline tabular-nums',
-					lost ? 'font-normal text-ink-secondary' : 'text-ink'
+					lost ? 'font-normal text-ink-secondary' : 'text-ink',
+					goal?.side === side && 'text-live!'
 				]}
 			>
 				{#key score}
-					<span in:rollIn out:rollOut class="col-start-1 row-start-1 rounded-badge px-1">
+					<span
+						in:rollIn={{ tint: !goal }}
+						out:rollOut
+						class="col-start-1 row-start-1 rounded-badge px-1"
+					>
 						{score ?? '–'}
 					</span>
 				{/key}
@@ -61,6 +68,14 @@
 {/snippet}
 
 {#snippet row()}
+	{#if goal}
+		{#key goal.token}
+			<span
+				aria-hidden="true"
+				class="pointer-events-none absolute inset-0 -z-10 animate-goal-flash bg-live/18"
+			></span>
+		{/key}
+	{/if}
 	<span class="flex w-12 shrink-0 flex-col items-center justify-center text-center">
 		{#if showDate}
 			{@const day = kickoffDayParts(match.kickoff)}
@@ -81,7 +96,9 @@
 				aria-hidden="true"
 				class="mb-1 size-2 animate-live-pulse rounded-full bg-live motion-reduce:animate-none"
 			></span>
-			<span class="text-caption font-semibold text-live">{m.status_live()}</span>
+			<span class="text-caption font-semibold text-live">
+				{goal ? m.status_goal() : m.status_live()}
+			</span>
 		{:else if match.status === 'warmup'}
 			<span class="text-caption font-semibold text-warmup">{m.status_warmup()}</span>
 		{:else if match.status === 'finished'}
@@ -106,7 +123,7 @@
 {/snippet}
 
 {#if !interactive}
-	<div class="flex min-h-16 w-full items-center gap-3 px-4 py-3 text-left">
+	<div class="relative isolate flex min-h-16 w-full items-center gap-3 px-4 py-3 text-left">
 		{@render row()}
 	</div>
 {:else if interceptLive}

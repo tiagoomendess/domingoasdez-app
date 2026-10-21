@@ -23,6 +23,9 @@ export type Match = {
 	penalties?: { home: number; away: number } | null;
 };
 
+/** A goal just seen by the live poll: `side` is who scored (null for a correction), `token` restarts the flash. */
+export type GoalFlash = { side: 'home' | 'away' | null; token: number };
+
 /** A recent-form chip on the game page: one of a team's last games before this one. */
 export type FormChip = {
 	result: FormResult;

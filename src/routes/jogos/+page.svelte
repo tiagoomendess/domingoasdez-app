@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
+	import { onDestroy, untrack } from 'svelte';
 	import { navigating } from '$app/state';
 	import CalendarXIcon from 'phosphor-svelte/lib/CalendarXIcon';
 	import InfoIcon from 'phosphor-svelte/lib/InfoIcon';
@@ -15,14 +15,17 @@
 	import SectionHeader from '#lib/components/ui/SectionHeader.svelte';
 	import Sheet from '#lib/components/ui/Sheet.svelte';
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
-	import type { Match } from '#lib/components/types.ts';
+	import type { GoalFlash, Match } from '#lib/components/types.ts';
 	import { adSlots } from '#lib/ads.ts';
+	import { playGoalSound, unlockGoalSound } from '#lib/goal-sound.ts';
 	import { addDays, formatDayMonth } from '#lib/format.ts';
 	import { m } from '#lib/messages.ts';
 	import type { PageProps } from './$types';
 
 	/** Legacy /direto polled every 5s; keep that cadence while Today is visible. */
 	const LIVE_POLL_MS = 5_000;
+	/** How long a goal stays highlighted: row flash, "Golo!" and the scorer's number in red. */
+	const GOAL_FLASH_MS = 10_000;
 
 	type DayGroup = PageProps['data']['live'][number];
 
@@ -39,6 +42,10 @@
 	let pageVisible = $state(
 		typeof document !== 'undefined' ? document.visibilityState === 'visible' : true
 	);
+
+	let goals = $state.raw<Record<number, GoalFlash>>({});
+	const goalTimers: Record<number, ReturnType<typeof setTimeout>> = {};
+	let goalToken = 0;
 
 	let seededFor = untrack(() => data.selected);
 	let loadingStart = false;
@@ -76,7 +83,14 @@
 				if (!res.ok || cancelled) return;
 				const body = (await res.json()) as { live?: DayGroup[]; groups?: DayGroup[] };
 				if (cancelled) return;
-				if (body.live) live = body.live;
+				if (body.live) {
+					const scored = flagGoals(
+						untrack(() => live),
+						body.live
+					);
+					if (scored && data.preferences.goalSound) playGoalSound();
+					live = body.live;
+				}
 				if (body.groups) groups = body.groups;
 
 				const hasLive = (body.live?.length ?? 0) > 0;
@@ -98,6 +112,56 @@
 			clearInterval(id);
 		};
 	});
+
+	onDestroy(() => {
+		for (const timer of Object.values(goalTimers)) clearTimeout(timer);
+	});
+
+	function liveMatches(list: DayGroup[]) {
+		const byId: Record<number, Match> = {};
+		for (const group of list) {
+			for (const match of group.matches) if (match.status === 'live') byId[match.id] = match;
+		}
+		return byId;
+	}
+
+	/**
+	 * Compares two poll snapshots and highlights every live game whose score changed.
+	 * Returns true when at least one score went up (a correction downwards flashes, but is silent).
+	 */
+	function flagGoals(before: DayGroup[], after: DayGroup[]) {
+		const previous = liveMatches(before);
+		let next = goals;
+		let scored = false;
+
+		for (const match of Object.values(liveMatches(after))) {
+			const id = match.id;
+			const old = previous[id];
+			if (!old) continue;
+			const home = (match.homeScore ?? 0) - (old.homeScore ?? 0);
+			const away = (match.awayScore ?? 0) - (old.awayScore ?? 0);
+			if (home === 0 && away === 0) continue;
+			if (home > 0 || away > 0) scored = true;
+
+			const side = home > 0 && away <= 0 ? 'home' : away > 0 && home <= 0 ? 'away' : null;
+			next = { ...next, [id]: { side, token: ++goalToken } };
+
+			clearTimeout(goalTimers[id]);
+			goalTimers[id] = setTimeout(() => {
+				delete goalTimers[id];
+				const rest = { ...goals };
+				delete rest[id];
+				goals = rest;
+			}, GOAL_FLASH_MS);
+		}
+
+		goals = next;
+		return scored;
+	}
+
+	function onunlock() {
+		if (data.preferences.goalSound) unlockGoalSound();
+	}
 
 	const loading = $derived(!!navigating.to && navigating.to.url.pathname === '/jogos');
 
@@ -183,7 +247,7 @@
 	<meta name="description" content={m.games_meta_description()} />
 </svelte:head>
 
-<svelte:document {onvisibilitychange} />
+<svelte:document {onvisibilitychange} onpointerdown={onunlock} onkeydown={onunlock} />
 
 <header class="px-1 pb-3">
 	<h1 class="text-large-title text-ink">{m.nav_games()}</h1>
@@ -276,6 +340,7 @@
 						href={group.href}
 						matches={group.matches}
 						onliveclick={openLiveMatchSheet}
+						{goals}
 					/>
 				{/each}
 			</section>

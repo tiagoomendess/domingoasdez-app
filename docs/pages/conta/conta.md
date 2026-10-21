@@ -22,14 +22,14 @@ The account hub. Logged out, it invites the user to log in or register. Logged i
 
 **Always**
 
-- **Preferências**: Appearance (Automatic / Light / Dark), Language (pt-PT, en, fr), and switches to show or hide the floating back button and theme button.
+- **Preferências**: Appearance (Automatic / Light / Dark), Language (pt-PT, en, fr), switches to show or hide the floating back button and theme button, and "Som dos golos" (the goal sound on `/jogos`; turning it on plays the sound once as a preview).
 
 ## How it works
 
 - Actions on this page: `?/picture` (upload), `?/removePicture`, `?/logout`.
 - Photos are re-encoded on the server as a 400×400 JPEG (metadata stripped, rotation fixed) and uploaded to object storage (R2). The browser shrinks them first, and the server refuses anything above 9 MB.
 - Logout clears the `dad_session` cookie and reloads `/conta`.
-- Preferences are cookies (`theme`, back button, theme button, and Paraglide's locale cookie), so they work without an account.
+- Preferences are cookies (`theme`, back button, theme button, `goal_sound=off` when the goal sound is off, and Paraglide's locale cookie), so they work without an account.
 
 ## Edge cases and pitfalls
 

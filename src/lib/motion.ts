@@ -14,14 +14,19 @@ export function materialize(_node: Element, { y = 0, duration = 240 } = {}): Tra
 	};
 }
 
-/** New live score: rolls in from below (first 240ms) while a live tint fades out (600ms). */
-export function rollIn(_node: Element, { distance = 70 } = {}): TransitionConfig {
+/**
+ * New live score: rolls in from below (first 240ms) while a live tint fades out (600ms).
+ * `tint: false` skips the tint, for when the whole row already flashes (/jogos goal flash).
+ */
+export function rollIn(_node: Element, { distance = 70, tint = true } = {}): TransitionConfig {
 	if (prefersReducedMotion.current) return { duration: 0 };
 	return {
 		duration: 600,
 		css: (t) => {
 			const move = quintOut(Math.min(1, t * 2.5));
-			return `transform: translateY(${(1 - move) * distance}%); opacity: ${move}; background-color: color-mix(in srgb, var(--live-tint), transparent ${t * 100}%)`;
+			const roll = `transform: translateY(${(1 - move) * distance}%); opacity: ${move}`;
+			if (!tint) return roll;
+			return `${roll}; background-color: color-mix(in srgb, var(--live-tint), transparent ${t * 100}%)`;
 		}
 	};
 }
