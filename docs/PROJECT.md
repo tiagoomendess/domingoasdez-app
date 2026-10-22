@@ -11,6 +11,7 @@ This app is only the public site. These live elsewhere:
 
 ## Local environment
 
+- **Node.js 26.12.1 or newer, everywhere (local and prod).** `.nvmrc` / `.node-version` pin it, `engines` + `engine-strict` in `.npmrc` make `npm install` refuse older versions, and the `init` hook in `src/hooks.server.ts` stops the server from starting on one. To raise the minimum, change `MIN_NODE_VERSION` in `src/lib/server/node-version.ts`, `engines.node` and both version files together (`node-version.spec.ts` fails if they differ).
 - The legacy site runs in Docker at http://localhost:8000/. Run `docker ps` to see what's running.
 - The local dev database is `host=localhost db=dad_db user=root password=rootpassword`.
   - It runs in the `local-mysql` container: `docker exec local-mysql mysql -uroot -prootpassword --default-character-set=utf8mb4 dad_db -e "…"`.

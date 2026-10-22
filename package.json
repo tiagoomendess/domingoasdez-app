@@ -3,6 +3,9 @@
 	"private": true,
 	"version": "0.0.1",
 	"type": "module",
+	"engines": {
+		"node": ">=26.12.1"
+	},
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
@@ -30,9 +33,9 @@
 		"@tailwindcss/vite": "^4.3.0",
 		"@types/bcryptjs": "^2.4.6",
 		"@types/dompurify": "^3.0.5",
-		"@types/node": "^24",
+		"@types/node": "^26",
 		"@types/nodemailer": "^8.0.2",
-		"@vitest/browser-playwright": "^4.1.8",
+		"@vitest/browser-playwright": "^5.0.5",
 		"drizzle-kit": "^0.31.10",
 		"drizzle-orm": "^0.45.2",
 		"eslint": "^10.4.1",
@@ -51,8 +54,16 @@
 		"typescript": "^6.0.3",
 		"typescript-eslint": "^8.60.1",
 		"vite": "^8.3.0",
-		"vitest": "^4.1.8",
-		"vitest-browser-svelte": "^2.1.1"
+		"vitest": "^5.0.5",
+		"vitest-browser-svelte": "^3.1.0"
+	},
+	"overrides": {
+		"@tailwindcss/typography": {
+			"postcss-selector-parser": "^7.1.6"
+		},
+		"@esbuild-kit/core-utils": {
+			"esbuild": "^0.25.4"
+		}
 	},
 	"imports": {
 		"#lib": "./src/lib/index.js",

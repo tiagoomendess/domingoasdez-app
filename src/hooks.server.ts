@@ -1,4 +1,4 @@
-import type { Handle } from '@sveltejs/kit/hooks';
+import type { Handle, ServerInit } from '@sveltejs/kit/hooks';
 import { sequence } from '@sveltejs/kit/hooks';
 import { PUBLIC_ADSENSE_CLIENT, PUBLIC_GA_MEASUREMENT_ID } from '$app/env/public';
 import { ADSENSE_ENABLED } from '$app/env/private';
@@ -7,6 +7,12 @@ import { SESSION_COOKIE, readSessionUserId } from '#lib/server/auth/session.ts';
 import { adsDisabled } from '#lib/ads.ts';
 import { getUserPermissionNames } from '#lib/server/auth/permissions.ts';
 import { getAuthUserById } from '#lib/server/auth/users.ts';
+import { assertSupportedNodeVersion } from '#lib/server/node-version.ts';
+
+// Runs once before the server accepts requests; on an old Node.js the process exits instead.
+export const init: ServerInit = () => {
+	assertSupportedNodeVersion();
+};
 
 const authHandle: Handle = async ({ event, resolve }) => {
 	const userId = await readSessionUserId(event.cookies.get(SESSION_COOKIE));
