@@ -6,7 +6,7 @@
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 	import TrophyIcon from 'phosphor-svelte/lib/TrophyIcon';
 	import CompetitionStats from '#lib/components/competitions/CompetitionStats.svelte';
-	import RoundNavigator from '#lib/components/competitions/RoundNavigator.svelte';
+	import RoundSwipe from '#lib/components/competitions/RoundSwipe.svelte';
 	import SeasonSheet from '#lib/components/competitions/SeasonSheet.svelte';
 	import StandingsLegend from '#lib/components/competitions/StandingsLegend.svelte';
 	import StandingsTable from '#lib/components/competitions/StandingsTable.svelte';
@@ -254,34 +254,34 @@
 					<p class="px-1 text-callout text-ink-secondary">{m.competition_group_empty()}</p>
 				{:else}
 					<div class="overflow-hidden rounded-card bg-surface ring-1 ring-line dark:ring-0">
-						<RoundNavigator
+						<RoundSwipe
 							label={roundLabel(roundLabelKey(group.rules.type), current)}
 							hasPrev={currentIdx > 0}
 							hasNext={currentIdx >= 0 && currentIdx < numbers.length - 1}
 							onprev={() => shiftRound(group.id, -1)}
 							onnext={() => shiftRound(group.id, 1)}
-						/>
-
-						{#if vista === 'jogos'}
-							<ul>
-								{#each currentRoundGames(group.id) as game (game.match.id)}
-									<li class="match">
-										<MatchRow match={game.match} showDate />
-									</li>
-								{/each}
-							</ul>
-						{:else if group.rules.type === 'points'}
-							{@const table = buildStandings(group.standingsGroup, current)}
-							{@const { rows: zoneRows, legend } = zonesFor(group.standingsGroup, table)}
-							<div class="px-1 pb-3">
-								<StandingsTable rows={table} zones={zoneRows} />
-								<StandingsLegend items={legend} />
-							</div>
-						{:else}
-							<p class="px-4 py-6 text-center text-callout text-ink-secondary">
-								{m.competition_no_standings()}
-							</p>
-						{/if}
+						>
+							{#if vista === 'jogos'}
+								<ul>
+									{#each currentRoundGames(group.id) as game (game.match.id)}
+										<li class="match">
+											<MatchRow match={game.match} showDate />
+										</li>
+									{/each}
+								</ul>
+							{:else if group.rules.type === 'points'}
+								{@const table = buildStandings(group.standingsGroup, current)}
+								{@const { rows: zoneRows, legend } = zonesFor(group.standingsGroup, table)}
+								<div class="px-1 pb-3">
+									<StandingsTable rows={table} zones={zoneRows} />
+									<StandingsLegend items={legend} />
+								</div>
+							{:else}
+								<p class="px-4 py-6 text-center text-callout text-ink-secondary">
+									{m.competition_no_standings()}
+								</p>
+							{/if}
+						</RoundSwipe>
 					</div>
 				{/if}
 			</section>

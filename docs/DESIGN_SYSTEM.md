@@ -406,7 +406,7 @@ Brand wordmark as the title → ChipGroup (Artigos, Sondagens, Transferências; 
 ### Competições `/competicoes`
 
 "Competições" title → one ListGroup in priority order. Each row: Emblem (40) on the left, the competition name, the current season as subtitle, and a chevron. ≥ 768 px: a 2-column card grid.
-Competition page: a header (Emblem 72, name, season), then a **SegmentedControl** for the deeper views from the old site: **Classificação · Jogos · Estatísticas**. Clubs, players, coaches and referees are reached by tapping into these (contextual navigation). Transfers is a ListRow at the bottom of the Competições root.
+Competition page: a header (Emblem 72, name, season), then a **SegmentedControl** for the deeper views from the old site: **Classificação · Jogos · Estatísticas**. Each group's round card (‹ round ›) also changes round with a horizontal swipe: the content follows the finger, then slides out while the next round slides in (the buttons slide it too). Clubs, players, coaches and referees are reached by tapping into these (contextual navigation). Transfers is a ListRow at the bottom of the Competições root.
 Transfers `/transferencias`: a day-by-day page shaped like Jogos. "Transferências" title → DateRail (`?date=YYYY-MM-DD`; dots on days with transfers; calendar sheet) → that day's transfers as a ListGroup (Avatar 40, player name, "From → To" subtitle, destination emblem) → an empty state with "Transferências anteriores: {date}" when the day has none. Without `?date` it opens on the latest day that has transfers, since they're sparse. No login wall.
 
 ### Páginas `/p`

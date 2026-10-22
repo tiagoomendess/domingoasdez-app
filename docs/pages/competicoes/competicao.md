@@ -13,6 +13,7 @@ Example: `/competicoes/2025-26/campeonato-distrital`.
 - Header: emblem, name, and a season switcher (‹ season › buttons, and a tap on the label opens a SeasonSheet with every season).
 - A SegmentedControl: **Jogos · Classificação · Estatísticas**.
 - **Jogos**: for each group, a RoundNavigator and that round's games (MatchRow with dates).
+- **Swipe between rounds** (Jogos and Classificação): swipe left for the next round, right for the previous one. The ‹ › buttons stay and slide the content the same way.
 - **Classificação**: for each group, the table up to the selected round, with promotion/relegation zones and a legend.
 - **Estatísticas**: top scorers, best/worst attack and defence.
 - The season's `obs` note at the bottom.
@@ -22,6 +23,10 @@ Example: `/competicoes/2025-26/campeonato-distrital`.
 - The view is in `?vista=`. Jogos is the default and has no query. Switching uses `goto(..., { replace: true })`, so it doesn't add history entries. Season links keep the current view.
 - Each group opens on its **default round**: the highest round with at least one finished game, or the first round.
 - **The selected rounds are kept in `?jornada=`**, so going into a game and back (or reloading, or sharing the link) shows the same rounds. One value per group the user moved off its default, in group order: a bare round when the season has one group (`?jornada=5`), otherwise `{group slug}.{round}` (`?jornada=serie-a.24&jornada=serie-b.23`). Moving a group back to its default drops its value, so an untouched page keeps its clean URL. The helpers are `parseRoundParams` / `roundParams` in `src/lib/competitions.ts`.
+- Each group's round card is a `RoundSwipe` (`src/lib/components/competitions/RoundSwipe.svelte`), which renders the RoundNavigator and wraps the games or the table.
+  - A touch is a swipe only after 10 px of mostly sideways travel. Anything less is a tap, so a game row still opens, and the click at the end of a swipe is swallowed so it never opens the game under the finger.
+  - It changes round past 30% of the card's width, or on a quick flick. Otherwise it springs back. At the first or last round it rubber-bands and returns. Under reduced motion the change is a short cross-fade.
+  - The round changes through the same `shiftRound`, so `?jornada=` and the no-refetch rule are unchanged.
 - Changing round rewrites the URL with `goto(..., { replace: true, reset: false })`. No load reads `jornada`, so nothing is refetched and no history entry is added. Both views share the selection, and switching view keeps the param. Season links drop it, since another season has other groups.
 - Standings are built on the client from `standingsGroup` for the selected round, using the group's tie-breaker (AFPB 2018 or plain points). Zones come from `group_rules_positions` when set, otherwise the legacy promotes/relegates counts.
 - The emblem is the season's picture, falling back to the competition's (legacy `Season::getDisplayPicture`). It's also the `og:image`, so a shared link previews the competition logo. Without it, Facebook picks a random club emblem from the table or games. A season and competition with no picture have no `og:image`.
@@ -38,6 +43,9 @@ The query string is kept on these redirects.
 
 ## Edge cases and pitfalls
 
+- **Swipes and the standings table.** A touch that starts inside something that really scrolls sideways (the standings table when it's wider than the card) is left to it. On phones where the table fits, swiping on it changes round.
+- **Don't change the DOM before a touch has become a swipe** (no `$state` flags, no `will-change` on touchstart). iOS Safari drops a scroll that has already started if a layer around it changes mid-touch. The same rule as PullToRefresh.
+- A swipe right that starts at the very left edge of the screen is iOS Safari's own back gesture, and the page can't stop it.
 - **Classificação only appears when a group uses points rules.** A cup-only season shows just Jogos and Estatísticas, and a `?vista=classificacao` link silently shows the standings view's "no standings" text for non-points groups.
 - The group heading is hidden when there's a single group with the same name as the competition.
 - `getSeasonGroups` loads every game of the season **without** a `games.visible` filter, matching the legacy page. Hidden games still count here.
