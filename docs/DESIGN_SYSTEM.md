@@ -279,6 +279,7 @@ Primitives are in `src/lib/components/ui/`, the shell in `.../shell/`, and domai
 ### 4.2 Shell
 
 - **AppShell**: renders `{children}` inside `page-container`, the two scroll-edge fades, the floating buttons, the tab bar and the toast region. It also owns the view-transition wiring.
+- **Footer** (© and the privacy/cookie settings link): rendered by AppShell after every page. The page content is at least one screen tall (`100lvh` minus `--content-top`), so the footer always starts below the fold, even on a short page like an empty day on Jogos, and is only seen by scrolling down.
 - **BackButton**, **ThemeToggle**, **TabBar**: as described in section 3.
 - **NavigationLoader**: global feedback while a page change loads, which matters on slow networks, where the tab bar's droplet moves before the new page arrives.
   - It shows for any navigation that changes the path: tabs, in-page links, `goto`, back and forward. Query-only updates on the same path (the games date rail, competition views) are excluded, because they have their own in-page loading states. A page can opt a query-only update in with `withNavigationLoader(goto(…))` from `src/lib/navigation.svelte.ts`; the feed chips do, since swapping the whole feed is a page change in all but URL.
@@ -350,6 +351,7 @@ The chips on Home are generated from `feedTypes`, so a new content type gets a c
 ### 4.4 Games
 
 - **DateRail**: a horizontal `rail` of date pills, each 52 × 60 px: weekday (`caption`, ink-tertiary) above the day number (`headline`). Today shows **"Hoje"** instead of a weekday. Selected = `accent` fill. On load, Today is centred. Previous dates are on the left and next dates on the right. More days load as the user nears either end (±14 days at a time).
+  - Swiping left or right anywhere on the Jogos page (outside the chrome and the rail) changes day, with the same follow-the-finger slide as the competition rounds. The rail moves to the new day at once, while the old day slides out.
   - A small dot under a date means it has games; a red dot means games are live now (if this is cheap to query).
   - A calendar pill pinned at the right end opens a **Sheet** with a month picker, to jump far (the legacy date picker).
   - Selecting a date updates `?date=YYYY-MM-DD` (the legacy parameter) with a client-side navigation and shows skeleton rows while it loads.

@@ -155,7 +155,11 @@
 		class={['page-container', isReading && 'max-w-[42.5rem]!']}
 	>
 		<PullToRefresh bind:refreshing={pullRefresh.refreshing} onrefresh={refreshAll}>
-			{@render children()}
+			<!-- At least a screen tall (the largest, toolbars hidden), so the footer always starts
+			     below the fold and is only seen by scrolling down, even on a short page -->
+			<div class="min-h-[calc(100lvh-var(--content-top))]">
+				{@render children()}
+			</div>
 			<footer class="mt-10 border-t border-line pt-4 text-center text-footnote text-ink-tertiary">
 				<p>© 2014–{copyrightYear} {m.feed_brand()}</p>
 				{#if !adsDisabled}

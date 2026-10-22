@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onDestroy, untrack } from 'svelte';
+	import { goto, preloadData } from '$app/navigation';
 	import { navigating } from '$app/state';
 	import CalendarXIcon from 'phosphor-svelte/lib/CalendarXIcon';
 	import InfoIcon from 'phosphor-svelte/lib/InfoIcon';
@@ -20,6 +21,7 @@
 	import { playGoalSound, unlockGoalSound } from '#lib/goal-sound.ts';
 	import { addDays, formatDayMonth } from '#lib/format.ts';
 	import { m } from '#lib/messages.ts';
+	import { SwipePager } from '#lib/swipe-pager.svelte.ts';
 	import type { PageProps } from './$types';
 
 	/** Legacy /direto polled every 5s; keep that cadence while Today is visible. */
@@ -46,6 +48,10 @@
 	let goals = $state.raw<Record<number, GoalFlash>>({});
 	const goalTimers: Record<number, ReturnType<typeof setTimeout>> = {};
 	let goalToken = 0;
+
+	/** The day a swipe is moving to, shown on the rail before its games have loaded. */
+	let pendingDay = $state<string | null>(null);
+	const shownDay = $derived(pendingDay ?? data.selected);
 
 	let seededFor = untrack(() => data.selected);
 	let loadingStart = false;
@@ -236,6 +242,32 @@
 		}
 	}
 
+	// Swipe left/right anywhere on the page (outside the chrome and the rail) for the next/previous day
+	const pager = new SwipePager({
+		canGo: () => true,
+		ignore: (target) => !target.closest('main'),
+		onintent: (dir) => void preloadData(hrefFor(addDays(shownDay, dir))),
+		onstart: (dir) => {
+			const day = addDays(shownDay, dir);
+			// Move the rail now, while the old day slides out
+			pendingDay = day;
+			if (!railDays.includes(day)) void (dir === 1 ? extendEnd() : extendStart());
+		},
+		change: async () => {
+			const day = pendingDay;
+			if (!day) return;
+			// The content is off-screen: jump to the top so the new day starts at the rail
+			if (window.scrollY > 0) window.scrollTo({ top: 0, behavior: 'instant' });
+			void goto(hrefFor(day), { reset: false }).finally(() => {
+				if (pendingDay === day) pendingDay = null;
+			});
+			// Let the skeleton (or the preloaded day) render before it slides in
+			await new Promise((resolve) => requestAnimationFrame(resolve));
+		}
+	});
+
+	$effect(() => pager.listen(document));
+
 	async function onmonthchange(from: string, to: string) {
 		const markers = await fetchMarkers(from, to);
 		railMarkers = { ...railMarkers, ...markers };
@@ -256,7 +288,7 @@
 <div class="mb-4">
 	<DateRail
 		days={railDays}
-		selected={data.selected}
+		selected={shownDay}
 		today={data.today}
 		markers={railMarkers}
 		{hrefFor}
@@ -265,12 +297,6 @@
 		onnearend={extendEnd}
 	/>
 </div>
-
-{#if !loading && !isEmpty && adSlots.horizontal}
-	<div class="mb-4">
-		<AdSenseUnit adSlot={adSlots.horizontal} shape="horizontal" />
-	</div>
-{/if}
 
 <Sheet bind:open={sheetOpen} title={m.date_pick()}>
 	<MonthPicker
@@ -304,99 +330,111 @@
 	{/if}
 </Sheet>
 
-{#if loading}
-	<div class="space-y-3" aria-busy="true">
-		{#each [1, 2, 3] as block (block)}
-			<div class="overflow-hidden rounded-card bg-surface ring-1 ring-line dark:ring-0">
-				<div class="flex items-center gap-3 px-4 py-3">
-					<Skeleton class="size-8" />
-					<div class="flex-1 space-y-1.5">
-						<Skeleton class="h-4 w-2/3" />
-						<Skeleton class="h-3 w-1/3" />
-					</div>
-				</div>
-				{#each [1, 2] as row (row)}
-					<div class="flex items-center gap-3 border-t border-line px-4 py-3">
-						<Skeleton class="h-4 w-12" />
-						<div class="flex-1 space-y-2">
-							<Skeleton class="h-4 w-4/5" />
-							<Skeleton class="h-4 w-3/5" />
+<!-- Clipped at the screen gutter, so a day sliding out never widens the page -->
+<div class="-mx-4 overflow-x-clip px-4 md:-mx-6 md:px-6" bind:clientWidth={pager.width}>
+	<!-- No transform at rest: the content only moves while a swipe or a day change runs -->
+	<div style:transform={pager.transform} style:opacity={pager.fade}>
+		{#if !loading && !isEmpty && adSlots.horizontal}
+			<div class="mb-4">
+				<AdSenseUnit adSlot={adSlots.horizontal} shape="horizontal" />
+			</div>
+		{/if}
+
+		{#if loading}
+			<div class="space-y-3" aria-busy="true">
+				{#each [1, 2, 3] as block (block)}
+					<div class="overflow-hidden rounded-card bg-surface ring-1 ring-line dark:ring-0">
+						<div class="flex items-center gap-3 px-4 py-3">
+							<Skeleton class="size-8" />
+							<div class="flex-1 space-y-1.5">
+								<Skeleton class="h-4 w-2/3" />
+								<Skeleton class="h-3 w-1/3" />
+							</div>
 						</div>
+						{#each [1, 2] as row (row)}
+							<div class="flex items-center gap-3 border-t border-line px-4 py-3">
+								<Skeleton class="h-4 w-12" />
+								<div class="flex-1 space-y-2">
+									<Skeleton class="h-4 w-4/5" />
+									<Skeleton class="h-4 w-3/5" />
+								</div>
+							</div>
+						{/each}
 					</div>
 				{/each}
 			</div>
-		{/each}
-	</div>
-{:else}
-	<div class="space-y-3">
-		{#if data.today === data.selected && live.length > 0}
-			<section class="space-y-3">
-				<SectionHeader title={m.games_live_title()} live count={liveCount} headingLevel={3} />
-				{#each live as group (group.id)}
-					<MatchGroup
-						name={group.name}
-						subtitle={group.subtitle}
-						emblem={group.emblem}
-						href={group.href}
-						matches={group.matches}
-						onliveclick={openLiveMatchSheet}
-						{goals}
-					/>
-				{/each}
-			</section>
-		{/if}
-
-		{#if groups.length > 0}
-			<section class="space-y-3">
-				<SectionHeader
-					title={data.today === data.selected && live.length > 0
-						? m.games_other_today()
-						: m.games_day_title()}
-					headingLevel={3}
-				/>
-				<div class="lg:columns-2 lg:gap-3">
-					{#each groups as group (group.id)}
-						<div class="mb-3 break-inside-avoid last:mb-0 lg:mb-3">
+		{:else}
+			<div class="space-y-3">
+				{#if data.today === data.selected && live.length > 0}
+					<section class="space-y-3">
+						<SectionHeader title={m.games_live_title()} live count={liveCount} headingLevel={3} />
+						{#each live as group (group.id)}
 							<MatchGroup
 								name={group.name}
 								subtitle={group.subtitle}
 								emblem={group.emblem}
 								href={group.href}
 								matches={group.matches}
+								onliveclick={openLiveMatchSheet}
+								{goals}
 							/>
+						{/each}
+					</section>
+				{/if}
+
+				{#if groups.length > 0}
+					<section class="space-y-3">
+						<SectionHeader
+							title={data.today === data.selected && live.length > 0
+								? m.games_other_today()
+								: m.games_day_title()}
+							headingLevel={3}
+						/>
+						<div class="lg:columns-2 lg:gap-3">
+							{#each groups as group (group.id)}
+								<div class="mb-3 break-inside-avoid last:mb-0 lg:mb-3">
+									<MatchGroup
+										name={group.name}
+										subtitle={group.subtitle}
+										emblem={group.emblem}
+										href={group.href}
+										matches={group.matches}
+									/>
+								</div>
+							{/each}
 						</div>
-					{/each}
-				</div>
-			</section>
+					</section>
+				{/if}
+
+				{#if isEmpty}
+					<EmptyState
+						icon={CalendarXIcon}
+						title={m.games_empty_title()}
+						description={m.games_empty_text()}
+					>
+						{#snippet action()}
+							{#if data.nextGameDay}
+								<Button variant="tinted" href={hrefFor(data.nextGameDay)}>
+									{m.games_next_game({ date: formatDayMonth(data.nextGameDay) })}
+								</Button>
+							{:else}
+								<Button variant="tinted" href="/jogos">{m.games_back_to_today()}</Button>
+							{/if}
+						{/snippet}
+					</EmptyState>
+					<div class="mt-4">
+						<AdSenseUnit adSlot={adSlots.auto} />
+					</div>
+				{/if}
+			</div>
 		{/if}
 
-		{#if isEmpty}
-			<EmptyState
-				icon={CalendarXIcon}
-				title={m.games_empty_title()}
-				description={m.games_empty_text()}
-			>
-				{#snippet action()}
-					{#if data.nextGameDay}
-						<Button variant="tinted" href={hrefFor(data.nextGameDay)}>
-							{m.games_next_game({ date: formatDayMonth(data.nextGameDay) })}
-						</Button>
-					{:else}
-						<Button variant="tinted" href="/jogos">{m.games_back_to_today()}</Button>
-					{/if}
-				{/snippet}
-			</EmptyState>
-			<div class="mt-4">
-				<AdSenseUnit adSlot={adSlots.auto} />
+		{#if data.adminScoresHref && data.selected === data.today}
+			<div class="mt-6">
+				<Button href={data.adminScoresHref} variant="tinted" size="lg" full>
+					{m.games_admin_update_scores()}
+				</Button>
 			</div>
 		{/if}
 	</div>
-{/if}
-
-{#if data.adminScoresHref && data.selected === data.today}
-	<div class="mt-6">
-		<Button href={data.adminScoresHref} variant="tinted" size="lg" full>
-			{m.games_admin_update_scores()}
-		</Button>
-	</div>
-{/if}
+</div>
