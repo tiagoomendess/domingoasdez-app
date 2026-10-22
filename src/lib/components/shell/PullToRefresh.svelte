@@ -21,7 +21,12 @@
 	const MIN_REFRESH_MS = 600;
 	const pull = new Spring(0, { stiffness: 0.2, damping: 0.7 });
 
-	let dragging = $state(false);
+	/**
+	 * Plain, not $state: a touch that hasn't become a pull must not change the DOM. iOS Safari
+	 * drops a scroll gesture that's already started (the date rail, a feed carousel) if a layer
+	 * around it is promoted or demoted mid-touch, as toggling `will-change` here once did.
+	 */
+	let dragging = false;
 	/** Keeps the spinner while the indicator springs back, so the arrow doesn't flash on the way out. */
 	let settling = $state(false);
 	let armed = $state(false);
@@ -172,7 +177,7 @@
 	<!-- No transform at rest: it would become the containing block of any fixed element in the page -->
 	<div
 		style:transform={pull.current > 0.5 ? `translateY(${pull.current}px)` : undefined}
-		style:will-change={dragging || refreshing ? 'transform' : undefined}
+		style:will-change={pull.current > 0.5 || refreshing ? 'transform' : undefined}
 	>
 		{@render children()}
 	</div>
