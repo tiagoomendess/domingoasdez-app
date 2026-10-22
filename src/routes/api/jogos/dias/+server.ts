@@ -1,4 +1,4 @@
-import { error, json } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { addDays } from '#lib/format.ts';
 import { isValidDay } from '#lib/games.ts';
@@ -30,5 +30,5 @@ export const GET: RequestHandler = async ({ url }) => {
 	// Clamp empty ranges to a single day for safety
 	const end = to || addDays(from, 0);
 	const markers = await getDayMarkers(from, end);
-	return json({ markers });
+	return Response.json({ markers });
 };

@@ -1,4 +1,4 @@
-import { error, json } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { isValidDay } from '#lib/games.ts';
 import { getTransferDayMarkers } from '#lib/server/transfers.ts';
@@ -27,5 +27,5 @@ export const GET: RequestHandler = async ({ url }) => {
 	}
 
 	const markers = await getTransferDayMarkers(from, to);
-	return json({ markers });
+	return Response.json({ markers });
 };

@@ -1,4 +1,4 @@
-import { error, json } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { parseCommentVote } from '#lib/comments.ts';
 import { voteArticleComment } from '#lib/server/article-comments.ts';
@@ -29,5 +29,5 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 		error(404, 'Comment not found');
 	}
 
-	return json({ score: result.score, myVote: result.myVote });
+	return Response.json({ score: result.score, myVote: result.myVote });
 };

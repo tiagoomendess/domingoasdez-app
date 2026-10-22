@@ -1,0 +1,2 @@
+# deploy.sh runs on the Linux server: keep LF even in a Windows checkout.
+*.sh text eol=lf

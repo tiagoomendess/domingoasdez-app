@@ -47,6 +47,7 @@ All three use `legacyUrl()`, which reads `LEGACY_BASE_URL`, then `MEDIA_BASE_URL
 | `POST /api/jogos/{id}/comentarios/{comment}/voto`    | Game page comment votes                    | JSON `{ value: 1 \| -1 \| 0 }` (0 removes the vote), returns `{ score, myVote }`. Only `application/json` (400 otherwise, or for a bad value). Guests 401, own comment 403, comment missing, deleted or on another game 404. |
 | `POST /api/noticias/{id}/comentarios/{comment}/voto` | Article comment votes                      | Same contract as the game comment vote above, on `article_comment_votes`.                                                                                                                                                    |
 | `GET /api/transferencias/dias?from=&to=`             | Transfers date rail dots                   | Same limits as `/api/jogos/dias`.                                                                                                                                                                                            |
+| `GET /healthz`                                       | `scripts/deploy.sh`, uptime monitors       | `no-store`. Runs `SELECT 1`: `{ status: 'ok' }`, or 503 `{ status: 'error' }` when the database is down.                                                                                                                     |
 
 ## Pitfalls
 

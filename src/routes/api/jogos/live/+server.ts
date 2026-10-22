@@ -1,4 +1,4 @@
-import { error, json } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { hasLiveGameNow } from '#lib/server/competition-page.ts';
 
@@ -13,7 +13,7 @@ export const GET: RequestHandler = async ({ setHeaders }) => {
 
 	try {
 		const live = await hasLiveGameNow();
-		return json({ live });
+		return Response.json({ live });
 	} catch (e) {
 		console.error('[api/jogos/live]', e);
 		error(500, 'Failed to check live games');

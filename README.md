@@ -53,4 +53,27 @@ npm run build
 
 You can preview the production build with `npm run preview`.
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+## Deployment
+
+Node + PM2 behind nginx (and Cloudflare), same setup as `domingoasdez-admin`. On the server, from
+the repository and as the user that owns the PM2 process:
+
+```sh
+scripts/deploy.sh
+```
+
+It pulls `master` (fast-forward only; it stops if tracked files were changed on the server), runs
+`npm ci` when `package-lock.json` or the Node version changed, and builds into `build.next` while
+the current build keeps serving. Then it swaps the build in (the old one stays as `build.prev`),
+reloads PM2 ([ecosystem.config.cjs](ecosystem.config.cjs)) and checks `/healthz`. `--help` lists
+the options: `--force` (redeploy without new commits, e.g. after a failure) and `--rollback`
+(serve `build.prev` again).
+
+There are no migrations here: the schema belongs to `domingoasdez-admin`. When a release reads
+new columns, deploy the admin first.
+
+First deploy only: clone the repository, create `.env` (see `.env.example`: `PORT=3003`, `ORIGIN`,
+`PROTOCOL_HEADER`, `ADDRESS_HEADER=CF-Connecting-IP`), run `scripts/deploy.sh --force`, then
+`pm2 save` (and `pm2 startup` once per server) so the process comes back after a reboot. The nginx
+site is [nginx.conf](nginx.conf). `GET /healthz` checks the app and the database for uptime
+monitoring.

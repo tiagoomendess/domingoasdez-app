@@ -1,4 +1,4 @@
-import { error, json } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { loadPastGamesPage } from '#lib/server/game-page.ts';
 
@@ -15,5 +15,5 @@ export const GET: RequestHandler = async ({ params, url, locals }) => {
 	const page = await loadPastGamesPage(Number(params.id), offset);
 	if (!page) error(404, 'Game not found');
 
-	return json(page);
+	return Response.json(page);
 };

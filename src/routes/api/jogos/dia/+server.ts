@@ -1,4 +1,4 @@
-import { error, json } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { todayInLisbon } from '#lib/format.ts';
 import { isValidDay } from '#lib/games.ts';
@@ -19,7 +19,7 @@ export const GET: RequestHandler = async ({ url, setHeaders }) => {
 
 	try {
 		const { live, groups } = await getGamesForDay(date);
-		return json({ date, live, groups });
+		return Response.json({ date, live, groups });
 	} catch (e) {
 		console.error('[api/jogos/dia]', e);
 		error(500, 'Failed to load games');
