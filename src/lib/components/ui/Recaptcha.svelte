@@ -12,7 +12,7 @@
 
 	let failed = $state(false);
 
-	function widget(key: string): Attachment {
+	function widget(key: string): Attachment<HTMLElement> {
 		return (element) => {
 			let widgetId: number | undefined;
 			let cancelled = false;

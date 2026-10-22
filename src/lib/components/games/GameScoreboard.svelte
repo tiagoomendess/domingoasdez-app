@@ -45,9 +45,9 @@
 	}: Props = $props();
 
 	const postponed = $derived(status === 'postponed');
-	const showStatusPill = $derived(
-		status === 'live' || status === 'warmup' || status === 'finished' || status === 'postponed'
-	);
+	/** Every status but `scheduled` has a pill; a derived boolean wouldn't narrow `status` for it. */
+	const pillStatus = $derived(status === 'scheduled' ? null : status);
+	const showStatusPill = $derived(pillStatus != null);
 	const showCountdown = $derived(!showScore && !postponed);
 	const hasFooter = $derived(Boolean(mvpWinner || scoreReportHref));
 
@@ -163,14 +163,9 @@
 
 <section class="overflow-hidden rounded-card bg-surface p-4 ring-1 ring-line sm:p-5 dark:ring-0">
 	<!-- Top meta: status left + kickoff right, or kickoff alone centered -->
-	<div
-		class={[
-			'flex items-center gap-3',
-			showStatusPill ? 'justify-between' : 'justify-center'
-		]}
-	>
-		{#if showStatusPill}
-			<StatusPill {status} />
+	<div class={['flex items-center gap-3', showStatusPill ? 'justify-between' : 'justify-center']}>
+		{#if pillStatus}
+			<StatusPill status={pillStatus} />
 		{/if}
 		<time
 			datetime={kickoff}
@@ -196,10 +191,7 @@
 					aria-live="polite"
 				>
 					<span
-						class={[
-							'grid min-w-[1.2ch] justify-items-center overflow-hidden',
-							sideInk('home')
-						]}
+						class={['grid min-w-[1.2ch] justify-items-center overflow-hidden', sideInk('home')]}
 					>
 						{#key homeScore}
 							<span in:rollIn out:rollOut class="col-start-1 row-start-1 rounded-badge px-0.5">
@@ -209,10 +201,7 @@
 					</span>
 					<span class="text-ink-tertiary" aria-hidden="true">–</span>
 					<span
-						class={[
-							'grid min-w-[1.2ch] justify-items-center overflow-hidden',
-							sideInk('away')
-						]}
+						class={['grid min-w-[1.2ch] justify-items-center overflow-hidden', sideInk('away')]}
 					>
 						{#key awayScore}
 							<span in:rollIn out:rollOut class="col-start-1 row-start-1 rounded-badge px-0.5">

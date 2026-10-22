@@ -1,3 +1,15 @@
+declare global {
+	interface Window {
+		gtag?: (...args: unknown[]) => void;
+		dataLayer?: unknown[];
+		adsbygoogle?: unknown[];
+		googlefc?: {
+			callbackQueue?: unknown[];
+			showRevocationMessage?: () => void;
+		};
+	}
+}
+
 /** Hosts where GA and AdSense scripts load (must match the allowlist in app.html). */
 const GOOGLE_HOSTS = new Set(['domingoasdez.com', 'www.domingoasdez.com', 'app.domingoasdez.com']);
 

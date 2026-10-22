@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { enhance } from '$app/forms';
 	import Button from '#lib/components/ui/Button.svelte';
 	import Emblem from '#lib/components/ui/Emblem.svelte';
@@ -19,7 +20,7 @@
 
 	// Snapshot the server data once for input initial values (plain const, so
 	// the helpers below never capture reactive state).
-	const initial = data.interview;
+	const initial = untrack(() => data.interview);
 
 	function initialPick(index: number): string {
 		const goal = initial.goals[index];

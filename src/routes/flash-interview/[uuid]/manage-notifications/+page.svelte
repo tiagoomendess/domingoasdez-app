@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { enhance } from '$app/forms';
 	import Button from '#lib/components/ui/Button.svelte';
 	import Switch from '#lib/components/ui/Switch.svelte';
@@ -12,7 +13,7 @@
 
 	// Snapshot the server data once for input initial values (plain const, so
 	// the initializers below never capture reactive state).
-	const initial = data.notifications;
+	const initial = untrack(() => data.notifications);
 
 	let enabled = $state(initial.notificationsEnabled);
 	let email = $state(initial.contactEmail);
