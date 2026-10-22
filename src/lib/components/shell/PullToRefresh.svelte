@@ -15,6 +15,8 @@
 	let { onrefresh, refreshing = $bindable(false), children }: Props = $props();
 
 	const THRESHOLD = 72;
+	/** Travel before a touch counts as a pull or a sideways swipe. */
+	const SLOP = 10;
 	/** Long enough to read the indicator and the skeletons, even when reload is instant. */
 	const MIN_REFRESH_MS = 600;
 	const pull = new Spring(0, { stiffness: 0.2, damping: 0.7 });
@@ -68,23 +70,22 @@
 		const x = event.touches[0]?.clientX ?? 0;
 		const y = event.touches[0]?.clientY ?? 0;
 		const delta = y - startY;
-		// A sideways swipe (a carousel in the feed) is not a pull, even if it drifts down
-		if (!engaged && Math.abs(x - startX) > Math.abs(delta)) {
-			dragging = false;
-			return;
-		}
-		if (delta <= 0 && !engaged) {
-			dragging = false;
-			return;
-		}
-		if (window.scrollY > 0 && !engaged) {
-			dragging = false;
-			return;
+		if (!engaged) {
+			const dx = Math.abs(x - startX);
+			// Decide nothing (and cancel nothing) inside the slop. iOS Safari locks the whole
+			// gesture on the first touchmove it sees, at ~1px of travel: preventing that one
+			// because a sideways swipe drifted down a pixel kills the rail/carousel scroll.
+			if (dx < SLOP && Math.abs(delta) < SLOP) return;
+			// A sideways swipe (the date rail, a feed carousel) is not a pull, even if it drifts down
+			if (dx > Math.abs(delta) || delta <= 0 || window.scrollY > 0) {
+				dragging = false;
+				return;
+			}
 		}
 		if (delta > 0) {
 			engaged = true;
-			event.preventDefault();
-			const next = resistance(delta);
+			if (event.cancelable) event.preventDefault();
+			const next = resistance(delta - SLOP);
 			void move(next, prefersReducedMotion.current);
 			if (next >= THRESHOLD && !armed) {
 				armed = true;
