@@ -1,16 +1,9 @@
-import { error, redirect } from '@sveltejs/kit';
-import { legacyUrl } from '#lib/server/legacy.ts';
+import { notFound } from '#lib/server/legacy-api/http.ts';
 import type { RequestHandler } from './$types';
 
 /**
- * Unmigrated /api/* stays on the Laravel app.
- * More specific routes (/api/feed, /api/jogos/...) win by specificity and are not redirected.
- * 307 so POST/PUT clients keep the method and body.
+ * Any /api/* path without its own route. The Laravel API is gone; its endpoints that external
+ * clients use are ported under src/routes/api (see docs/routes-without-pages.md), and the
+ * ones only the old UI used are deliberately not.
  */
-export const fallback: RequestHandler = ({ url }) => {
-	const target = legacyUrl(`${url.pathname}${url.search}`);
-	if (!target.startsWith('http://') && !target.startsWith('https://')) {
-		error(500, 'Legacy API origin is not configured');
-	}
-	redirect(307, target, { external: true });
-};
+export const fallback: RequestHandler = () => notFound();

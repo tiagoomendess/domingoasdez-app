@@ -19,13 +19,14 @@ Season, competition, game, club, player and staff pages also 301 to their canoni
 
 `307` keeps the method and body, so POSTs still work.
 
-| Route        | Forwards to                             | Why                                                                                           |
-| ------------ | --------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `/api/*`     | same path on the legacy site            | Unmigrated API endpoints stay on Laravel. More specific routes below win over this catch-all. |
-| `/storage/*` | same path on the legacy site            | Media still lives on the legacy filesystem.                                                   |
-| `/antigo/*`  | the rest of the path on the legacy site | Escape hatch: `/antigo/perfil/editar` opens the old page.                                     |
+| Route        | Forwards to                             | Why                                                       |
+| ------------ | --------------------------------------- | --------------------------------------------------------- |
+| `/storage/*` | same path on the legacy site            | Media still lives on the legacy filesystem.               |
+| `/antigo/*`  | the rest of the path on the legacy site | Escape hatch: `/antigo/perfil/editar` opens the old page. |
 
-All three use `legacyUrl()`, which reads `LEGACY_BASE_URL`, then `MEDIA_BASE_URL`. If neither is set they return a 500 instead of redirecting to a relative URL.
+Both use `legacyUrl()`, which reads `LEGACY_BASE_URL`, then `MEDIA_BASE_URL`. If neither is set they return a 500 instead of redirecting to a relative URL.
+
+Any other `/api/*` path (`src/routes/api/[...path]`) returns a JSON 404 `{ "message": "Not Found" }`. It used to 307 to Laravel, but the legacy site is off in production.
 
 ## Other redirects
 
@@ -49,8 +50,32 @@ All three use `legacyUrl()`, which reads `LEGACY_BASE_URL`, then `MEDIA_BASE_URL
 | `GET /api/transferencias/dias?from=&to=`             | Transfers date rail dots                   | Same limits as `/api/jogos/dias`.                                                                                                                                                                                            |
 | `GET /healthz`                                       | `scripts/deploy.sh`, uptime monitors       | `no-store`. Runs `SELECT 1`: `{ status: 'ok' }`, or 503 `{ status: 'error' }` when the database is down.                                                                                                                     |
 
+## Legacy public API
+
+The Laravel `routes/api.php` endpoints that external clients use (mobile apps, the stadium scoreboard, the score-report bot, the player scraper), ported with the same contract: path, method, status codes, key names and order, value types, and which keys are present. The logic is in `src/lib/server/legacy-api/`, one module per Laravel controller.
+
+| Route                                      | Auth  | Notes                                                                                                                               |
+| ------------------------------------------ | ----- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /api/competitions`                    | —     | Competitions of the latest visible season.                                                                                          |
+| `GET /api/competitions/{season_slug}`      | —     | `2025`, `2025-26` or `2025-2026`. 404 when no visible season matches.                                                               |
+| `GET /api/games/today`                     | —     | Visible games of the **UTC** day (legacy timezone). The `test_game_id` variable appends that game.                                  |
+| `GET /api/games/next/{team_id}`            | —     | The team's next visible game; `date` is `Y/m/d H:i` in Lisbon.                                                                      |
+| `PUT /api/games/{game}/scoreboard-updated` | token | Scoreboard push: logs a `placard` score report (deduped over 5 min) and, if the game allows it, sets the score. 304 when unchanged. |
+| `POST /api/score-reports/{game}`           | token | Score report with `source` `api_{source}`.                                                                                          |
+| `GET /api/players?page=&per_page=`         | token | Visible players by id, Laravel pagination. `per_page` 15 by default, max 100.                                                       |
+| `GET /api/clubs/search?name=`              | token | The legacy fuzzy match score, byte for byte like PHP.                                                                               |
+| `POST /api/player-update-requests`         | token | Create (no `player_id`) or update request, `pending`. 400 with Laravel-style `errors`, 200 for a duplicate in the last 10 days.     |
+| `GET /api/player-update-requests/{id}`     | —     | Status of a request.                                                                                                                |
+
+- **Token:** the `Authorization` header (`Bearer` optional) must equal `variables.api_access_token` (cached 120 s). Missing: 401; wrong: 401 plus an `audit` row (`login_failed`). An unknown `{game}` is a 404 before the token is checked, as in Laravel.
+- **Throttle:** 240 requests per minute per IP across these routes, with `X-RateLimit-*` headers and a 429.
+- **Media** paths are returned as stored (relative, no `mediaUrl()` prefix), with the legacy default emblem.
+- **Validation** is a port of the Laravel 5.8 rules these endpoints use (`legacy-api/validate.ts`), with the legacy messages.
+- **Deliberate differences**, all legacy bugs: a validation error in `POST /api/score-reports` is a 400 (legacy threw a 500); `reviewed_at` on a reviewed request no longer 500s; `games/next` compares with UTC now (legacy skipped games starting within the next hour), falls back to `Desconhecido` without a playground, and 404s a non-numeric id; the score-report location is a bound parameter; a bad `per_page` uses 15; error pages are JSON instead of HTML.
+- **Not ported**, so they 404: `GET /api/games/live`, `GET /api/games/{id}`, `GET /api/games/is_live`, `GET /api/seasons/{id}/games` and `GET /api/competitions/{id}/seasons` (only the old UI used them), and `GET /api/user`, `POST /api/games/live/update_match` and `GET /api/seasons/{id}` (they never worked).
+
 ## Pitfalls
 
-- **New API routes shadow the legacy catch-all.** Adding any `src/routes/api/…` route takes that path away from Laravel. Check that nothing (old mobile apps, widgets, cron jobs) still calls the Laravel endpoint with the same path.
-- The `/api/*` and `/storage/*` shims cost an extra round trip per request. The current `nginx.conf` sends everything to the Node app, so every `/storage/…` URL still printed in old article HTML goes through this redirect.
+- **Legacy API paths are a public contract.** External apps call the routes in "Legacy public API" above; don't change their shape, and don't reuse those paths for the new UI.
+- The `/storage/*` shim costs an extra round trip per request. The current `nginx.conf` sends everything to the Node app, so every `/storage/…` URL still printed in old article HTML goes through this redirect.
 - `/arbitros/…` is mapped to the Competições tab in `navigation.svelte.ts` and linked from game pages, but there is **no route for it yet**, so those links 404.

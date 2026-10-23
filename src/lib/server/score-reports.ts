@@ -226,9 +226,7 @@ async function loadAlreadySent(
 			finished: scoreReports.finished
 		})
 		.from(scoreReports)
-		.where(
-			and(eq(scoreReports.gameId, gameId), or(eq(scoreReports.uuid, uuid), userMatch))
-		)
+		.where(and(eq(scoreReports.gameId, gameId), or(eq(scoreReports.uuid, uuid), userMatch)))
 		.orderBy(desc(scoreReports.id));
 
 	return rows.map((row) => ({
@@ -430,6 +428,26 @@ async function createRidiculousBan(input: {
 	});
 }
 
+/** Ports UuidKarma::ensureExists: a karma row (0) for this uuid. Never throws. */
+export async function ensureUuidKarma(uuid: string | null | undefined): Promise<void> {
+	if (!uuid) return;
+
+	try {
+		const [existing] = await db
+			.select({ uuid: uuidKarmas.uuid })
+			.from(uuidKarmas)
+			.where(eq(uuidKarmas.uuid, uuid))
+			.limit(1);
+
+		if (!existing) {
+			const now = new Date();
+			await db.insert(uuidKarmas).values({ uuid, karma: 0, createdAt: now, updatedAt: now });
+		}
+	} catch (e) {
+		console.error('[score-reports] Error ensuring UUID karma exists', e);
+	}
+}
+
 async function handleKarma(input: {
 	uuid: string;
 	userId: number | null;
@@ -439,15 +457,7 @@ async function handleKarma(input: {
 }) {
 	if (!input.uuid) return;
 
-	const [existing] = await db
-		.select({ uuid: uuidKarmas.uuid, karma: uuidKarmas.karma })
-		.from(uuidKarmas)
-		.where(eq(uuidKarmas.uuid, input.uuid))
-		.limit(1);
-
-	if (!existing) {
-		await db.insert(uuidKarmas).values({ uuid: input.uuid, karma: 0 });
-	}
+	await ensureUuidKarma(input.uuid);
 
 	let karmaToAdd = 0;
 
@@ -549,8 +559,7 @@ export async function submitScoreReport(
 		return { ok: false, error: 'banned' };
 	}
 
-	const userMatch =
-		input.user != null ? eq(scoreReports.userId, input.user.id) : sql`false`;
+	const userMatch = input.user != null ? eq(scoreReports.userId, input.user.id) : sql`false`;
 	const [same] = await db
 		.select({ id: scoreReports.id })
 		.from(scoreReports)

@@ -550,3 +550,56 @@ export const partnerClicks = mysqlTable('partner_clicks', {
 	createdAt: timestamp('created_at'),
 	updatedAt: timestamp('updated_at')
 });
+
+/** Key/value settings (`api_access_token`, `test_game_id`, …), written by the admin. */
+export const variables = mysqlTable('variables', {
+	name: varchar('name', { length: 64 }).primaryKey(),
+	value: text('value').notNull(),
+	createdAt: timestamp('created_at'),
+	updatedAt: timestamp('updated_at')
+});
+
+/** Player create/update requests sent through the legacy API, reviewed in the admin. */
+export const playerUpdateRequests = mysqlTable('player_update_requests', {
+	id: bigint('id', { mode: 'number', unsigned: true }).primaryKey().autoincrement(),
+	playerId: int('player_id', { unsigned: true }),
+	name: varchar('name', { length: 155 }),
+	nickname: varchar('nickname', { length: 155 }),
+	clubName: varchar('club_name', { length: 155 }),
+	team: varchar('team', { length: 155 }),
+	pictureUrl: text('picture_url'),
+	associationId: varchar('association_id', { length: 155 }),
+	phone: varchar('phone', { length: 155 }),
+	email: varchar('email', { length: 155 }),
+	facebookProfile: text('facebook_profile'),
+	birthDate: timestamp('birth_date'),
+	position: mysqlEnum('position', ['none', 'striker', 'midfielder', 'defender', 'goalkeeper']),
+	obs: text('obs'),
+	status: mysqlEnum('status', ['pending', 'approved', 'denied']).notNull().default('pending'),
+	createdBy: varchar('created_by', { length: 155 }),
+	reviewedBy: int('reviewed_by', { unsigned: true }),
+	reviewedAt: timestamp('reviewed_at'),
+	reviewNotes: text('review_notes'),
+	sourceData: text('source_data'),
+	createdAt: timestamp('created_at'),
+	updatedAt: timestamp('updated_at')
+});
+
+/** Legacy audit log (table `audit`). This app only writes failed API token logins. */
+export const audit = mysqlTable('audit', {
+	id: bigint('id', { mode: 'number', unsigned: true }).primaryKey().autoincrement(),
+	userId: bigint('user_id', { mode: 'number', unsigned: true }),
+	action: varchar('action', { length: 25 }).notNull(),
+	model: varchar('model', { length: 50 }),
+	modelId: bigint('model_id', { mode: 'number', unsigned: true }),
+	oldValues: text('old_values'),
+	newValues: text('new_values'),
+	ipAddress: varchar('ip_address', { length: 45 }),
+	ipCountry: varchar('ip_country', { length: 155 }),
+	userAgent: varchar('user_agent', { length: 255 }),
+	timezone: varchar('timezone', { length: 30 }),
+	language: varchar('language', { length: 155 }),
+	extraInfo: varchar('extra_info', { length: 155 }),
+	createdAt: timestamp('created_at'),
+	updatedAt: timestamp('updated_at')
+});
