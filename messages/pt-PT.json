@@ -702,5 +702,42 @@
 	"error_500_title": "Algo correu mal",
 	"error_500_text": "Tivemos um problema do nosso lado. Tenta outra vez daqui a pouco.",
 	"error_retry": "Tentar novamente",
-	"error_home": "Ir para o início"
+	"error_home": "Ir para o início",
+
+	"paged_matches_season": "Época {season}",
+	"playground_not_found": "Campo não encontrado",
+	"playground_meta_description": "{name}: ficha, localização, próximo jogo e jogos disputados.",
+	"playground_view": "Ver campo",
+	"playground_live": "A decorrer",
+	"playground_next_game": "Próximo jogo",
+	"playground_no_next_game": "Sem jogos marcados neste campo.",
+	"playground_details": "Ficha",
+	"playground_surface": "Piso",
+	"playground_dimensions": "Dimensões",
+	"playground_dimensions_value": "{length} × {width} m",
+	"playground_capacity": "Lotação",
+	"playground_capacity_value": "{count} lugares",
+	"playground_club": "Clube",
+	"playground_location": "Localização",
+	"playground_map_title": "Mapa de {name}",
+	"playground_stats": "Em números",
+	"playground_stats_games": "Jogos",
+	"playground_stats_goals_per_game": "Golos por jogo",
+	"playground_stats_since": "Desde",
+	"playground_home_wins": "Vitórias da equipa da casa",
+	"playground_away_wins": "Vitórias dos visitantes",
+	"playground_record_label": "Resultados neste campo",
+	"playground_games_played": "Jogos disputados",
+	"playground_no_games": "Ainda não há jogos registados neste campo.",
+	"playground_edit": "Editar campo",
+	"playground_more": [
+		{
+			"declarations": ["input count", "local countPlural = count: plural"],
+			"selectors": ["countPlural"],
+			"match": {
+				"countPlural=one": "Existe mais {count} jogo neste campo.",
+				"countPlural=other": "Existem mais {count} jogos neste campo."
+			}
+		}
+	]
 }

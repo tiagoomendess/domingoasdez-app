@@ -5,6 +5,7 @@ import {
 	clubHref,
 	mergeClubTransfers,
 	playerHref,
+	playgroundHref,
 	teamAgentHref,
 	type TransferRef
 } from './clubs.ts';
@@ -14,6 +15,7 @@ describe('href builders', () => {
 		expect(clubHref('Vitória Sport Clube')).toBe('/clubes/vitoria-sport-clube');
 		expect(playerHref(42, 'João Silva')).toBe('/jogadores/42/joao-silva');
 		expect(teamAgentHref(7, 'António Costa')).toBe('/tecnicos/7/antonio-costa');
+		expect(playgroundHref(2, 'Campo de Carapeços')).toBe('/campos/2/campo-de-carapecos');
 	});
 });
 

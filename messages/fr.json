@@ -702,5 +702,42 @@
 	"error_500_title": "Un problème est survenu",
 	"error_500_text": "Nous avons rencontré un problème de notre côté. Réessayez dans un instant.",
 	"error_retry": "Réessayer",
-	"error_home": "Revenir à l'accueil"
+	"error_home": "Revenir à l'accueil",
+
+	"paged_matches_season": "Saison {season}",
+	"playground_not_found": "Terrain introuvable",
+	"playground_meta_description": "{name} : fiche, localisation, prochain match et matchs joués.",
+	"playground_view": "Voir le terrain",
+	"playground_live": "En cours",
+	"playground_next_game": "Prochain match",
+	"playground_no_next_game": "Aucun match prévu sur ce terrain.",
+	"playground_details": "Fiche",
+	"playground_surface": "Surface",
+	"playground_dimensions": "Dimensions",
+	"playground_dimensions_value": "{length} × {width} m",
+	"playground_capacity": "Capacité",
+	"playground_capacity_value": "{count} places",
+	"playground_club": "Club",
+	"playground_location": "Localisation",
+	"playground_map_title": "Carte de {name}",
+	"playground_stats": "En chiffres",
+	"playground_stats_games": "Matchs",
+	"playground_stats_goals_per_game": "Buts par match",
+	"playground_stats_since": "Depuis",
+	"playground_home_wins": "Victoires à domicile",
+	"playground_away_wins": "Victoires à l'extérieur",
+	"playground_record_label": "Résultats sur ce terrain",
+	"playground_games_played": "Matchs joués",
+	"playground_no_games": "Aucun match enregistré sur ce terrain pour le moment.",
+	"playground_edit": "Modifier le terrain",
+	"playground_more": [
+		{
+			"declarations": ["input count", "local countPlural = count: plural"],
+			"selectors": ["countPlural"],
+			"match": {
+				"countPlural=one": "Il y a encore {count} match sur ce terrain.",
+				"countPlural=other": "Il y a encore {count} matchs sur ce terrain."
+			}
+		}
+	]
 }

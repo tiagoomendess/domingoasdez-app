@@ -13,9 +13,18 @@
 		interactive?: boolean;
 		/** Set while a just-scored goal is highlighted (/jogos live poll). */
 		goal?: GoalFlash | null;
+		/** A quiet line under the teams, e.g. the competition in lists that mix them. */
+		caption?: string | null;
 	};
 
-	let { match, showDate = false, onliveclick, interactive = true, goal = null }: Props = $props();
+	let {
+		match,
+		showDate = false,
+		onliveclick,
+		interactive = true,
+		goal = null,
+		caption = null
+	}: Props = $props();
 
 	const showScore = $derived(match.status === 'live' || match.status === 'finished');
 	const interceptLive = $derived(match.status === 'live' && !!onliveclick);
@@ -118,6 +127,9 @@
 			<span class="block pl-[2.125rem] text-footnote text-ink-tertiary">
 				{m.game_penalties(match.penalties)}
 			</span>
+		{/if}
+		{#if caption}
+			<span class="block truncate pl-[2.125rem] text-footnote text-ink-tertiary">{caption}</span>
 		{/if}
 	</span>
 {/snippet}

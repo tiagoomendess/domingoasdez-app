@@ -55,6 +55,7 @@ const PATH_OWNERS: { prefix: string; tab: TabId }[] = (
 		{ prefix: '/jogadores', tab: 'competitions' },
 		{ prefix: '/tecnicos', tab: 'competitions' },
 		{ prefix: '/arbitros', tab: 'competitions' },
+		{ prefix: '/campos', tab: 'competitions' },
 		{ prefix: '/transferencias', tab: 'competitions' },
 		{ prefix: '/p', tab: 'pages' },
 		{ prefix: '/politica-de-privacidade', tab: 'pages' },

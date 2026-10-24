@@ -38,6 +38,7 @@ Grouped by the bottom tab that owns them (`tabFromPath` in `src/lib/navigation.s
 | [Jogadores](pages/competicoes/jogadores.md)           | `/jogadores`                                                           |
 | [Jogador](pages/competicoes/jogador.md)               | `/jogadores/{id}/{slug}`                                               |
 | [Técnico](pages/competicoes/tecnico.md)               | `/tecnicos/{id}/{slug}`                                                |
+| [Campo](pages/competicoes/campo.md)                   | `/campos/{id}/{slug}`                                                  |
 | [Transferências](pages/competicoes/transferencias.md) | `/transferencias`                                                      |
 
 ### Páginas

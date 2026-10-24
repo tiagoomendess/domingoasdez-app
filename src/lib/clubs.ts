@@ -26,6 +26,11 @@ export function teamAgentHref(id: number, name: string): string {
 	return `/tecnicos/${id}/${slugify(name)}`;
 }
 
+/** A ground ("campo", `playgrounds` row). The id finds it; the slug is cosmetic. */
+export function playgroundHref(id: number, name: string): string {
+	return `/campos/${id}/${slugify(name)}`;
+}
+
 /**
  * Staff label on the club page. Drops a quoted or parenthetical nickname,
  * then keeps the first and last name so a long legal name cannot widen the page.

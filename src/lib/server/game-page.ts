@@ -19,13 +19,14 @@ import {
 	type HeadToHeadStats
 } from '#lib/games.ts';
 import { isAdult, playerDisplayName } from '#lib/players.ts';
+import { playgroundHref } from '#lib/clubs.ts';
+import { directionsLinks } from '#lib/playgrounds.ts';
 import { slugify } from '#lib/slug.ts';
 import { getUserPermissionNames, hasPermission } from '#lib/server/auth/permissions.ts';
 import { naiveToIso } from '#lib/server/dates.ts';
 import { db } from '#lib/server/db/index.ts';
 import {
 	clubs,
-	competitions,
 	gameComments,
 	gameGroups,
 	gameReferees,
@@ -36,11 +37,11 @@ import {
 	playgrounds,
 	refereeTypes,
 	referees,
-	seasons,
 	teams
 } from '#lib/server/db/schema.ts';
 import type { ResolvedSeason } from '#lib/server/competition-page.ts';
 import { emblemUrl, goalCountsByGame, resolveScores } from '#lib/server/games.ts';
+import { selectGameRows, toMatch, type TeamGameRow } from '#lib/server/game-rows.ts';
 import { lisbonDay } from '#lib/format.ts';
 import { adminUrl } from '#lib/server/admin.ts';
 import { mediaUrl, placeholder16x9, profilePicture } from '#lib/server/media.ts';
@@ -166,6 +167,8 @@ export type GamePageData = {
 	away: { name: string; emblem: string | null; href: string };
 	venue: {
 		name: string;
+		/** The ground's page (`/campos/{id}/{slug}`). */
+		href: string;
 		picture: string;
 		googleMapsUrl: string | null;
 		wazeUrl: string | null;
@@ -319,14 +322,15 @@ async function loadVenue(playgroundId: number | null, gameId: number) {
 	const coords = parsePointLatLon(row.location);
 	const picture = row.picture?.trim() ? mediaUrl(row.picture)! : placeholder16x9(row.id);
 
+	const links = coords ? directionsLinks(coords) : null;
+
 	return {
 		venue: {
 			name: row.name,
+			href: playgroundHref(row.id, row.name),
 			picture,
-			googleMapsUrl: coords
-				? `https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lon}`
-				: null,
-			wazeUrl: coords ? `https://www.waze.com/ul?ll=${coords.lat},${coords.lon}&navigate=yes` : null
+			googleMapsUrl: links?.googleMapsUrl ?? null,
+			wazeUrl: links?.wazeUrl ?? null
 		},
 		coverPicture: picture
 	};
@@ -403,29 +407,6 @@ async function loadReferees(gameId: number): Promise<GameRefereeView[]> {
 	}));
 }
 
-type TeamGameRow = {
-	id: number;
-	round: number;
-	date: string | Date;
-	goalsHome: number | null;
-	goalsAway: number | null;
-	penaltiesHome: number | null;
-	penaltiesAway: number | null;
-	finished: boolean;
-	postponed: boolean;
-	homeTeamId: number;
-	awayTeamId: number;
-	groupName: string | null;
-	startYear: number;
-	endYear: number;
-	seasonName: string | null;
-	competitionName: string;
-	homeClubName: string;
-	homeClubEmblem: string | null;
-	awayClubName: string;
-	awayClubEmblem: string | null;
-};
-
 async function loadTeamLastGames(
 	teamId: number,
 	beforeDate: string | Date,
@@ -436,45 +417,14 @@ async function loadTeamLastGames(
 			? beforeDate.toISOString().slice(0, 19).replace('T', ' ')
 			: String(beforeDate).slice(0, 19).replace('T', ' ');
 
-	return db
-		.select({
-			id: games.id,
-			round: games.round,
-			date: games.date,
-			goalsHome: games.goalsHome,
-			goalsAway: games.goalsAway,
-			penaltiesHome: games.penaltiesHome,
-			penaltiesAway: games.penaltiesAway,
-			finished: games.finished,
-			postponed: games.postponed,
-			homeTeamId: games.homeTeamId,
-			awayTeamId: games.awayTeamId,
-			groupName: gameGroups.name,
-			startYear: seasons.startYear,
-			endYear: seasons.endYear,
-			seasonName: seasons.name,
-			competitionName: competitions.name,
-			homeClubName: homeClub.name,
-			homeClubEmblem: homeClub.emblem,
-			awayClubName: awayClub.name,
-			awayClubEmblem: awayClub.emblem
-		})
-		.from(games)
-		.innerJoin(gameGroups, eq(games.gameGroupId, gameGroups.id))
-		.innerJoin(seasons, eq(gameGroups.seasonId, seasons.id))
-		.innerJoin(competitions, eq(seasons.competitionId, competitions.id))
-		.innerJoin(homeTeam, eq(games.homeTeamId, homeTeam.id))
-		.innerJoin(homeClub, eq(homeTeam.clubId, homeClub.id))
-		.innerJoin(awayTeam, eq(games.awayTeamId, awayTeam.id))
-		.innerJoin(awayClub, eq(awayTeam.clubId, awayClub.id))
-		.where(
-			and(
-				eq(games.visible, true),
-				eq(games.finished, true),
-				sql`${games.date} < ${beforeNaive}`,
-				or(eq(games.homeTeamId, teamId), eq(games.awayTeamId, teamId))
-			)
+	return selectGameRows(
+		and(
+			eq(games.visible, true),
+			eq(games.finished, true),
+			sql`${games.date} < ${beforeNaive}`,
+			or(eq(games.homeTeamId, teamId), eq(games.awayTeamId, teamId))
 		)
+	)
 		.orderBy(desc(games.date))
 		.limit(limit);
 }
@@ -526,75 +476,10 @@ async function loadPastH2H(
 	limit: number,
 	offset = 0
 ): Promise<TeamGameRow[]> {
-	return db
-		.select({
-			id: games.id,
-			round: games.round,
-			date: games.date,
-			goalsHome: games.goalsHome,
-			goalsAway: games.goalsAway,
-			penaltiesHome: games.penaltiesHome,
-			penaltiesAway: games.penaltiesAway,
-			finished: games.finished,
-			postponed: games.postponed,
-			homeTeamId: games.homeTeamId,
-			awayTeamId: games.awayTeamId,
-			groupName: gameGroups.name,
-			startYear: seasons.startYear,
-			endYear: seasons.endYear,
-			seasonName: seasons.name,
-			competitionName: competitions.name,
-			homeClubName: homeClub.name,
-			homeClubEmblem: homeClub.emblem,
-			awayClubName: awayClub.name,
-			awayClubEmblem: awayClub.emblem
-		})
-		.from(games)
-		.innerJoin(gameGroups, eq(games.gameGroupId, gameGroups.id))
-		.innerJoin(seasons, eq(gameGroups.seasonId, seasons.id))
-		.innerJoin(competitions, eq(seasons.competitionId, competitions.id))
-		.innerJoin(homeTeam, eq(games.homeTeamId, homeTeam.id))
-		.innerJoin(homeClub, eq(homeTeam.clubId, homeClub.id))
-		.innerJoin(awayTeam, eq(games.awayTeamId, awayTeam.id))
-		.innerJoin(awayClub, eq(awayTeam.clubId, awayClub.id))
-		.where(pastH2HWhere(homeTeamId, awayTeamId, beforeDate))
+	return selectGameRows(pastH2HWhere(homeTeamId, awayTeamId, beforeDate))
 		.orderBy(desc(games.date), desc(games.id))
 		.limit(limit)
 		.offset(offset);
-}
-
-function toMatch(row: TeamGameRow, counts: Map<number, Map<number, number>>, now: Date): Match {
-	const kickoff = naiveToIso(row.date);
-	const status = gameStatus(
-		{ kickoffIso: kickoff, finished: row.finished, postponed: row.postponed },
-		now
-	);
-	const { homeScore, awayScore } = resolveScores(row, counts);
-	const display = displayName(row.seasonName, row.competitionName);
-	const groupName = row.groupName?.trim() || display;
-	const showScore = status === 'live' || status === 'finished';
-	const decidedByPenalties =
-		showScore && homeScore === awayScore && row.penaltiesHome != null && row.penaltiesAway != null;
-
-	return {
-		id: row.id,
-		href: gameHref({
-			startYear: row.startYear,
-			endYear: row.endYear,
-			displayName: display,
-			groupName,
-			round: row.round,
-			homeClubName: row.homeClubName,
-			awayClubName: row.awayClubName
-		}),
-		status,
-		kickoff,
-		home: { name: row.homeClubName, emblem: emblemUrl(row.homeClubEmblem) },
-		away: { name: row.awayClubName, emblem: emblemUrl(row.awayClubEmblem) },
-		homeScore: showScore ? homeScore : null,
-		awayScore: showScore ? awayScore : null,
-		penalties: decidedByPenalties ? { home: row.penaltiesHome!, away: row.penaltiesAway! } : null
-	};
 }
 
 function toFormChips(

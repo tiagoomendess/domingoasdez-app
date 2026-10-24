@@ -8,7 +8,7 @@ The detail page of one game. Ports `GamesController@show` and `MvpVotesControlle
 
 ## What's on the page
 
-- A cover picture (the venue's), with a venue pill that opens a DirectionsSheet, and the competition, group and round at the bottom.
+- A cover picture (the venue's), with a venue pill that opens a DirectionsSheet (Google Maps, Waze, and "Ver campo" to the [ground's page](campo.md)), and the competition, group and round at the bottom.
 - **GameScoreboard**: both clubs (links to their pages), the score or kick-off time and status, penalties, recent form chips before the game (each opens a preview of that game, see below), the man of the match once decided, and a link to send the score.
 - **Man of the match**: a "Votar" button that opens the MvpVoteSheet, a login button for guests, or "Votaste em X" once voted.
 - **Flash interview** button, for the club's contact (see below).

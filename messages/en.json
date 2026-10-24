@@ -702,5 +702,42 @@
 	"error_500_title": "Something went wrong",
 	"error_500_text": "We hit a problem on our side. Try again in a moment.",
 	"error_retry": "Try again",
-	"error_home": "Go to home"
+	"error_home": "Go to home",
+
+	"paged_matches_season": "Season {season}",
+	"playground_not_found": "Ground not found",
+	"playground_meta_description": "{name}: details, location, next game and games played.",
+	"playground_view": "View ground",
+	"playground_live": "Live now",
+	"playground_next_game": "Next game",
+	"playground_no_next_game": "No games scheduled at this ground.",
+	"playground_details": "Details",
+	"playground_surface": "Surface",
+	"playground_dimensions": "Dimensions",
+	"playground_dimensions_value": "{length} × {width} m",
+	"playground_capacity": "Capacity",
+	"playground_capacity_value": "{count} seats",
+	"playground_club": "Club",
+	"playground_location": "Location",
+	"playground_map_title": "Map of {name}",
+	"playground_stats": "In numbers",
+	"playground_stats_games": "Games",
+	"playground_stats_goals_per_game": "Goals per game",
+	"playground_stats_since": "Since",
+	"playground_home_wins": "Home wins",
+	"playground_away_wins": "Away wins",
+	"playground_record_label": "Results at this ground",
+	"playground_games_played": "Games played",
+	"playground_no_games": "No games recorded at this ground yet.",
+	"playground_edit": "Edit ground",
+	"playground_more": [
+		{
+			"declarations": ["input count", "local countPlural = count: plural"],
+			"selectors": ["countPlural"],
+			"match": {
+				"countPlural=one": "There is {count} more game at this ground.",
+				"countPlural=other": "There are {count} more games at this ground."
+			}
+		}
+	]
 }
