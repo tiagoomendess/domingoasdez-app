@@ -20,6 +20,7 @@ The list of competitions, replacing the legacy dropdown menu. Each row opens the
 
 ## Edge cases and pitfalls
 
+- **Cached for 5 minutes.** The list comes from an in-process cache (`swrCache` in `src/lib/server/cache.ts`): fresh for 5 min, then served stale for up to 5 more while it reloads. A new competition or season can take that long to appear.
 - A visible competition with **no visible season** still shows, but with no subtitle and no link. The row isn't tappable.
 - The name shown is the season's name when it has one, so a competition can appear under a different name from one season to the next. Its URL slug changes with it (see [competicao.md](competicao.md)).
 - The mobile list and the desktop grid are two separate blocks toggled with `md:hidden` / `hidden md:grid`. Both are in the DOM, so a change to one row needs to work in both (they share the `competitionRow` snippet).

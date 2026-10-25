@@ -1,16 +1,22 @@
 import { error, redirect } from '@sveltejs/kit';
-import {
-	isLegacyFullYearSlug,
-	parseSeasonSlug,
-	seasonNameSlug
-} from '#lib/competitions.ts';
-import {
-	findSeasonBySlugs,
-	loadCompetitionPage
-} from '#lib/server/competition-page.ts';
+import { isLegacyFullYearSlug, parseSeasonSlug, seasonNameSlug } from '#lib/competitions.ts';
+import { findSeasonBySlugs, loadCompetitionPage } from '#lib/server/competition-page.ts';
+import { swrCache } from '#lib/server/cache.ts';
 import { loadCompetitionStats } from '#lib/server/competition-stats.ts';
 import { slugify } from '#lib/slug.ts';
 import type { PageServerLoad } from './$types';
+
+/**
+ * Groups, games, standings and stats are the same for every visitor and take many queries, so a
+ * season's data is cached briefly. Game status depends on the clock, so it is never more than
+ * 30 s old.
+ */
+const seasonCache = swrCache<
+	[
+		Awaited<ReturnType<typeof loadCompetitionPage>>,
+		Awaited<ReturnType<typeof loadCompetitionStats>>
+	]
+>('competition page', { freshMs: 15_000, staleMs: 15_000, maxEntries: 50 });
 
 export const load: PageServerLoad = async ({ params, url }) => {
 	const { season: seasonSlug, competition: competitionSlug } = params;
@@ -20,7 +26,10 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		const years = parseSeasonSlug(seasonSlug);
 		if (!years) error(404);
 		const [startYear, endYear] = years;
-		redirect(301, `/competicoes/${seasonNameSlug(startYear, endYear)}/${competitionSlug}${url.search}`);
+		redirect(
+			301,
+			`/competicoes/${seasonNameSlug(startYear, endYear)}/${competitionSlug}${url.search}`
+		);
 	}
 
 	const season = await findSeasonBySlugs(seasonSlug, competitionSlug);
@@ -40,10 +49,9 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		redirect(301, `/competicoes/${canonicalSeasonSlug}/${displaySlug}${url.search}`);
 	}
 
-	const [page, stats] = await Promise.all([
-		loadCompetitionPage(season),
-		loadCompetitionStats(season)
-	]);
+	const [page, stats] = await seasonCache.get(String(season.id), () =>
+		Promise.all([loadCompetitionPage(season), loadCompetitionStats(season)])
+	);
 	const vistaParam = url.searchParams.get('vista');
 	const vista =
 		vistaParam === 'classificacao' || vistaParam === 'estatisticas' ? vistaParam : 'jogos';

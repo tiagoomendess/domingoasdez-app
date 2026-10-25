@@ -18,6 +18,7 @@ The list of CMS pages (the small "pages" CMS managed in the backoffice), plus a 
 
 ## Edge cases and pitfalls
 
+- **Cached for 5 minutes.** The list comes from an in-process cache (`swrCache` in `src/lib/server/cache.ts`): fresh for 5 min, then served stale for up to 5 more while it reloads. A new or hidden page can take that long to show.
 - CMS pages are sorted by id, like the legacy home page, not by name. There's no manual ordering field.
 - With no visible pages, the empty state shows, but the Informação and Legal groups still render below it.
 - The "Site antigo" link uses `legacyUrl('/')`. If the legacy origin env var is missing, it becomes a relative `/`, which just reloads this app's home page.

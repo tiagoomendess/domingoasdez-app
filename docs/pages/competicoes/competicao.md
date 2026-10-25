@@ -43,6 +43,7 @@ The query string is kept on these redirects.
 
 ## Edge cases and pitfalls
 
+- **Cached for 15 seconds.** The season's groups, games, standings and stats come from an in-process cache keyed by season id (`swrCache` in `src/lib/server/cache.ts`): fresh for 15 s, then served stale for up to 15 more while it reloads, so scores and game status are at most 30 s old. The season lookup and the slug redirects run on every request.
 - **Swipes and the standings table.** A touch that starts inside something that really scrolls sideways (the standings table when it's wider than the card) is left to it. On phones where the table fits, swiping on it changes round.
 - **Don't change the DOM before a touch has become a swipe** (no `$state` flags, no `will-change` on touchstart). iOS Safari drops a scroll that has already started if a layer around it changes mid-touch. The same rule as PullToRefresh.
 - A swipe right that starts at the very left edge of the screen is iOS Safari's own back gesture, and the page can't stop it.

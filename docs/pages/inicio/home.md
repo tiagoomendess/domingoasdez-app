@@ -18,6 +18,8 @@ A social-media style feed that mixes news articles, polls and transfer days, new
 
 - The selected types live in `?tipos=` (Portuguese values: `artigos,sondagens,transferencias`). Changing a chip does a `goto(..., { replace: true })` wrapped in `withNavigationLoader`, so the global loader shows even though only the query changes.
 - The server merges the selected sources (`getFeedPage`), sorts by date, then type, then id, and returns a cursor `date|type|id` for the next page. Later pages come from `GET /api/feed?tipos=…&cursor=…`.
+- Articles and transfer days come from an in-process stale-while-revalidate cache (`swrCache` in `src/lib/server/cache.ts`): fresh for 60 s, then served stale for up to 5 more minutes while one background load replaces them. Articles are keyed by cursor, transfers by locale and the cursor's day. Without it the transfer query costs about 0.5 s per request.
+- Polls are never cached: their state depends on the visitor's vote cookie and the clock.
 - Poll cards decide between open / pending / results using the legacy `poll{id}` cookie (see [sondagem.md](sondagem.md)).
 - Transfers show as **one card per day**, never one per transfer. Only real moves count (see [transferencias.md](../competicoes/transferencias.md)).
 
@@ -28,4 +30,6 @@ A social-media style feed that mixes news articles, polls and transfer days, new
 - Paging uses a keyset cursor, not an offset. Two items with the same date are ordered by type name and then id, so a new content type needs to be part of `compareFeedKeys` or pages can skip or repeat items.
 - The disclaimer card only shows when `NEW_SITE_DISCLAIMER_ENABLED` is on **and** a legacy origin (`LEGACY_BASE_URL` or `MEDIA_BASE_URL`) is set. It sits after the first item, or at the end when the feed has a single item. `FEEDBACK_FORM_URL` adds a feedback link to it.
 - Pull-to-refresh ignores sideways swipes, so the transfer carousel can be swiped without triggering a refresh.
+- **Admin changes show up late.** A new, edited or hidden article or transfer can take a minute (longer after a quiet spell) to appear on the feed, and pull-to-refresh doesn't skip the cache. This also applies when you change the local database to test something: wait a minute or restart the dev server. The cache lives in one Node process (prod runs a single PM2 instance); with more instances, each keeps its own copy.
+- Cached items are shared between requests, so nothing may mutate them, and they must never hold visitor-specific data (like poll state or edit links).
 - **Adding a new content type:** add a source in `src/lib/server/feed/sources/`, a branch in `getFeedPage`, a card component, a `feedTypes` entry, and the `?tipos=` value in `src/lib/feed.ts`. The chip appears on its own.
