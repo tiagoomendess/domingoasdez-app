@@ -77,3 +77,9 @@ First deploy only: clone the repository, create `.env` (see `.env.example`: `POR
 `pm2 save` (and `pm2 startup` once per server) so the process comes back after a reboot. The nginx
 site is [nginx.conf](nginx.conf). `GET /healthz` checks the app and the database for uptime
 monitoring.
+
+Logs: one JSON object per line in production (`LOG_FORMAT=json` in `ecosystem.config.cjs`),
+a line per request (`src/lib/server/request-log.ts`) and the request id and user on every entry.
+Server code logs through `logger.child('<module>')` from `#lib/server/log.ts`, not `console.*`.
+Grafana Alloy sends them to Grafana Cloud with the admin's, nginx's and the legacy site's logs:
+setup, queries and alerts in `docs/logging.md` of `domingoasdez-admin`.

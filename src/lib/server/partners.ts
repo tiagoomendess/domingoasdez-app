@@ -2,7 +2,10 @@ import { and, asc, eq } from 'drizzle-orm';
 import { partnerHref, type PartnerAd } from '#lib/partners.ts';
 import { db } from '#lib/server/db/index.ts';
 import { partnerClicks, partners } from '#lib/server/db/schema.ts';
+import { logger } from '#lib/server/log.ts';
 import { mediaUrl } from '#lib/server/media.ts';
+
+const log = logger.child('partners');
 
 const CLICK_PAGE_MAX = 155;
 
@@ -53,6 +56,6 @@ export async function recordPartnerClick(partnerId: number, referer: string | nu
 			updatedAt: new Date()
 		});
 	} catch (err) {
-		console.error('Failed to record partner click', err);
+		log.error('Failed to record partner click', err);
 	}
 }

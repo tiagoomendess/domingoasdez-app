@@ -30,7 +30,10 @@ import {
 	teams
 } from '#lib/server/db/schema.ts';
 import { emblemUrl } from '#lib/server/games.ts';
+import { logger } from '#lib/server/log.ts';
 import { mediaUrl } from '#lib/server/media.ts';
+
+const log = logger.child('competition-stats');
 
 const DEFAULT_PROFILE = '/images/default-profile.png';
 
@@ -260,7 +263,7 @@ export async function loadCompetitionStats(
 			}
 		};
 	} catch (err) {
-		console.error('loadCompetitionStats failed', err);
+		log.error('loadCompetitionStats failed', err);
 		return empty;
 	}
 }

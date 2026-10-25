@@ -12,6 +12,9 @@ import { hasLiveGameNow } from '#lib/server/competition-page.ts';
 import { consumeScoreReportFlash } from '#lib/server/score-reports.ts';
 import { consumeFlashToast } from '#lib/server/flash-interview.ts';
 import { m } from '#lib/messages.ts';
+import { logger } from '#lib/server/log.ts';
+
+const log = logger.child('layout');
 
 export const load: LayoutServerLoad = async ({ cookies, depends, locals }) => {
 	depends('app:preferences');
@@ -53,7 +56,7 @@ export const load: LayoutServerLoad = async ({ cookies, depends, locals }) => {
 	try {
 		liveNow = await hasLiveGameNow();
 	} catch (e) {
-		console.error('[layout] hasLiveGameNow', e);
+		log.error('hasLiveGameNow failed', e);
 	}
 
 	return {

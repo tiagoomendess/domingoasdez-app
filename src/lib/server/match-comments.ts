@@ -15,7 +15,10 @@ import { getUserPermissionNames, hasPermission } from '#lib/server/auth/permissi
 import { db } from '#lib/server/db/index.ts';
 import { matchCommentVotes, matchComments, userProfiles, users } from '#lib/server/db/schema.ts';
 import { naiveToIso } from '#lib/server/dates.ts';
+import { logger } from '#lib/server/log.ts';
 import { mediaUrl } from '#lib/server/media.ts';
+
+const log = logger.child('match-comments');
 
 /** Same delete rule as article comments: `admin`, or the comment's own author. */
 async function isAdmin(userId: number) {
@@ -118,7 +121,7 @@ export async function postMatchComment(input: {
 		.orderBy(desc(matchComments.id))
 		.limit(1);
 	if (commentCooldownLeft(last?.createdAt ? naiveToIso(last.createdAt) : null) > 0) {
-		console.info(`[match-comments] user ${input.userId} tried to comment too fast`);
+		log.info(`user ${input.userId} tried to comment too fast`);
 		return { ok: false, error: 'too_fast' };
 	}
 
@@ -152,7 +155,7 @@ export async function postMatchComment(input: {
 		updatedAt: now
 	});
 
-	console.info(`[match-comments] user ${input.userId} commented on game ${input.gameId}`);
+	log.info(`user ${input.userId} commented on game ${input.gameId}`);
 	return { ok: true, id: Number(inserted[0].insertId) };
 }
 
@@ -179,9 +182,7 @@ export async function deleteMatchComment(input: {
 	if (!comment) return { ok: false, error: 'not_found' };
 
 	if (comment.userId !== input.userId && !(await isAdmin(input.userId))) {
-		console.info(
-			`[match-comments] user ${input.userId} tried to delete comment ${input.commentId} without permission`
-		);
+		log.info(`user ${input.userId} tried to delete comment ${input.commentId} without permission`);
 		return { ok: false, error: 'forbidden' };
 	}
 
@@ -190,7 +191,7 @@ export async function deleteMatchComment(input: {
 		.set({ deleted: true, updatedAt: new Date() })
 		.where(eq(matchComments.id, comment.id));
 
-	console.info(`[match-comments] user ${input.userId} deleted comment ${input.commentId}`);
+	log.info(`user ${input.userId} deleted comment ${input.commentId}`);
 	return { ok: true };
 }
 
@@ -247,8 +248,6 @@ export async function voteMatchComment(input: {
 		.from(matchCommentVotes)
 		.where(eq(matchCommentVotes.matchCommentId, comment.id));
 
-	console.info(
-		`[match-comments] user ${input.userId} voted ${input.value} on comment ${comment.id}`
-	);
+	log.info(`user ${input.userId} voted ${input.value} on comment ${comment.id}`);
 	return { ok: true, score: total?.score ?? 0, myVote: input.value };
 }

@@ -6,6 +6,9 @@ import {
 	R2_REGION,
 	R2_SECRET_ACCESS_KEY
 } from '$app/env/private';
+import { logger } from '#lib/server/log.ts';
+
+const log = logger.child('storage');
 
 /** Public path prefix stored in the database; the R2 object key is the same path without `/`. */
 export const STORAGE_URL_PREFIX = '/storage/';
@@ -60,6 +63,6 @@ export async function deleteFile(url: string | null | undefined): Promise<void> 
 		const { client, bucket } = r2();
 		await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: url.slice(1) }));
 	} catch (error) {
-		console.warn(`[storage] failed to delete ${url}:`, error);
+		log.warn('could not delete a file', { url }, error);
 	}
 }

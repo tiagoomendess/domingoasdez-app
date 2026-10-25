@@ -7,6 +7,9 @@ import type { RequestEvent } from '@sveltejs/kit';
 import { db } from '#lib/server/db/index.ts';
 import { audit } from '#lib/server/db/schema.ts';
 import { strLimit } from '#lib/server/legacy-api/php.ts';
+import { logger } from '#lib/server/log.ts';
+
+const log = logger.child('audit');
 
 export type AuditEntry = {
 	action: string;
@@ -61,6 +64,6 @@ export async function addAudit(event: RequestEvent, entry: AuditEntry): Promise<
 			updatedAt: now
 		});
 	} catch (e) {
-		console.error('[audit] Error adding audit', e);
+		log.error('Error adding audit', e);
 	}
 }

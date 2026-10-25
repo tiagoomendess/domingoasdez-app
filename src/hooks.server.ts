@@ -1,4 +1,4 @@
-import type { Handle, ServerInit } from '@sveltejs/kit/hooks';
+import type { Handle, HandleServerError, ServerInit } from '@sveltejs/kit/hooks';
 import { sequence } from '@sveltejs/kit/hooks';
 import { PUBLIC_ADSENSE_CLIENT, PUBLIC_GA_MEASUREMENT_ID } from '$app/env/public';
 import { ADSENSE_ENABLED } from '$app/env/private';
@@ -7,7 +7,9 @@ import { SESSION_COOKIE, readSessionUserId } from '#lib/server/auth/session.ts';
 import { adsDisabled } from '#lib/ads.ts';
 import { getUserPermissionNames } from '#lib/server/auth/permissions.ts';
 import { getAuthUserById } from '#lib/server/auth/users.ts';
+import { logger } from '#lib/server/log.ts';
 import { assertSupportedNodeVersion } from '#lib/server/node-version.ts';
+import { loggedPath, logRequests } from '#lib/server/request-log.ts';
 
 // Runs once before the server accepts requests; on an old Node.js the process exits instead.
 export const init: ServerInit = () => {
@@ -46,4 +48,13 @@ const paraglideHandle: Handle = ({ event, resolve }) =>
 		)
 	);
 
-export const handle = sequence(paraglideHandle, authHandle);
+export const handle = sequence(logRequests(logger), paraglideHandle, authHandle);
+
+export const handleError: HandleServerError = ({ kind, error, event }) => {
+	if (kind !== 'unknown') return;
+	logger.error(
+		`${event.request.method} ${loggedPath(event)} failed`,
+		{ requestId: event.locals.requestId, route: event.route.id },
+		error
+	);
+};

@@ -3,6 +3,9 @@ import type { RequestHandler } from './$types';
 import { todayInLisbon } from '#lib/format.ts';
 import { isValidDay } from '#lib/games.ts';
 import { getGamesForDay } from '#lib/server/games.ts';
+import { logger } from '#lib/server/log.ts';
+
+const log = logger.child('api/jogos/dia');
 
 /**
  * Lightweight poll endpoint for the Games page.
@@ -21,7 +24,7 @@ export const GET: RequestHandler = async ({ url, setHeaders }) => {
 		const { live, groups } = await getGamesForDay(date);
 		return Response.json({ date, live, groups });
 	} catch (e) {
-		console.error('[api/jogos/dia]', e);
+		log.error('could not load the games', e);
 		error(500, 'Failed to load games');
 	}
 };

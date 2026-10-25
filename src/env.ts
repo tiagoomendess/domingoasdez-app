@@ -199,5 +199,25 @@ export const variables = defineEnvVars({
 	MAIL_FROM_NAME: {
 		description: 'From display name for outbound mail (legacy site_name).',
 		schema: (value) => optionalString(value) || 'Domingo às Dez'
+	},
+	LOG_LEVEL: {
+		description:
+			'Log level: debug (also the /healthz checks), info (one line per request), warn or error.',
+		schema: (value) => {
+			const level = optionalString(value).trim().toLowerCase() || 'info';
+			if (level !== 'debug' && level !== 'info' && level !== 'warn' && level !== 'error') {
+				throw new Error('Must be debug, info, warn or error');
+			}
+			return level;
+		}
+	},
+	LOG_FORMAT: {
+		description:
+			'Log lines: "text" (readable, development) or "json" (one object per line for Grafana Alloy, docs/logging.md in domingoasdez-admin). ecosystem.config.cjs sets json in production.',
+		schema: (value) => {
+			const format = optionalString(value).trim().toLowerCase() || 'text';
+			if (format !== 'text' && format !== 'json') throw new Error('Must be text or json');
+			return format;
+		}
 	}
 });

@@ -42,6 +42,9 @@ import {
 } from '#lib/server/db/schema.ts';
 import { parsePointLatLon } from '#lib/server/game-page.ts';
 import { emblemUrl, goalCountsByGame, resolveScores } from '#lib/server/games.ts';
+import { logger } from '#lib/server/log.ts';
+
+const log = logger.child('score-reports');
 
 const homeTeam = alias(teams, 'home_team');
 const awayTeam = alias(teams, 'away_team');
@@ -444,7 +447,7 @@ export async function ensureUuidKarma(uuid: string | null | undefined): Promise<
 			await db.insert(uuidKarmas).values({ uuid, karma: 0, createdAt: now, updatedAt: now });
 		}
 	} catch (e) {
-		console.error('[score-reports] Error ensuring UUID karma exists', e);
+		log.error('Error ensuring UUID karma exists', e);
 	}
 }
 

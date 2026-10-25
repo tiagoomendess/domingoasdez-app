@@ -12,7 +12,9 @@ module.exports = {
 			autorestart: true,
 			max_memory_restart: '512M',
 			env: {
-				NODE_ENV: 'production'
+				NODE_ENV: 'production',
+				// JSON lines for Grafana Alloy (docs/logging.md in domingoasdez-admin). Set here, it wins over .env.
+				LOG_FORMAT: 'json'
 			}
 		}
 	]

@@ -2,12 +2,15 @@ import { eq } from 'drizzle-orm';
 import sharp from 'sharp';
 import { db } from '#lib/server/db/index.ts';
 import { userProfiles } from '#lib/server/db/schema.ts';
+import { logger } from '#lib/server/log.ts';
 import {
 	USER_AVATARS_FOLDER,
 	deleteFile,
 	storageConfigured,
 	storeFile
 } from '#lib/server/storage.ts';
+
+const log = logger.child('profile-picture');
 
 /** Legacy ImageOptimizer::AVATAR_SIZE / JPEG_QUALITY. */
 const AVATAR_SIZE = 400;
@@ -68,7 +71,7 @@ export async function setProfilePicture(userId: number, input: Uint8Array): Prom
 		deleteOld(await savePicture(userId, url));
 		return { ok: true };
 	} catch (error) {
-		console.error('[profile-picture] upload failed:', error);
+		log.error('upload failed', error);
 		return { ok: false, reason: 'failed' };
 	}
 }
@@ -78,7 +81,7 @@ export async function removeProfilePicture(userId: number): Promise<PictureResul
 		deleteOld(await savePicture(userId, null));
 		return { ok: true };
 	} catch (error) {
-		console.error('[profile-picture] remove failed:', error);
+		log.error('remove failed', error);
 		return { ok: false, reason: 'failed' };
 	}
 }

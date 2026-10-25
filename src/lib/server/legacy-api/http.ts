@@ -11,7 +11,10 @@ import { eq } from 'drizzle-orm';
 import { db } from '#lib/server/db/index.ts';
 import { variables } from '#lib/server/db/schema.ts';
 import { addAudit } from '#lib/server/audit.ts';
+import { logger } from '#lib/server/log.ts';
 import { phpJsonString, strLimit } from './php.ts';
+
+const log = logger.child('legacy-api');
 
 export function legacyJson(body: unknown, status = 200): Response {
 	return Response.json(body, { status });
@@ -94,7 +97,7 @@ export function legacyApi(handler: RequestHandler): RequestHandler {
 			if (isHttpError(e)) {
 				res = legacyJson({ message: e.body.message }, e.status);
 			} else {
-				console.error(`[legacy-api] ${event.request.method} ${event.url.pathname}`, e);
+				log.error(`${event.request.method} ${event.url.pathname} failed`, e);
 				res = legacyJson({ message: 'Server Error' }, 500);
 			}
 		}
@@ -167,7 +170,7 @@ export async function requireAccessToken(event: RequestEvent): Promise<Response 
 	}
 
 	if (token !== (await expectedToken())) {
-		console.error('[legacy-api] Authentication via api access token failed');
+		log.error('Authentication via api access token failed');
 		await auditFailedLogin(event, token);
 		return legacyJson({ success: false, message: 'Invalid access token, access denied' }, 401);
 	}

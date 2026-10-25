@@ -20,7 +20,10 @@ import {
 	users
 } from '#lib/server/db/schema.ts';
 import { naiveToIso } from '#lib/server/dates.ts';
+import { logger } from '#lib/server/log.ts';
 import { mediaUrl } from '#lib/server/media.ts';
+
+const log = logger.child('article-comments');
 
 /** Legacy delete rule: `has_permission('admin')`, or the comment's own author. */
 async function isAdmin(userId: number) {
@@ -116,7 +119,7 @@ export async function postArticleComment(input: {
 		.orderBy(desc(articleComments.id))
 		.limit(1);
 	if (commentCooldownLeft(last?.createdAt ? naiveToIso(last.createdAt) : null) > 0) {
-		console.info(`[article-comments] user ${input.userId} tried to comment too fast`);
+		log.info(`user ${input.userId} tried to comment too fast`);
 		return { ok: false, error: 'too_fast' };
 	}
 
@@ -150,7 +153,7 @@ export async function postArticleComment(input: {
 		updatedAt: now
 	});
 
-	console.info(`[article-comments] user ${input.userId} commented on article ${input.articleId}`);
+	log.info(`user ${input.userId} commented on article ${input.articleId}`);
 	return { ok: true, id: Number(inserted[0].insertId) };
 }
 
@@ -176,9 +179,7 @@ export async function deleteArticleComment(input: {
 	if (!comment) return { ok: false, error: 'not_found' };
 
 	if (comment.userId !== input.userId && !(await isAdmin(input.userId))) {
-		console.info(
-			`[article-comments] user ${input.userId} tried to delete comment ${input.commentId} without permission`
-		);
+		log.info(`user ${input.userId} tried to delete comment ${input.commentId} without permission`);
 		return { ok: false, error: 'forbidden' };
 	}
 
@@ -187,7 +188,7 @@ export async function deleteArticleComment(input: {
 		.set({ deleted: true, updatedAt: new Date() })
 		.where(eq(articleComments.id, comment.id));
 
-	console.info(`[article-comments] user ${input.userId} deleted comment ${input.commentId}`);
+	log.info(`user ${input.userId} deleted comment ${input.commentId}`);
 	return { ok: true };
 }
 
@@ -244,8 +245,6 @@ export async function voteArticleComment(input: {
 		.from(articleCommentVotes)
 		.where(eq(articleCommentVotes.articleCommentId, comment.id));
 
-	console.info(
-		`[article-comments] user ${input.userId} voted ${input.value} on comment ${comment.id}`
-	);
+	log.info(`user ${input.userId} voted ${input.value} on comment ${comment.id}`);
 	return { ok: true, score: total?.score ?? 0, myVote: input.value };
 }

@@ -26,12 +26,15 @@ import { goalCountsByGame, resolveScores } from '#lib/server/games.ts';
 import { legacyDisplayName, legacyDisplayPicture } from '#lib/server/legacy-api/competitions.ts';
 import { legacyEmblem } from '#lib/server/legacy-api/games.ts';
 import { isDraw } from '#lib/server/legacy-api/live.ts';
+import { logger } from '#lib/server/log.ts';
 import { mediaUrl } from '#lib/server/media.ts';
 import { registerFonts } from './draw.ts';
 import blackFontUrl from './fonts/Roboto-Black.ttf';
 import regularFontUrl from './fonts/Roboto-Regular.ttf';
 import { backgroundPath, matchImageFileName, placeholderPath } from './paths.ts';
 import { matchDateLine, renderMatchImage, type MatchImageFormat } from './render.ts';
+
+const log = logger.child('match-image');
 
 export type { MatchImageFormat };
 
@@ -108,7 +111,7 @@ async function loadOr(event: RequestEvent, path: string | null, fallback: string
 		try {
 			return await loadBytes(event, path);
 		} catch (e) {
-			console.error('[match-image] Could not load', path, e);
+			log.error('could not load', { path }, e);
 		}
 	}
 	return fallback ? loadBytes(event, fallback) : null;

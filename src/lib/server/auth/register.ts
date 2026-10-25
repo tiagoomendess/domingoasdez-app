@@ -6,6 +6,9 @@ import { hashPassword } from '#lib/server/auth/password.ts';
 import { captchaSecret, captchaSiteKey, verifyRecaptcha } from '#lib/server/captcha.ts';
 import { buildVerifyUrl, sendVerificationEmail } from '#lib/server/mail.ts';
 import { m } from '#lib/messages.ts';
+import { logger } from '#lib/server/log.ts';
+
+const log = logger.child('register');
 
 export type RegisterErrors = {
 	name?: string;
@@ -196,7 +199,7 @@ export async function registerAccount(input: RegisterAccountInput): Promise<Regi
 			return { ok: false, errors: { email: m.register_error_email_taken() } };
 		}
 
-		console.error('registerAccount failed', err);
+		log.error('registerAccount failed', err);
 		return { ok: false, errors: { form: m.register_error_form() } };
 	}
 }

@@ -18,6 +18,9 @@ import { db } from '#lib/server/db/index.ts';
 import { gameGroups, gamePredictions, games, groupRules } from '#lib/server/db/schema.ts';
 import { naiveToIso } from '#lib/server/dates.ts';
 import type { ResolvedGame } from '#lib/server/game-page.ts';
+import { logger } from '#lib/server/log.ts';
+
+const log = logger.child('predictions');
 
 export type GamePredictions = {
 	kind: GameKind;
@@ -130,7 +133,7 @@ export async function savePrediction(input: {
 	if (!game || !game.visible) return { ok: false, error: 'not_found' };
 	const phase = windowOf(game, now);
 	if (phase !== 'open') {
-		console.info(`[predictions] user ${input.userId} tried to predict ${phase} game ${game.id}`);
+		log.info(`user ${input.userId} tried to predict ${phase} game ${game.id}`);
 		return { ok: false, error: phase === 'early' ? 'not_open' : 'closed' };
 	}
 
@@ -156,8 +159,8 @@ export async function savePrediction(input: {
 			set: { goalsHome: home, goalsAway: away, penaltyWinner, updatedAt: now }
 		});
 
-	console.info(
-		`[predictions] user ${input.userId} predicted ${home}-${away}${penaltyWinner ? ` (${penaltyWinner} on penalties)` : ''} for game ${game.id}`
+	log.info(
+		`user ${input.userId} predicted ${home}-${away}${penaltyWinner ? ` (${penaltyWinner} on penalties)` : ''} for game ${game.id}`
 	);
 	return { ok: true };
 }

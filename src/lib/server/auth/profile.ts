@@ -4,6 +4,9 @@ import { userProfiles, users } from '#lib/server/db/schema.ts';
 import { hashPassword, verifyPassword } from '#lib/server/auth/password.ts';
 import { sendPasswordChangedEmail } from '#lib/server/mail.ts';
 import { m } from '#lib/messages.ts';
+import { logger } from '#lib/server/log.ts';
+
+const log = logger.child('profile');
 
 export type ProfileDetails = {
 	name: string;
@@ -170,7 +173,7 @@ export async function updateProfile(
 
 		return { ok: true };
 	} catch (err) {
-		console.error('updateProfile failed', err);
+		log.error('updateProfile failed', err);
 		return { ok: false, errors: { form: m.profile_error_form() } };
 	}
 }
@@ -239,12 +242,12 @@ export async function changePassword(
 				email: row.email
 			});
 		} catch (mailErr) {
-			console.error('password changed email failed', mailErr);
+			log.error('password changed email failed', mailErr);
 		}
 
 		return { ok: true };
 	} catch (err) {
-		console.error('changePassword failed', err);
+		log.error('changePassword failed', err);
 		return { ok: false, errors: { form: m.password_change_error_form() } };
 	}
 }
