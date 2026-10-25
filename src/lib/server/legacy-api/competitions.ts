@@ -19,6 +19,11 @@ export function legacyDisplayName(seasonName: string | null, competitionName: st
 	return filled(seasonName) ? seasonName : competitionName;
 }
 
+/** Ports Season::getName: `2026/2027`, or the number `2026` when both years are the same. */
+export function legacySeasonName(startYear: number, endYear: number): string | number {
+	return startYear !== endYear ? `${startYear}/${endYear}` : startYear;
+}
+
 /** Ports Season::getDisplayPicture: the raw stored path, no media prefix. */
 export function legacyDisplayPicture(
 	seasonPicture: string | null,
