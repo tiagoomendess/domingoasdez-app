@@ -6,6 +6,7 @@
 	import Comments from '#lib/components/comments/Comments.svelte';
 	import DirectionsSheet from '#lib/components/games/DirectionsSheet.svelte';
 	import GamePrediction from '#lib/components/games/GamePrediction.svelte';
+	import GameImageDownload from '#lib/components/games/GameImageDownload.svelte';
 	import GameScoreboard from '#lib/components/games/GameScoreboard.svelte';
 	import GoalList from '#lib/components/games/GoalList.svelte';
 	import HeadToHead from '#lib/components/games/HeadToHead.svelte';
@@ -262,6 +263,11 @@
 			emptyText={m.match_comments_empty_text()}
 		/>
 	{/key}
+
+	<!-- Square and story images of the game, as on the legacy page: signed-in users only. -->
+	{#if user}
+		<GameImageDownload gameId={data.id} />
+	{/if}
 
 	{#if hasAdminLinks}
 		<ListGroup title={m.game_admin()} headingLevel={2}>

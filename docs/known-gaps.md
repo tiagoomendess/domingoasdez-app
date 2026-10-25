@@ -6,15 +6,14 @@ Each item's page doc has more detail where relevant.
 
 ## Legacy features not ported
 
-| Legacy route                                                    | What it did                                             | Now                                                         |
-| --------------------------------------------------------------- | ------------------------------------------------------- | ----------------------------------------------------------- |
-| `/arbitros/{id}/{slug}`                                         | Referee page                                            | No route. Game pages link here, so those links 404.         |
-| `/password/reset`, `/password/email` (Laravel `Auth::routes()`) | Forgot password                                         | No way to reset a password.                                 |
-| `/utilizador/perfil/download`                                   | Download my data (RGPD)                                 | Missing.                                                    |
-| `/perfil/apagar` (+ `/verificar`, `/cancelar`)                  | Delete account, with the request / verify / cancel flow | Missing.                                                    |
-| `POST /rgpd`                                                    | Save RGPD settings                                      | `/rgpd` is a static page with no settings.                  |
-| `/scores`                                                       | Scores aggregator                                       | Missing.                                                    |
-| `POST /game/{game}/generate_image`                              | Match image generator                                   | Missing. Check whether it belongs in the admin app instead. |
+| Legacy route                                                    | What it did                                             | Now                                                 |
+| --------------------------------------------------------------- | ------------------------------------------------------- | --------------------------------------------------- |
+| `/arbitros/{id}/{slug}`                                         | Referee page                                            | No route. Game pages link here, so those links 404. |
+| `/password/reset`, `/password/email` (Laravel `Auth::routes()`) | Forgot password                                         | No way to reset a password.                         |
+| `/utilizador/perfil/download`                                   | Download my data (RGPD)                                 | Missing.                                            |
+| `/perfil/apagar` (+ `/verificar`, `/cancelar`)                  | Delete account, with the request / verify / cancel flow | Missing.                                            |
+| `POST /rgpd`                                                    | Save RGPD settings                                      | `/rgpd` is a static page with no settings.          |
+| `/scores`                                                       | Scores aggregator                                       | Missing.                                            |
 
 Admin-only legacy pages on the public site (`/hoje/edit`, `/jogos/{game}/resultados-enviados`, marking score reports as fake) are now the admin app's job, and public pages link there.
 

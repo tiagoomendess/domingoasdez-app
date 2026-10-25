@@ -739,5 +739,13 @@
 				"countPlural=other": "There are {count} more games at this ground."
 			}
 		}
-	]
+	],
+
+	"game_image_title": "Game image",
+	"game_image_square": "Square",
+	"game_image_square_hint": "1:1, for posts",
+	"game_image_story": "Story",
+	"game_image_story_hint": "9:16, for stories",
+	"game_image_generating": "Generating the image…",
+	"game_image_error": "Couldn't generate the image. Try again."
 }

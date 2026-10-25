@@ -120,7 +120,10 @@ function loadTodayRows(day: string) {
 }
 
 /** Game::isDraw: the stored goals when both are set, else the goal rows. */
-function isDraw(row: LiveRow, counts: Map<number, Map<number, number>>): boolean {
+export function isDraw(
+	row: Pick<LiveRow, 'id' | 'goalsHome' | 'goalsAway' | 'homeTeamId' | 'awayTeamId'>,
+	counts: Map<number, Map<number, number>>
+): boolean {
 	if (row.goalsHome != null && row.goalsAway != null) return row.goalsHome === row.goalsAway;
 	const byTeam = counts.get(row.id);
 	return (byTeam?.get(row.homeTeamId) ?? 0) === (byTeam?.get(row.awayTeamId) ?? 0);

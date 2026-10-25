@@ -9,7 +9,8 @@ import { randomBytes } from 'node:crypto';
 import { isHttpError, type RequestEvent, type RequestHandler } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { db } from '#lib/server/db/index.ts';
-import { audit, variables } from '#lib/server/db/schema.ts';
+import { variables } from '#lib/server/db/schema.ts';
+import { addAudit } from '#lib/server/audit.ts';
 import { phpJsonString, strLimit } from './php.ts';
 
 export function legacyJson(body: unknown, status = 200): Response {
@@ -148,30 +149,14 @@ export function auditTokenValue(token: string): string | null {
 	}
 }
 
-async function auditFailedLogin(event: RequestEvent, token: string) {
-	try {
-		const now = new Date();
-		const { request, cookies } = event;
-		await db.insert(audit).values({
-			userId: null,
-			action: 'login_failed',
-			model: 'Variable',
-			modelId: null,
-			// Audit::add json-encoded the null old value into the string "null".
-			oldValues: 'null',
-			newValues: auditTokenValue(token),
-			ipAddress: strLimit(clientIp(event), 45, ''),
-			ipCountry: strLimit(request.headers.get('cf-ipcountry') ?? 'Unknown', 45, ''),
-			userAgent: strLimit(request.headers.get('user-agent') ?? '', 255, ''),
-			timezone: cookies.get('timezone') ? strLimit(cookies.get('timezone')!, 30, '') : null,
-			language: cookies.get('lang') ? strLimit(cookies.get('lang')!, 30, '') : null,
-			extraInfo: null,
-			createdAt: now,
-			updatedAt: now
-		});
-	} catch (e) {
-		console.error('[legacy-api] Error adding audit', e);
-	}
+function auditFailedLogin(event: RequestEvent, token: string) {
+	return addAudit(event, {
+		action: 'login_failed',
+		model: 'Variable',
+		// Audit::add json-encoded the null old value into the string "null".
+		oldValues: 'null',
+		newValues: auditTokenValue(token)
+	});
 }
 
 /** Null when the request carries the API access token, otherwise the 401 to return. */

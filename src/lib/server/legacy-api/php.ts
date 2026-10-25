@@ -65,7 +65,7 @@ export function strLimit(value: string, limit: number, end = '...'): string {
 export function phpJsonString(value: string): string {
 	return JSON.stringify(value)
 		.replace(/\//g, '\\/')
-		.replace(/[\u0080-￿]/g, (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`);
+		.replace(/[\u0080-\uffff]/g, (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`);
 }
 
 /**

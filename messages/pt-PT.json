@@ -739,5 +739,13 @@
 				"countPlural=other": "Existem mais {count} jogos neste campo."
 			}
 		}
-	]
+	],
+
+	"game_image_title": "Imagem do jogo",
+	"game_image_square": "Quadrada",
+	"game_image_square_hint": "1:1, para publicações",
+	"game_image_story": "Story",
+	"game_image_story_hint": "9:16, para stories",
+	"game_image_generating": "A gerar a imagem…",
+	"game_image_error": "Não foi possível gerar a imagem. Tenta outra vez."
 }

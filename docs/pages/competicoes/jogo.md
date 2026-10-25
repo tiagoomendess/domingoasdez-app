@@ -17,6 +17,7 @@ The detail page of one game. Ports `GamesController@show` and `MvpVotesControlle
 - Referees.
 - **HeadToHead**: stats and past games between the two teams.
 - **Comments** (`#comentarios`): the article comments, plus up/down votes and a sort control (see below).
+- **Imagem do jogo**: signed-in users download the game as a square (900×900) or story (1080×1920) JPEG, for social media (see below).
 - Admin links to the admin app, by permission: edit game (`games.edit`), add goals (`goals.create`), score reports (`score_update`).
 
 ## How it works
@@ -27,6 +28,7 @@ The detail page of one game. Ports `GamesController@show` and `MvpVotesControlle
 - **MVP winner:** shown once the game is finished and the vote has closed, if there's at least one vote.
 - **Score report link:** from kick-off until 6 h after.
 - **Flash interview link:** shown only when the logged-in user's email matches the home or away team's contact email (falling back to the club's), and a `game_comments` row exists for that team. The link already carries the PIN.
+- **Game image** (`GameImageDownload`, `GET /api/jogos/{id}/imagem?formato=quadrado|story`, `src/lib/server/match-image/`): ports the legacy `MatchImageGeneratorService`. Before the final whistle it promotes the game (date, time and playground); once finished it shows "RESULTADO FINAL", the score and the penalties. Same layout, fonts (Roboto, bundled in `match-image/fonts/`) and libraries as the admin's image jobs: `@napi-rs/canvas` draws and `sharp` decodes, blurs (GD's blur, pass by pass) and encodes. The background is the playground's picture, else a placeholder by the playground's id (or the game's, without a playground). Each download writes a legacy `audit` row (`view`, `MatchImageSquare` / `MatchImageStory`). Guests don't see it and the endpoint answers them 401.
 - **Head to head:** the past meetings of the two teams (visible, finished, before this game's date), newest first, as in the legacy site.
   - The stats bar counts **all** of them, from a light query with no joins. The list rows are loaded a page at a time.
   - Guests see the last 2 and a login prompt with the count of the rest.
@@ -61,6 +63,7 @@ The detail page of one game. Ports `GamesController@show` and `MvpVotesControlle
 
 ## Edge cases and pitfalls
 
+- **Game image fallbacks:** legacy failed with a 500 when an emblem, the competition logo or the playground picture couldn't be read. Here a missing emblem becomes the default emblem, a missing background the game's placeholder, and a missing logo is left out. The audit row stores the game's columns only, where legacy's `toArray()` also had the relations it had loaded.
 - **Referee links are broken.** Referee rows link to `/arbitros/{id}/{slug}`, but that route doesn't exist yet in this app, so they 404.
 - The group slug falls back to the competition's display name when the game has no group name. Single-group competitions have URLs like `/competicoes/2025-26/taca/taca/3/a-vs-b`.
 - The scores come from `games.goals_home/away` when set, otherwise from counting `goals` rows.

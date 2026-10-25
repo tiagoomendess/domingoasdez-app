@@ -52,8 +52,8 @@ const URL_PATTERN = new RegExp(
 	'iu'
 );
 
-const ATEXT = String.raw`[A-Za-z0-9!#$%&'*+/=?^_\x60{|}~\u0080-￿-]`;
-const LABEL = String.raw`[A-Za-z0-9\u0080-￿](?:[A-Za-z0-9\u0080-￿-]*[A-Za-z0-9\u0080-￿])?`;
+const ATEXT = String.raw`[A-Za-z0-9!#$%&'*+/=?^_\x60{|}~\u0080-\uffff-]`;
+const LABEL = String.raw`[A-Za-z0-9\u0080-\uffff](?:[A-Za-z0-9\u0080-\uffff-]*[A-Za-z0-9\u0080-\uffff])?`;
 /** Close to egulias' RFCValidation, which Laravel 5.8's `email` rule uses: no TLD required. */
 const EMAIL_PATTERN = new RegExp(
 	String.raw`^${ATEXT}+(?:\.${ATEXT}+)*@(?:${LABEL}(?:\.${LABEL})*|\[[0-9a-fA-F:.]+\])$`,

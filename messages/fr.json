@@ -739,5 +739,13 @@
 				"countPlural=other": "Il y a encore {count} matchs sur ce terrain."
 			}
 		}
-	]
+	],
+
+	"game_image_title": "Image du match",
+	"game_image_square": "Carrée",
+	"game_image_square_hint": "1:1, pour les publications",
+	"game_image_story": "Story",
+	"game_image_story_hint": "9:16, pour les stories",
+	"game_image_generating": "Création de l'image…",
+	"game_image_error": "Impossible de créer l'image. Réessaie."
 }
