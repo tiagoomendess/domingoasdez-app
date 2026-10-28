@@ -630,6 +630,13 @@ export const placards = mysqlTable('placards', {
 	pairedAt: datetime('paired_at'),
 	lastActionAt: datetime('last_action_at'),
 	lastSeenAt: datetime('last_seen_at'),
+	/** On top of the scene until `overlay_ends_at`: `ad` for now (see `PlacardOverlay`). */
+	overlayType: varchar('overlay_type', { length: 20 }),
+	overlayPayload: json('overlay_payload'),
+	overlayStartedAt: datetime('overlay_started_at', { fsp: 3 }),
+	overlayEndsAt: datetime('overlay_ends_at', { fsp: 3 }),
+	lastAdAt: datetime('last_ad_at', { fsp: 3 }),
+	nextAdId: int('next_ad_id', { unsigned: true }),
 	createdAt: timestamp('created_at'),
 	updatedAt: timestamp('updated_at')
 });
@@ -643,4 +650,26 @@ export const placardEvents = mysqlTable('placard_events', {
 	type: varchar('type', { length: 30 }).notNull(),
 	payload: json('payload'),
 	createdAt: timestamp('created_at')
+});
+
+/** A club's stadium screen look (admin migration 0007): colours `#rrggbb` and a 16:9 image. */
+export const clubPlacardSettings = mysqlTable('club_placard_settings', {
+	id: int('id', { unsigned: true }).primaryKey().autoincrement(),
+	clubId: int('club_id', { unsigned: true }).notNull().unique(),
+	textColor: char('text_color', { length: 7 }),
+	backgroundColor: char('background_color', { length: 7 }),
+	backgroundImage: varchar('background_image', { length: 255 }),
+	createdAt: timestamp('created_at'),
+	updatedAt: timestamp('updated_at')
+});
+
+/** A club's ad spots on its stadium screen, at most 5, in `position` order. */
+export const clubPlacardAds = mysqlTable('club_placard_ads', {
+	id: int('id', { unsigned: true }).primaryKey().autoincrement(),
+	clubId: int('club_id', { unsigned: true }).notNull(),
+	image: varchar('image', { length: 255 }).notNull(),
+	durationSeconds: tinyint('duration_seconds', { unsigned: true }).notNull().default(10),
+	position: tinyint('position', { unsigned: true }).notNull().default(0),
+	createdAt: timestamp('created_at'),
+	updatedAt: timestamp('updated_at')
 });

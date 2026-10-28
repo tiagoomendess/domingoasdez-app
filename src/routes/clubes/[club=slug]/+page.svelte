@@ -28,7 +28,7 @@
 		data.teams.map((team) => ({ value: String(team.id), label: team.name }))
 	);
 
-	const showAdmin = $derived(!!(data.editClubHref || activeTeam?.editHref));
+	const showAdmin = $derived(!!(data.editClubHref || data.placardHref || activeTeam?.editHref));
 
 	function agentTypeLabel(type: string): string {
 		switch (type) {
@@ -196,6 +196,9 @@
 		<ListGroup title={m.club_admin()}>
 			{#if data.editClubHref}
 				<ListRow title={m.club_admin_edit_club()} href={data.editClubHref} />
+			{/if}
+			{#if data.placardHref}
+				<ListRow title={m.club_admin_placard()} href={data.placardHref} />
 			{/if}
 			{#if activeTeam?.editHref}
 				<ListRow

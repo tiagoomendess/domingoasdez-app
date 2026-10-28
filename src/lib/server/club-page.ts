@@ -34,6 +34,8 @@ export type ResolvedClub = {
 	id: number;
 	name: string;
 	emblem: string | null;
+	/** `clubs.admin_user_id`: may set up the club's stadium screen. */
+	adminUserId: number | null;
 };
 
 export type ClubAgentView = {
@@ -77,6 +79,8 @@ export type ClubPageData = {
 	teams: ClubTeamView[];
 	transfers: ClubTransferView[];
 	editClubHref: string | null;
+	/** The stadium screen setup, for the club's admin and `admin` users. */
+	placardHref: string | null;
 	seo: {
 		title: string;
 		description: string;
@@ -92,6 +96,7 @@ export async function findClubBySlug(slug: string): Promise<ResolvedClub | null>
 			id: clubs.id,
 			name: clubs.name,
 			emblem: clubs.emblem,
+			adminUserId: clubs.adminUserId,
 			visible: clubs.visible
 		})
 		.from(clubs)
@@ -100,7 +105,7 @@ export async function findClubBySlug(slug: string): Promise<ResolvedClub | null>
 	for (const row of rows) {
 		if (slugify(row.name) !== slug) continue;
 		if (!row.visible) return null;
-		return { id: row.id, name: row.name, emblem: row.emblem };
+		return { id: row.id, name: row.name, emblem: row.emblem, adminUserId: row.adminUserId };
 	}
 
 	return null;
@@ -337,6 +342,10 @@ export async function loadClubPage(
 		editClubHref: hasPermission(perms, `clubs.edit.${club.id}`)
 			? adminUrl(`/clubs/${club.id}`)
 			: null,
+		placardHref:
+			user && (club.adminUserId === user.id || hasPermission(perms, 'admin'))
+				? `/clubes/${slugify(club.name)}/placard`
+				: null,
 		seo: {
 			title: club.name,
 			description: '',

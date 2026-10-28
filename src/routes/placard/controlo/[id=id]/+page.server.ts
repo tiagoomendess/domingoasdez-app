@@ -12,5 +12,5 @@ export const load: PageServerLoad = async ({ params, locals, url, setHeaders }) 
 	const canControl = await placardControlCheck(locals.user.id);
 	if (!found || !canControl(found)) error(404, 'Screen not found');
 	const row = await releaseIfStale(found);
-	return { initial: await publicState(row, { origin: url.origin }) };
+	return { initial: await publicState(row, { origin: url.origin, forController: true }) };
 };

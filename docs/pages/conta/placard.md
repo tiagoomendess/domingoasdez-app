@@ -4,7 +4,7 @@
 - **Tab:** none. The page is bare, with no AppShell (`bare` in `src/routes/+layout.svelte`).
 - **Files:**
   - Route: `src/routes/placard/`
-  - Components: `src/lib/components/placard/` (`scenes.ts`, `PairingScene`, `MatchScene`)
+  - Components: `src/lib/components/placard/` (`PlacardFrame`, `scenes.ts`, `PairingScene`, `MatchScene`, `overlays.ts`, `AdOverlay`)
   - Client: `src/lib/placard-poll.svelte.ts`
   - Shared logic: `src/lib/placard.ts`
   - Server: `src/lib/server/placard/`
@@ -41,8 +41,20 @@ The screen a club puts on a TV at the stadium. It shows a QR code until a phone 
   - Stored in server time: `clock_elapsed_ms`, plus the time since `clock_running_since` while it runs.
   - The page estimates the offset between its own clock and the server's from `serverNow` and half the round trip, and draws every frame in server time.
   - The old screen used the phone's clock against the TV's, so the two drifted, or froze when the TV was behind.
-- **Scenes** come from a registry (`placardScenes` in `scenes.ts`). An ad break or a message later is one component plus one entry in `PLACARD_SCENES`.
-- **Theme.** The colours are CSS variables (`--placard-bg/-fg/-muted/-accent`) set from `state.theme`. `resolvePlacardTheme(homeClubId)` returns the default for now. Per-club looks will plug in there, keyed by the game's home club.
+- **Scenes and overlays.** Two layers, each from a registry:
+  - The **scene** is what the screen shows underneath: `pairing` or `match` (`placardScenes` in `scenes.ts`).
+  - An **overlay** shows on top of the match for a while, then disappears on its own (`placardOverlays` in `overlays.ts`). The only one so far is `ad`.
+  - The match keeps running underneath an overlay; the clock doesn't stop.
+  - Overlays are stored on the screen row as `overlay_type`, `overlay_payload`, `overlay_started_at` and `overlay_ends_at`. The server stops sending an overlay once it has ended, and the TV hides it by its own clock, even between polls.
+  - Substitutions or messages: add a member to `PlacardOverlay`, a case in `currentOverlay()` (`store.ts`), a component in `overlays.ts`, and a server action.
+- **Ad break** (`AdOverlay`):
+  - The image is drawn as large as fits (`object-fit: contain`), centred both ways, over the theme's background colour. An ad with the screen's shape fills it.
+  - A thin bar in the accent colour at the bottom runs out until the ad ends.
+- **Theme** (`PlacardFrame`): the home club's look from [its setup page](../competicoes/clube-placard.md).
+  - Text colour, background colour, and a 16:9 background image drawn with `background-size: cover`, so it's upscaled if needed and never letterboxed.
+  - Secondary text is the text colour faded; the accent is the text colour.
+  - Over an image, text gets a soft shadow.
+  - Without a game, or when the club has no setup, the default dark look is used.
 - **Wake lock.** The page asks for a screen wake lock, again whenever the tab becomes visible, and again on the fullscreen tap (a user gesture).
 - **Auto-release.** There's no cron, so each poll releases a screen back to pairing when:
   - its game is gone, or

@@ -8,18 +8,23 @@
 import { and, desc, eq, sql } from 'drizzle-orm';
 import { renderSVG } from 'uqr';
 import {
+	adAvailableAt,
 	applyAction,
 	initialClock,
 	MAX_SCORE,
+	nextAdAfter,
 	PLACARD_PERIODS,
-	type PlacardMatchAction,
+	type PlacardAction,
 	type PlacardMatchState,
+	type PlacardOverlay,
 	type PlacardPeriod,
 	type PlacardPublicState
 } from '#lib/placard.ts';
 import { db } from '#lib/server/db/index.ts';
 import { placardEvents, placards } from '#lib/server/db/schema.ts';
 import { goalCountsByGame, resolveScores } from '#lib/server/games.ts';
+import { mediaUrl } from '#lib/server/media.ts';
+import { clubAdRows, clubAdSpots } from './club-setup.ts';
 import type { PlacardRow } from './device.ts';
 import { placardGame, type PlacardGame } from './games.ts';
 import { pushPlacardScore, type ScorePushResult } from './score-push.ts';
@@ -58,6 +63,16 @@ function matchColumns(state: PlacardMatchState) {
 	};
 }
 
+/** No overlay, no ad history: a screen starting on a game, or leaving it. */
+const NO_OVERLAY = {
+	overlayType: null,
+	overlayPayload: null,
+	overlayStartedAt: null,
+	overlayEndsAt: null,
+	lastAdAt: null,
+	nextAdId: null
+} as const;
+
 /** Everything a released screen loses; the code is cleared so the TV draws a new one. */
 const RELEASED = {
 	scene: 'pairing',
@@ -66,8 +81,33 @@ const RELEASED = {
 	gameId: null,
 	controllerUserId: null,
 	pairedAt: null,
+	...NO_OVERLAY,
 	...matchColumns({ homeScore: 0, awayScore: 0, clock: initialClock() })
 } as const;
+
+/**
+ * The overlay a screen shows at `now`, or null once it's over. Rows keep an expired overlay
+ * (nothing clears it); it's simply ignored. Each overlay type reads its own payload here.
+ */
+export function currentOverlay(row: PlacardRow, now: Date): PlacardOverlay | null {
+	if (!row.overlayType || !row.overlayStartedAt || !row.overlayEndsAt) return null;
+	if (row.overlayEndsAt.getTime() <= now.getTime()) return null;
+	const startedAt = row.overlayStartedAt.getTime();
+	const endsAt = row.overlayEndsAt.getTime();
+	const payload = (row.overlayPayload ?? {}) as Record<string, unknown>;
+	switch (row.overlayType) {
+		case 'ad':
+			if (typeof payload.adId !== 'number' || typeof payload.image !== 'string') return null;
+			return {
+				type: 'ad',
+				startedAt,
+				endsAt,
+				ad: { id: payload.adId, image: mediaUrl(payload.image) ?? '' }
+			};
+		default:
+			return null;
+	}
+}
 
 async function logEvent(
 	tx: Tx | typeof db,
@@ -100,10 +140,13 @@ export async function findPlacard(id: number): Promise<PlacardRow | null> {
 	return row ?? null;
 }
 
-/** The screen as the TV and the controller see it. `origin` builds the pairing link. */
+/**
+ * The screen as the TV and the controller see it. `origin` builds the pairing link; `withQr` is
+ * for the TV, `forController` adds what the controller's buttons need (the home club's ads).
+ */
 export async function publicState(
 	row: PlacardRow,
-	options: { origin: string; withQr?: boolean; now?: Date }
+	options: { origin: string; withQr?: boolean; forController?: boolean; now?: Date }
 ): Promise<PlacardPublicState> {
 	const now = options.now ?? new Date();
 	const game = row.scene === 'match' && row.gameId ? await placardGame(row.gameId, now) : null;
@@ -117,6 +160,16 @@ export async function publicState(
 			expiresAt: row.pairingCodeExpiresAt.getTime(),
 			url,
 			qrSvg: options.withQr ? renderSVG(url, { border: 1 }) : ''
+		};
+	}
+
+	let controls: PlacardPublicState['controls'] = null;
+	if (options.forController && game) {
+		const ads = await clubAdSpots(game.homeClubId);
+		controls = {
+			ads,
+			nextAdId: (ads.find((ad) => ad.id === row.nextAdId) ?? ads[0])?.id ?? null,
+			adAvailableAt: adAvailableAt(row.lastAdAt?.getTime() ?? null)
 		};
 	}
 
@@ -138,7 +191,9 @@ export async function publicState(
 					scoreboardUpdates: game.scoreboardUpdates
 				}
 			: null,
-		theme
+		overlay: game ? currentOverlay(row, now) : null,
+		theme,
+		controls
 	};
 }
 
@@ -213,6 +268,7 @@ export async function pairPlacard(input: {
 					awayScore: Math.min(MAX_SCORE, score.awayScore),
 					clock: initialClock()
 				}),
+				...NO_OVERLAY,
 				pairedAt: now,
 				lastActionAt: now,
 				version: sql`${placards.version} + 1`,
@@ -234,7 +290,49 @@ export async function pairPlacard(input: {
 
 export type ActionResult =
 	| { ok: true; row: PlacardRow; scorePush: ScorePushResult | null }
-	| { ok: false; reason: 'not_found' | 'forbidden' | 'not_paired' };
+	| {
+			ok: false;
+			reason: 'not_found' | 'forbidden' | 'not_paired' | 'ad_not_found' | 'ad_cooldown' | 'busy';
+	  };
+
+/**
+ * Starts an ad break with `adId`, one of the home club's ads, unless one started less than 2
+ * minutes ago or another overlay is still on. The ad after it (in position order) becomes the
+ * preselected one, so the controller can just press again next time.
+ */
+async function startAdBreak(tx: Tx, row: PlacardRow, adId: number, userId: number, now: Date) {
+	const game = row.gameId ? await placardGame(row.gameId, now) : null;
+	const ads = game ? await clubAdRows(game.homeClubId) : [];
+	const ad = ads.find((spot) => spot.id === adId);
+	if (!ad) return 'ad_not_found' as const;
+	if (now.getTime() < adAvailableAt(row.lastAdAt?.getTime() ?? null)) return 'ad_cooldown' as const;
+	if (currentOverlay(row, now)) return 'busy' as const;
+
+	await tx
+		.update(placards)
+		.set({
+			overlayType: 'ad',
+			// The stored path, not a URL: the media origin (or CDN) is added when it's read.
+			overlayPayload: { adId: ad.id, image: ad.image },
+			overlayStartedAt: now,
+			overlayEndsAt: new Date(now.getTime() + ad.durationSeconds * 1000),
+			lastAdAt: now,
+			nextAdId: nextAdAfter(ads, ad.id)?.id ?? null,
+			lastActionAt: now,
+			version: sql`${placards.version} + 1`,
+			updatedAt: now
+		})
+		.where(eq(placards.id, row.id));
+	await logEvent(tx, {
+		placardId: row.id,
+		gameId: row.gameId,
+		userId,
+		type: 'show_ad',
+		payload: { adId: ad.id, durationSeconds: ad.durationSeconds },
+		now
+	});
+	return 'done' as const;
+}
 
 /**
  * Applies a controller's action. `canControl` is checked again on the locked row, so a screen
@@ -244,7 +342,7 @@ export type ActionResult =
 export async function applyPlacardAction(input: {
 	placardId: number;
 	userId: number;
-	action: PlacardMatchAction | { type: 'end' };
+	action: PlacardAction;
 	canControl: (row: PlacardRow) => boolean;
 	now?: Date;
 }): Promise<ActionResult> {
@@ -261,6 +359,7 @@ export async function applyPlacardAction(input: {
 			await release(tx, row, input.userId, 'end', now);
 			return 'done' as const;
 		}
+		if (action.type === 'show_ad') return startAdBreak(tx, row, action.adId, input.userId, now);
 
 		const next = applyAction(matchState(row), action, now.getTime());
 		await tx

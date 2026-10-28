@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import ArrowsOutIcon from 'phosphor-svelte/lib/ArrowsOutIcon';
+	import PlacardFrame from '#lib/components/placard/PlacardFrame.svelte';
+	import { activeOverlay, placardOverlays } from '#lib/components/placard/overlays.ts';
 	import { placardScenes } from '#lib/components/placard/scenes.ts';
 	import { m } from '#lib/messages.ts';
 	import { PlacardPoll } from '#lib/placard-poll.svelte.ts';
@@ -20,10 +22,10 @@
 	let fullscreen = $state(false);
 
 	const screen = $derived(poll.state);
+	const serverNow = $derived(poll.serverNow(localNow));
 	const scene = $derived(screen ? placardScenes[screen.scene] : null);
-	const sceneProps = $derived(
-		screen && scene ? scene.props(screen, poll.serverNow(localNow)) : null
-	);
+	const sceneProps = $derived(screen && scene ? scene.props(screen, serverNow) : null);
+	const overlay = $derived(activeOverlay(screen?.overlay ?? null, serverNow));
 	const offline = $derived(poll.failures >= 3);
 
 	onMount(() => {
@@ -83,18 +85,20 @@
 	<meta name="robots" content="noindex" />
 </svelte:head>
 
-<main
-	class={['screen', !controlsVisible && 'idle']}
-	style:--placard-bg={screen?.theme.background ?? '#08090b'}
-	style:--placard-fg={screen?.theme.foreground ?? '#f3f5f8'}
-	style:--placard-muted={screen?.theme.muted ?? '#a8b0bd'}
-	style:--placard-accent={screen?.theme.accent ?? '#5cb6ea'}
->
-	{#if scene && sceneProps}
-		<scene.component {...sceneProps} />
-	{:else}
-		<p class="loading" role="status">{m.placard_tv_loading()}</p>
-	{/if}
+<main class={['screen', !controlsVisible && 'idle']}>
+	<PlacardFrame theme={screen?.theme ?? null} class="surface">
+		{#if scene && sceneProps}
+			<scene.component {...sceneProps} />
+		{:else}
+			<p class="loading" role="status">{m.placard_tv_loading()}</p>
+		{/if}
+
+		<!-- On top of the scene while it lasts; the scene (and its clock) keeps running underneath. -->
+		{#if overlay}
+			{@const Overlay = placardOverlays[overlay.type]}
+			<Overlay overlay={overlay as never} now={serverNow} />
+		{/if}
+	</PlacardFrame>
 
 	{#if offline}
 		<p class="offline" role="status">
@@ -118,12 +122,12 @@
 	.screen {
 		position: fixed;
 		inset: 0;
-		container-type: size;
-		overflow: hidden;
-		background: var(--placard-bg);
-		color: var(--placard-fg);
-		font-family: var(--font-sans);
+		background: #08090b;
 		user-select: none;
+	}
+
+	.screen :global(.surface) {
+		height: 100%;
 	}
 
 	.screen.idle {

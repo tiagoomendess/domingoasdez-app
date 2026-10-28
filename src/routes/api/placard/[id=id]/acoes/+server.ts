@@ -31,12 +31,15 @@ export const POST: RequestHandler = async ({ params, request, url, locals, setHe
 		canControl: await placardControlCheck(locals.user.id)
 	});
 	if (!result.ok) {
-		if (result.reason === 'not_paired') error(409, 'The screen is not showing a game');
-		error(404, 'Screen not found');
+		if (result.reason === 'not_found' || result.reason === 'forbidden') {
+			error(404, 'Screen not found');
+		}
+		// Refused for a reason the controller explains (no game, ad cooldown, ad gone, overlay on).
+		return Response.json({ reason: result.reason }, { status: 409 });
 	}
 
 	return Response.json({
-		state: await publicState(result.row, { origin: url.origin }),
+		state: await publicState(result.row, { origin: url.origin, forController: true }),
 		scorePush: result.scorePush
 	});
 };

@@ -43,6 +43,14 @@ The phone side of a stadium screen: the score and clock buttons of the old `reac
   - when `games.scoreboard_updates` is on, it sets `goals_home` / `goals_away`.
   - It pushes the score stored _after_ the transaction, so concurrent taps settle on the latest.
 - **Terminar** releases the screen: back to pairing with a clean state, a new code on the TV, and an `end` event. The game's score on the site is left as it is.
+- **Publicidade** (ad breaks), with the home club's ads from [its setup page](../competicoes/clube-placard.md):
+  - A row of thumbnails with their duration. The ad preselected for the next break is outlined (`controls.nextAdId`); tapping another one picks it instead.
+  - "Mostrar anúncio (N s)" sends `{ type: 'show_ad', adId }`. The server checks the ad belongs to the game's **home** club, that no break started in the last 2 minutes, and that no overlay is still on.
+  - It then sets the overlay, stamps `last_ad_at`, logs a `show_ad` event, and preselects the next ad in position order (wrapping) in `next_ad_id`, so next time a single tap is enough.
+  - Ad breaks are only ever started by hand.
+  - While the ad is on, the button counts down "No ecrã… N s". During the cooldown it's disabled with "Disponível em m:ss". Both are computed from server time.
+  - Refusals come back as 409 with a `reason`: `ad_cooldown`, `busy` or `ad_not_found`, each with its own toast.
+  - A home club without ads gets a short hint instead of the row.
 
 ## Edge cases and pitfalls
 

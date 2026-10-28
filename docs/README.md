@@ -28,18 +28,19 @@ Grouped by the bottom tab that owns them (`tabFromPath` in `src/lib/navigation.s
 
 ### Competições
 
-| Page                                                  | Route                                                                  |
-| ----------------------------------------------------- | ---------------------------------------------------------------------- |
-| [Competições](pages/competicoes/competicoes.md)       | `/competicoes`                                                         |
-| [Competição](pages/competicoes/competicao.md)         | `/competicoes/{season}/{competition}`                                  |
-| [Jogo](pages/competicoes/jogo.md)                     | `/competicoes/{season}/{competition}/{group}/{round}/{home}-vs-{away}` |
-| [Clubes](pages/competicoes/clubes.md)                 | `/clubes`                                                              |
-| [Clube](pages/competicoes/clube.md)                   | `/clubes/{slug}`                                                       |
-| [Jogadores](pages/competicoes/jogadores.md)           | `/jogadores`                                                           |
-| [Jogador](pages/competicoes/jogador.md)               | `/jogadores/{id}/{slug}`                                               |
-| [Técnico](pages/competicoes/tecnico.md)               | `/tecnicos/{id}/{slug}`                                                |
-| [Campo](pages/competicoes/campo.md)                   | `/campos/{id}/{slug}`                                                  |
-| [Transferências](pages/competicoes/transferencias.md) | `/transferencias`                                                      |
+| Page                                                   | Route                                                                  |
+| ------------------------------------------------------ | ---------------------------------------------------------------------- |
+| [Competições](pages/competicoes/competicoes.md)        | `/competicoes`                                                         |
+| [Competição](pages/competicoes/competicao.md)          | `/competicoes/{season}/{competition}`                                  |
+| [Jogo](pages/competicoes/jogo.md)                      | `/competicoes/{season}/{competition}/{group}/{round}/{home}-vs-{away}` |
+| [Clubes](pages/competicoes/clubes.md)                  | `/clubes`                                                              |
+| [Clube](pages/competicoes/clube.md)                    | `/clubes/{slug}`                                                       |
+| [Placard do clube](pages/competicoes/clube-placard.md) | `/clubes/{slug}/placard`                                               |
+| [Jogadores](pages/competicoes/jogadores.md)            | `/jogadores`                                                           |
+| [Jogador](pages/competicoes/jogador.md)                | `/jogadores/{id}/{slug}`                                               |
+| [Técnico](pages/competicoes/tecnico.md)                | `/tecnicos/{id}/{slug}`                                                |
+| [Campo](pages/competicoes/campo.md)                    | `/campos/{id}/{slug}`                                                  |
+| [Transferências](pages/competicoes/transferencias.md)  | `/transferencias`                                                      |
 
 ### Páginas
 

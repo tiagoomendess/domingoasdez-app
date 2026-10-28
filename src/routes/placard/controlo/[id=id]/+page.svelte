@@ -29,6 +29,8 @@
 		type ScorePushResult
 	} from '#lib/placard.ts';
 	import { PlacardPoll } from '#lib/placard-poll.svelte.ts';
+	import { activeOverlay } from '#lib/components/placard/overlays.ts';
+	import MegaphoneIcon from 'phosphor-svelte/lib/MegaphoneIcon';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -91,7 +93,8 @@
 	async function send(action: PlacardAction) {
 		const current = poll.state;
 		if (!current?.match) return;
-		if (action.type !== 'end') {
+		// Match actions are guessed locally; server actions (end, ad break) wait for the answer.
+		if (action.type !== 'end' && action.type !== 'show_ad') {
 			const next = applyAction(current.match, action, poll.serverNow());
 			poll.state = {
 				...current,
@@ -107,7 +110,21 @@
 				body: JSON.stringify(action)
 			});
 			if (!response.ok) {
-				showError(response.status === 429 ? m.placard_error_too_fast() : m.placard_error_action());
+				const reason =
+					response.status === 409
+						? ((await response.json().catch(() => null)) as { reason?: string } | null)?.reason
+						: null;
+				showError(
+					response.status === 429
+						? m.placard_error_too_fast()
+						: reason === 'ad_cooldown'
+							? m.placard_ads_error_cooldown()
+							: reason === 'busy'
+								? m.placard_ads_error_busy()
+								: reason === 'ad_not_found'
+									? m.placard_ads_error_gone()
+									: m.placard_error_action()
+				);
 				await poll.refresh();
 				return;
 			}
@@ -124,6 +141,36 @@
 	}
 
 	const score = (side: PlacardSide, delta: 1 | -1) => send({ type: 'score', side, delta });
+
+	// Ad breaks: the server preselects the next ad in rotation; tapping another one overrides it
+	// until the break starts, then the selection follows the rotation again.
+	let pickedAdId = $state<number | null>(null);
+	let showingAd = $state(false);
+	const ads = $derived(screen?.controls?.ads ?? []);
+	const selectedAd = $derived(
+		ads.find((ad) => ad.id === pickedAdId) ??
+			ads.find((ad) => ad.id === screen?.controls?.nextAdId) ??
+			ads[0] ??
+			null
+	);
+	const serverNow = $derived(poll.serverNow(localNow));
+	const adOnScreen = $derived(activeOverlay(screen?.overlay ?? null, serverNow));
+	const adWaitMs = $derived(Math.max(0, (screen?.controls?.adAvailableAt ?? 0) - serverNow));
+	const adLabel = $derived(
+		adOnScreen
+			? m.placard_ads_showing({ seconds: Math.ceil((adOnScreen.endsAt - serverNow) / 1000) })
+			: adWaitMs > 0
+				? m.placard_ads_wait({ time: formatClock(adWaitMs + 999) })
+				: m.placard_ads_show({ seconds: selectedAd?.durationSeconds ?? 0 })
+	);
+
+	async function showAd() {
+		if (!selectedAd || showingAd) return;
+		showingAd = true;
+		await send({ type: 'show_ad', adId: selectedAd.id });
+		pickedAdId = null;
+		showingAd = false;
+	}
 
 	async function end() {
 		ending = true;
@@ -260,6 +307,55 @@
 			>
 				<FastForwardIcon size={20} weight="fill" />
 			</IconButton>
+		</section>
+
+		<!-- Ad break: pick an ad (the next in rotation is preselected), then show it. -->
+		<section
+			class="rounded-card bg-surface p-4 ring-1 ring-line dark:ring-0"
+			aria-labelledby="ads-title"
+		>
+			<h2 id="ads-title" class="text-headline text-ink">{m.placard_ads_title()}</h2>
+			{#if ads.length === 0}
+				<p class="mt-1 text-footnote text-ink-tertiary">{m.placard_ads_none()}</p>
+			{:else}
+				<div
+					class="mt-3 flex gap-2 overflow-x-auto pb-1"
+					role="group"
+					aria-label={m.placard_ads_pick()}
+				>
+					{#each ads as ad, index (ad.id)}
+						<button
+							type="button"
+							class={[
+								'relative w-24 shrink-0 pressable overflow-hidden rounded-inner bg-black ring-2',
+								ad.id === selectedAd?.id ? 'ring-accent' : 'ring-transparent'
+							]}
+							aria-pressed={ad.id === selectedAd?.id}
+							aria-label={m.placard_ads_spot({ number: index + 1, seconds: ad.durationSeconds })}
+							onclick={() => (pickedAdId = ad.id)}
+						>
+							<img src={ad.image} alt="" class="aspect-video w-full object-contain" />
+							<span
+								class="absolute right-1 bottom-1 rounded-badge bg-black/70 px-1 text-caption text-white tabular-nums"
+							>
+								{ad.durationSeconds}s
+							</span>
+						</button>
+					{/each}
+				</div>
+				<Button
+					class="mt-3"
+					icon={MegaphoneIcon}
+					size="lg"
+					full
+					disabled={!selectedAd || !!adOnScreen || adWaitMs > 0}
+					loading={showingAd}
+					onclick={showAd}
+				>
+					<span class="tabular-nums">{adLabel}</span>
+				</Button>
+				<p class="mt-2 text-footnote text-ink-tertiary">{m.placard_ads_hint()}</p>
+			{/if}
 		</section>
 
 		{#if poll.failures >= 2}

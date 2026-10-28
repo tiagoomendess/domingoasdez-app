@@ -6,7 +6,10 @@
  */
 
 export const PLACARD_SCENES = ['pairing', 'match'] as const;
-/** What the screen shows. New scenes (ad breaks, messages) are added here and in the registry. */
+/**
+ * What the screen shows underneath. Something shown for a while on top of the match (an ad break,
+ * later substitutions and messages) is an overlay instead (`PlacardOverlay`).
+ */
 export type PlacardScene = (typeof PLACARD_SCENES)[number];
 
 export const PLACARD_PERIODS = ['first_half', 'half_time', 'second_half'] as const;
@@ -41,8 +44,14 @@ export type PlacardMatchAction =
 	| { type: 'clock_reset' }
 	| { type: 'half_time' };
 
-/** `end` takes the screen off the game (back to pairing); it's handled by the server. */
-export type PlacardAction = PlacardMatchAction | { type: 'end' };
+/**
+ * Actions the server handles itself, because they need more than the match state: `end` takes
+ * the screen off the game (back to pairing), `show_ad` starts an ad break with one of the home
+ * club's ads. Future overlays (substitution, message) get their action here.
+ */
+export type PlacardServerAction = { type: 'end' } | { type: 'show_ad'; adId: number };
+
+export type PlacardAction = PlacardMatchAction | PlacardServerAction;
 
 export const initialClock = (): PlacardClock => ({
 	elapsedMs: 0,
@@ -127,6 +136,11 @@ export function parseAction(value: unknown): PlacardAction | null {
 				return { type: 'clock_adjust', deltaMs: input.deltaMs };
 			}
 			return null;
+		case 'show_ad':
+			if (typeof input.adId === 'number' && Number.isInteger(input.adId) && input.adId > 0) {
+				return { type: 'show_ad', adId: input.adId };
+			}
+			return null;
 		case 'clock_toggle':
 		case 'clock_reset':
 		case 'half_time':
@@ -140,14 +154,110 @@ export function parseAction(value: unknown): PlacardAction | null {
 /** Team as the screen and the controller show it. */
 export type PlacardTeam = { name: string; emblem: string };
 
-/** Look of a screen. The default for now; later each home club gets its own. */
+/** Look of a screen: the default, or the home club's (`/clubes/{club}/placard`). */
 export type PlacardTheme = {
 	background: string;
+	/** A 16:9 image covering the screen, over `background`; null for none. */
+	backgroundImage: string | null;
 	foreground: string;
 	muted: string;
 	accent: string;
 	showNames: boolean;
 };
+
+// ---------------------------------------------------------------------------------------------
+// Overlays: shown on top of the match for a while, then gone on their own.
+
+/**
+ * An overlay as the screens receive it, only while it lasts (`endsAt` in server ms). Each `type`
+ * has its own fields and its own component in the TV's overlay registry; a substitution or a
+ * message is one more member here.
+ */
+export type PlacardOverlay = {
+	type: 'ad';
+	startedAt: number;
+	endsAt: number;
+	ad: { id: number; image: string };
+};
+
+export type PlacardOverlayType = PlacardOverlay['type'];
+
+/** Ad spots per club. */
+export const MAX_ADS = 5;
+export const AD_MIN_SECONDS = 1;
+export const AD_MAX_SECONDS = 15;
+export const AD_DEFAULT_SECONDS = 10;
+/** One ad break per screen every 2 minutes, counted from the start of the previous one. */
+export const AD_COOLDOWN_MS = 2 * MINUTE_MS;
+/** Ads are stored as uploaded (GIFs stay animated), so they're capped instead of compressed. */
+export const AD_MAX_BYTES = 1024 * 1024;
+
+export const isAdDuration = (value: number) =>
+	Number.isInteger(value) && value >= AD_MIN_SECONDS && value <= AD_MAX_SECONDS;
+
+/** The ad after `id` in position order, wrapping around; the first one when `id` isn't there. */
+export function nextAdAfter<Ad extends { id: number }>(
+	ads: readonly Ad[],
+	id: number | null
+): Ad | null {
+	if (ads.length === 0) return null;
+	const index = ads.findIndex((ad) => ad.id === id);
+	return ads[(index + 1) % ads.length] ?? ads[0];
+}
+
+/** When the next ad break may start (server ms). */
+export const adAvailableAt = (lastAdAt: number | null) =>
+	lastAdAt === null ? 0 : lastAdAt + AD_COOLDOWN_MS;
+
+/** An ad spot as the controller lists it. */
+export type PlacardAdSpot = { id: number; image: string; durationSeconds: number };
+
+/** Ad image formats, told by their first bytes (not by the name or the browser's type). */
+const IMAGE_SIGNATURES: { type: string; extension: string; test: (b: Uint8Array) => boolean }[] = [
+	{
+		type: 'image/png',
+		extension: 'png',
+		test: (b) => b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47
+	},
+	{
+		type: 'image/jpeg',
+		extension: 'jpg',
+		test: (b) => b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff
+	},
+	{
+		type: 'image/gif',
+		extension: 'gif',
+		test: (b) => b[0] === 0x47 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x38
+	},
+	{
+		type: 'image/webp',
+		extension: 'webp',
+		test: (b) =>
+			b[0] === 0x52 &&
+			b[1] === 0x49 &&
+			b[2] === 0x46 &&
+			b[3] === 0x46 &&
+			b[8] === 0x57 &&
+			b[9] === 0x45 &&
+			b[10] === 0x42 &&
+			b[11] === 0x50
+	}
+];
+
+export function sniffImage(bytes: Uint8Array): { type: string; extension: string } | null {
+	if (bytes.length < 12) return null;
+	const match = IMAGE_SIGNATURES.find((signature) => signature.test(bytes));
+	return match ? { type: match.type, extension: match.extension } : null;
+}
+
+const HEX_COLOR = /^#[0-9a-f]{6}$/i;
+
+/** A `#rrggbb` colour from a form, lower-cased; null when empty or invalid. */
+export function parseHexColor(value: unknown): string | null {
+	return typeof value === 'string' && HEX_COLOR.test(value.trim())
+		? value.trim().toLowerCase()
+		: null;
+}
 
 /** What the TV (`/api/placard/estado`) and the controller (`/api/placard/{id}`) receive. */
 export type PlacardPublicState = {
@@ -168,7 +278,18 @@ export type PlacardPublicState = {
 		/** Whether score changes reach the game (`games.scoreboard_updates`). */
 		scoreboardUpdates: boolean;
 	} | null;
+	/** What's on top of the match right now, if anything (never an expired one). */
+	overlay: PlacardOverlay | null;
 	theme: PlacardTheme;
+	/** Only for the controller: what its buttons need beyond the screen itself. */
+	controls: {
+		/** The home club's ad spots, in rotation order. */
+		ads: PlacardAdSpot[];
+		/** The ad preselected for the next break (rotates after each one). */
+		nextAdId: number | null;
+		/** When the next ad break may start (server ms; 0 = now). */
+		adAvailableAt: number;
+	} | null;
 };
 
 /**

@@ -22,5 +22,5 @@ export const GET: RequestHandler = async ({ params, url, locals, setHeaders }) =
 			unchanged: true
 		} satisfies PlacardUnchanged);
 	}
-	return Response.json(await publicState(row, { origin: url.origin, now }));
+	return Response.json(await publicState(row, { origin: url.origin, forController: true, now }));
 };

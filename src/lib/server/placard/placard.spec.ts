@@ -3,9 +3,14 @@ import { PAIRING_ALPHABET } from '#lib/placard.ts';
 
 vi.mock('#lib/server/db/index.ts', () => ({ db: {} }));
 vi.mock('$app/env', () => ({ dev: true }));
+vi.mock('#lib/server/media.ts', () => ({
+	mediaUrl: (path: string | null) => (path ? `https://media${path}` : null)
+}));
+vi.mock('#lib/server/storage.ts', () => ({}));
 
 const { hashDeviceToken, isDuplicateKey, randomPairingCode } = await import('./device.ts');
-const { FINISHED_RELEASE_MS, IDLE_RELEASE_MS, shouldRelease } = await import('./store.ts');
+const { FINISHED_RELEASE_MS, IDLE_RELEASE_MS, currentOverlay, shouldRelease } =
+	await import('./store.ts');
 
 type Row = Parameters<typeof shouldRelease>[0];
 type Game = NonNullable<Parameters<typeof shouldRelease>[1]>;
@@ -66,5 +71,33 @@ describe('shouldRelease', () => {
 		expect(shouldRelease(row({ lastActionAt: ago(FINISHED_RELEASE_MS) }), game(true), now)).toBe(
 			true
 		);
+	});
+});
+
+describe('currentOverlay', () => {
+	const at = (iso: string) => new Date(`2026-10-25T16:00:${iso}Z`);
+	const withAd = (overrides: Partial<Row> = {}) =>
+		row({
+			overlayType: 'ad',
+			overlayPayload: { adId: 3, image: '/storage/ad.gif' },
+			overlayStartedAt: at('00.000'),
+			overlayEndsAt: at('10.000'),
+			...overrides
+		});
+
+	it('shows an ad until it ends', () => {
+		expect(currentOverlay(withAd(), at('05.000'))).toEqual({
+			type: 'ad',
+			startedAt: at('00.000').getTime(),
+			endsAt: at('10.000').getTime(),
+			ad: { id: 3, image: 'https://media/storage/ad.gif' }
+		});
+		expect(currentOverlay(withAd(), at('10.000'))).toBeNull();
+	});
+
+	it('ignores unknown or broken overlays', () => {
+		expect(currentOverlay(withAd({ overlayType: 'confetti' }), at('05.000'))).toBeNull();
+		expect(currentOverlay(withAd({ overlayPayload: { adId: 3 } }), at('05.000'))).toBeNull();
+		expect(currentOverlay(row(), at('05.000'))).toBeNull();
 	});
 });

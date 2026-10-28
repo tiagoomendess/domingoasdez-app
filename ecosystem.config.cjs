@@ -14,7 +14,10 @@ module.exports = {
 			env: {
 				NODE_ENV: 'production',
 				// JSON lines for Grafana Alloy (docs/logging.md in domingoasdez-admin). Set here, it wins over .env.
-				LOG_FORMAT: 'json'
+				LOG_FORMAT: 'json',
+				// adapter-node refuses bodies over 512 KB by default. Placard ads are uploaded as is
+				// (up to 1 MB, docs/pages/competicoes/clube-placard.md) and backgrounds as 1920×1080 JPEGs.
+				BODY_SIZE_LIMIT: '4M'
 			}
 		}
 	]
