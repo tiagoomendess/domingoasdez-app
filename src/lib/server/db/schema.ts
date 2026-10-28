@@ -17,6 +17,8 @@ import {
 	decimal,
 	mysqlEnum,
 	tinyint,
+	char,
+	json,
 	index
 } from 'drizzle-orm/mysql-core';
 
@@ -604,4 +606,41 @@ export const audit = mysqlTable('audit', {
 	extraInfo: varchar('extra_info', { length: 155 }),
 	createdAt: timestamp('created_at'),
 	updatedAt: timestamp('updated_at')
+});
+
+/**
+ * Stadium screens ("placard eletrónico", `/placard`): one row per TV browser with the state it
+ * shows. Created by admin migration 0006_placards. The TV's cookie holds a token; only its
+ * sha256 is stored. Clock times are server time (see `src/lib/placard/state.ts`).
+ */
+export const placards = mysqlTable('placards', {
+	id: int('id', { unsigned: true }).primaryKey().autoincrement(),
+	deviceTokenHash: char('device_token_hash', { length: 64 }).notNull().unique(),
+	pairingCode: char('pairing_code', { length: 6 }).unique(),
+	pairingCodeExpiresAt: datetime('pairing_code_expires_at'),
+	scene: varchar('scene', { length: 20 }).notNull().default('pairing'),
+	gameId: int('game_id', { unsigned: true }),
+	controllerUserId: int('controller_user_id', { unsigned: true }),
+	homeScore: tinyint('home_score', { unsigned: true }).notNull().default(0),
+	awayScore: tinyint('away_score', { unsigned: true }).notNull().default(0),
+	period: varchar('period', { length: 20 }).notNull().default('first_half'),
+	clockElapsedMs: int('clock_elapsed_ms', { unsigned: true }).notNull().default(0),
+	clockRunningSince: datetime('clock_running_since', { fsp: 3 }),
+	version: int('version', { unsigned: true }).notNull().default(0),
+	pairedAt: datetime('paired_at'),
+	lastActionAt: datetime('last_action_at'),
+	lastSeenAt: datetime('last_seen_at'),
+	createdAt: timestamp('created_at'),
+	updatedAt: timestamp('updated_at')
+});
+
+/** Log of what happened on a screen: pairing, every controller action, release. */
+export const placardEvents = mysqlTable('placard_events', {
+	id: bigint('id', { mode: 'number', unsigned: true }).primaryKey().autoincrement(),
+	placardId: int('placard_id', { unsigned: true }).notNull(),
+	gameId: int('game_id', { unsigned: true }),
+	userId: int('user_id', { unsigned: true }),
+	type: varchar('type', { length: 30 }).notNull(),
+	payload: json('payload'),
+	createdAt: timestamp('created_at')
 });

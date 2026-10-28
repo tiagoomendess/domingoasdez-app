@@ -54,14 +54,17 @@ Grouped by the bottom tab that owns them (`tabFromPath` in `src/lib/navigation.s
 
 ### Conta
 
-| Page                                                  | Route                               |
-| ----------------------------------------------------- | ----------------------------------- |
-| [Conta](pages/conta/conta.md)                         | `/conta`                            |
-| [Entrar](pages/conta/entrar.md)                       | `/conta/entrar`                     |
-| [Registar](pages/conta/registar.md)                   | `/conta/registar`                   |
-| [Verificar email](pages/conta/verificar-email.md)     | `/conta/registar/verificar/{email}` |
-| [Perfil](pages/conta/perfil.md)                       | `/conta/perfil`                     |
-| [Alterar palavra-passe](pages/conta/palavra-passe.md) | `/conta/palavra-passe`              |
+| Page                                                   | Route                                         |
+| ------------------------------------------------------ | --------------------------------------------- |
+| [Conta](pages/conta/conta.md)                          | `/conta`                                      |
+| [Entrar](pages/conta/entrar.md)                        | `/conta/entrar`                               |
+| [Registar](pages/conta/registar.md)                    | `/conta/registar`                             |
+| [Verificar email](pages/conta/verificar-email.md)      | `/conta/registar/verificar/{email}`           |
+| [Perfil](pages/conta/perfil.md)                        | `/conta/perfil`                               |
+| [Alterar palavra-passe](pages/conta/palavra-passe.md)  | `/conta/palavra-passe`                        |
+| [Placard (TV)](pages/conta/placard.md)                 | `/placard`                                    |
+| [Ligar um ecrã](pages/conta/placard-ligar.md)          | `/placard/ligar`, `/placard/ligar/{code}`     |
+| [Controlar o placard](pages/conta/placard-controlo.md) | `/placard/controlo`, `/placard/controlo/{id}` |
 
 ### Other
 
@@ -77,7 +80,7 @@ Redirects, JSON endpoints and legacy hand-offs are in [routes-without-pages.md](
 
 These apply across the app, so the page docs don't repeat them.
 
-- **App shell.** `src/routes/+layout.svelte` wraps every page (except `/design`) in `AppShell`: the floating back and theme buttons, the bottom tab bar, the navigation loader, the toast region and pull-to-refresh (`refreshAll()`, so it reruns the page's loads). The root layout load (`+layout.server.ts`) provides the user, preferences, the "is anything live" flag and a one-off toast.
+- **App shell.** `src/routes/+layout.svelte` wraps every page (except `/design` and the stadium screen `/placard`) in `AppShell`: the floating back and theme buttons, the bottom tab bar, the navigation loader, the toast region and pull-to-refresh (`refreshAll()`, so it reruns the page's loads). The root layout load (`+layout.server.ts`) provides the user, preferences, the "is anything live" flag and a one-off toast.
 - **Active tab.** The tab the user last tapped stays active as they go deeper. On a fresh load it comes from the URL (`PATH_OWNERS` in `navigation.svelte.ts`, longest prefix wins). The back button falls back to that tab's root when there's no in-app history.
 - **Flash toasts.** Some pages redirect after a POST and want to show a toast on the next page (score reports, flash interviews). They set a short-lived cookie, and the root layout load reads it once and clears it.
 - **Auth.** `hooks.server.ts` reads the signed `dad_session` cookie into `locals.user` on every request. Pages that need a user redirect to `/conta/entrar?redirectTo=<path>`.

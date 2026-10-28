@@ -9,7 +9,10 @@
 
 	let { children } = $props();
 
-	const bare = $derived(page.url.pathname.startsWith('/design'));
+	// /design is the style guide; /placard is the stadium screen (TV), full screen with no chrome.
+	const bare = $derived(
+		page.url.pathname.startsWith('/design') || page.url.pathname === '/placard'
+	);
 
 	onMount(() => watchVignetteInset());
 </script>

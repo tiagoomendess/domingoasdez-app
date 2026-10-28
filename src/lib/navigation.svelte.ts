@@ -63,7 +63,9 @@ const PATH_OWNERS: { prefix: string; tab: TabId }[] = (
 		{ prefix: '/rgpd', tab: 'pages' },
 		// Opened from Páginas; kept at its old path so existing links still work
 		{ prefix: '/conta/informacao', tab: 'pages' },
-		{ prefix: '/conta', tab: 'account' }
+		{ prefix: '/conta', tab: 'account' },
+		// The phone side of the stadium screen; /placard itself (the TV) has no tab bar
+		{ prefix: '/placard', tab: 'account' }
 	] as const satisfies { prefix: string; tab: TabId }[]
 ).toSorted((a, b) => b.prefix.length - a.prefix.length);
 

@@ -3,17 +3,17 @@
  *
  * - `storeScoreReport` ports Api\ScoreReportsController@store (`POST /api/score-reports/{game}`).
  * - `scoreboardUpdated` ports Api\GamesController@scoreboardUpdated
- *   (`PUT /api/games/{game}/scoreboard-updated`), the stadium scoreboard ("placard").
+ *   (`PUT /api/games/{game}/scoreboard-updated`), the stadium scoreboard ("placard"). Its core
+ *   is `pushPlacardScore`, shared with the screens of `/placard`.
  *
  * Both run after the access-token check. Unlike the website's form, they don't check bans,
  * rate limits or karma: they only make sure the uuid has a karma row.
  */
-import { and, eq, gt, sql } from 'drizzle-orm';
-import { hasStarted } from '#lib/games.ts';
-import { naiveToIso, nowNaiveUtc } from '#lib/server/dates.ts';
+import { eq, sql } from 'drizzle-orm';
+import { nowNaiveUtc } from '#lib/server/dates.ts';
 import { db } from '#lib/server/db/index.ts';
-import { games, scoreReports } from '#lib/server/db/schema.ts';
-import { goalCountsByGame, resolveScores } from '#lib/server/games.ts';
+import { games } from '#lib/server/db/schema.ts';
+import { pushPlacardScore } from '#lib/server/placard/score-push.ts';
 import { ensureUuidKarma } from '#lib/server/score-reports.ts';
 import { legacyJson } from './http.ts';
 import { isNumeric, phpString, strLimit } from './php.ts';
@@ -150,63 +150,31 @@ export async function scoreboardUpdated(input_: {
 		return legacyJson({ success: false, message: 'Dados inválidos!' }, 400);
 	}
 
-	const kickoffIso = naiveToIso(game.date);
-	if (!hasStarted(kickoffIso, now) || game.finished) {
-		return legacyJson({ success: false, message: 'O jogo ainda não começou ou já terminou!' }, 400);
-	}
-
 	// Legacy read these from the JSON body; fall back to the form body instead of failing.
 	const uuidValue = json.uuid !== undefined ? json.uuid : all.uuid;
-	const uuid = uuidValue == null ? null : phpString(uuidValue);
-	await ensureUuidKarma(uuid);
+	const result = await pushPlacardScore({
+		game,
+		homeScore: toInt(json.home_score ?? all.home_score),
+		awayScore: toInt(json.away_score ?? all.away_score),
+		uuid: uuidValue == null ? null : phpString(uuidValue),
+		now
+	});
 
-	const homeScore = toInt(json.home_score ?? all.home_score);
-	const awayScore = toInt(json.away_score ?? all.away_score);
-	const counts = await goalCountsByGame([game.id]);
-	const current = resolveScores(game, counts);
-
-	const fiveMinutesAgo = nowNaiveUtc(new Date(now.getTime() - 5 * 60_000));
-	const [existing] = await db
-		.select({ n: sql<number>`count(*)`.mapWith(Number) })
-		.from(scoreReports)
-		.where(
-			and(
-				eq(scoreReports.gameId, game.id),
-				eq(scoreReports.homeScore, homeScore),
-				eq(scoreReports.awayScore, awayScore),
-				eq(scoreReports.source, 'placard'),
-				gt(scoreReports.createdAt, sql`${fiveMinutesAgo}`)
-			)
-		);
-
-	if (!existing?.n) {
-		await db.insert(scoreReports).values({
-			gameId: game.id,
-			homeScore,
-			awayScore,
-			source: 'placard',
-			uuid,
-			createdAt: now,
-			updatedAt: now
-		});
+	switch (result) {
+		case 'not_live':
+			return legacyJson(
+				{ success: false, message: 'O jogo ainda não começou ou já terminou!' },
+				400
+			);
+		case 'not_allowed':
+			return legacyJson({
+				success: false,
+				message: 'Este jogo não aceita atualizações de resultado via placard!'
+			});
+		case 'unchanged':
+			// Legacy sent a JSON body with the 304; a 304 can't carry one.
+			return new Response(null, { status: 304 });
+		case 'updated':
+			return legacyJson({ success: true, message: 'Resultado atualizado com sucesso!' });
 	}
-
-	if (!game.scoreboardUpdates) {
-		return legacyJson({
-			success: false,
-			message: 'Este jogo não aceita atualizações de resultado via placard!'
-		});
-	}
-
-	if (homeScore === current.homeScore && awayScore === current.awayScore) {
-		// Legacy sent a JSON body with the 304; a 304 can't carry one.
-		return new Response(null, { status: 304 });
-	}
-
-	await db
-		.update(games)
-		.set({ goalsHome: homeScore, goalsAway: awayScore, updatedAt: now })
-		.where(eq(games.id, game.id));
-
-	return legacyJson({ success: true, message: 'Resultado atualizado com sucesso!' });
 }

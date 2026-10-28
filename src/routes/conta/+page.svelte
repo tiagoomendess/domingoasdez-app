@@ -71,6 +71,7 @@
 
 		<ListGroup>
 			<ListRow title={m.account_profile()} href="/conta/perfil" />
+			<ListRow title={m.account_placard()} href="/placard/controlo" />
 		</ListGroup>
 
 		{#if data.backofficeHref}

@@ -50,4 +50,5 @@ These old URLs 404 here. Old emails, bookmarks and search results may still use 
 - **Account deletion and comments:** the Laravel `ProcessDeleteRequest` job wipes `article_comments` content but not `match_comments`, and leaves the votes (`match_comment_votes`, `article_comment_votes`) in place. The app hides match comments by anonymised accounts in the meantime; fix it when the background jobs move off Laravel.
 - **Predictions have no points or leaderboard.** Each game shows a verdict, but nothing adds them up per user yet.
 - **Two-legged ties aren't modelled.** Their legs are judged one game at a time, so a level first leg has "no winner" for predictions.
+- **Placard (stadium screen):** no per-club look (`resolvePlacardTheme` returns the default), no ad breaks or other scenes, no free games (only the day's games from the database; `placards.game_id` is nullable for it), and no way to hand a screen to another controller except `score_update` or ending it.
 - `/demo` and `/demo/playwright` are scaffold leftovers, and the Playwright test there is the only e2e test.

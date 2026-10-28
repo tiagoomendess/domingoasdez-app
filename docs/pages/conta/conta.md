@@ -17,6 +17,7 @@ The account hub. Logged out, it invites the user to log in or register. Logged i
 - A profile card: avatar (72), name, email and "Editar foto", which opens the ProfilePhotoSheet (upload or remove).
 - "Terminar sessão" (destructive row).
 - "Perfil" → [`/conta/perfil`](perfil.md).
+- "Placard eletrónico" → [`/placard/controlo`](placard-controlo.md), the stadium screens the user controls.
 - "Backoffice" → the admin app, only with the `dashboard` permission.
 - "Conta e privacidade" → "Alterar palavra-passe" → [`/conta/palavra-passe`](palavra-passe.md), only when the account has a password.
 
