@@ -272,7 +272,8 @@ export const players = mysqlTable('players', {
 	email: varchar('email', { length: 255 }),
 	facebookProfile: text('facebook_profile'),
 	obs: text('obs'),
-	birthDate: timestamp('birth_date'),
+	// DATETIME since admin migration 0005 (TIMESTAMP couldn't hold dates before 1970)
+	birthDate: datetime('birth_date'),
 	position: mysqlEnum('position', ['none', 'striker', 'midfielder', 'defender', 'goalkeeper'])
 		.notNull()
 		.default('none'),
@@ -572,7 +573,8 @@ export const playerUpdateRequests = mysqlTable('player_update_requests', {
 	phone: varchar('phone', { length: 155 }),
 	email: varchar('email', { length: 155 }),
 	facebookProfile: text('facebook_profile'),
-	birthDate: timestamp('birth_date'),
+	// DATETIME since admin migration 0005 (TIMESTAMP couldn't hold dates before 1970)
+	birthDate: datetime('birth_date'),
 	position: mysqlEnum('position', ['none', 'striker', 'midfielder', 'defender', 'goalkeeper']),
 	obs: text('obs'),
 	status: mysqlEnum('status', ['pending', 'approved', 'denied']).notNull().default('pending'),
