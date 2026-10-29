@@ -21,7 +21,15 @@ export default defineConfig({
 			project: './project.inlang',
 			outdir: './src/lib/paraglide',
 			emitTsDeclarations: true,
-			strategy: ['cookie', 'preferredLanguage', 'baseLocale']
+			strategy: ['cookie', 'preferredLanguage', 'baseLocale'],
+			// The placard (stadium TV), its pairing page and the controller are for a
+			// Portuguese audience and run on devices often set to English (e.g. the Pi
+			// kiosk). Drop preferredLanguage there so they default to pt-PT regardless
+			// of the device language; an explicit language cookie still wins.
+			routeStrategies: [
+				{ match: '/placard', strategy: ['cookie', 'baseLocale'] },
+				{ match: '/placard/:path(.*)?', strategy: ['cookie', 'baseLocale'] }
+			]
 		})
 	],
 	test: {
