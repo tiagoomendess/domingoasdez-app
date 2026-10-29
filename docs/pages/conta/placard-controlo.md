@@ -1,7 +1,7 @@
 # Controlar o placard (stadium screen controller)
 
 - **Routes:** `/placard/controlo` (your screens), `/placard/controlo/{id}` (the controller)
-- **Tab:** Conta (linked from Conta as "Placard eletrónico")
+- **Tab:** Conta (linked from Conta as "Comando do Placard")
 - **Files:**
   - Routes: `src/routes/placard/controlo/`
   - Client: `src/lib/placard-poll.svelte.ts`
@@ -17,9 +17,9 @@ The phone side of a stadium screen: the score and clock buttons of the old `reac
 - **`/placard/controlo/{id}`:**
   - A mini scoreboard: clock, score and period.
   - One row per team with `−` and `+` (the `+` is the big accent button).
-  - A note saying what happens to the game's score.
   - The clock row: −1′, reset, play/pause, Intervalo (45:00), +1′.
   - "Terminar", with a confirmation Sheet.
+  - "Definições do Placard" (tinted, below Terminar): a link to [the home club's screen setup](../competicoes/clube-placard.md), only for whoever may manage it (the home club's admin, `clubs.admin_user_id`, or `admin`), the same check as that page.
   - When the screen has left the game: an empty state that links back to the list.
 
 ## How it works
@@ -42,6 +42,7 @@ The phone side of a stadium screen: the score and clock buttons of the old `reac
   - it writes a `placard` score report with the `user_id`, deduped over 5 minutes;
   - when `games.scoreboard_updates` is on, it sets `goals_home` / `goals_away`.
   - It pushes the score stored _after_ the transaction, so concurrent taps settle on the latest.
+  - It's kept secret from the operator: the page says nothing about it, and neither the action's answer nor the polled state says whether the score reached the game (or `games.scoreboard_updates`).
 - **Terminar** releases the screen: back to pairing with a clean state, a new code on the TV, and an `end` event. The game's score on the site is left as it is.
 - **Publicidade** (ad breaks), with the home club's ads from [its setup page](../competicoes/clube-placard.md):
   - A row of thumbnails with their duration. The ad preselected for the next break is outlined (`controls.nextAdId`); tapping another one picks it instead.

@@ -350,8 +350,6 @@ export type PlacardPublicState = {
 		homeScore: number;
 		awayScore: number;
 		clock: PlacardClock;
-		/** Whether score changes reach the game (`games.scoreboard_updates`). */
-		scoreboardUpdates: boolean;
 	} | null;
 	/** What's on top of the match right now, if anything (never an expired one). */
 	overlay: PlacardOverlay | null;

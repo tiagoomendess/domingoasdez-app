@@ -8,9 +8,9 @@ import type { RequestHandler } from './$types';
 const actions = createRateLimit(20, 5_000);
 
 /**
- * A controller's action, JSON `PlacardAction` (`src/lib/placard.ts`). Answers with the new state
- * and, for score changes, what happened to the game's score (`scorePush`). JSON only, like the
- * comment votes: a cross-site form can't send it without a CORS preflight.
+ * A controller's action, JSON `PlacardAction` (`src/lib/placard.ts`). Answers with the new state.
+ * Whether a score reached the game stays on the server: the controller isn't told. JSON only, like
+ * the comment votes: a cross-site form can't send it without a CORS preflight.
  */
 export const POST: RequestHandler = async ({ params, request, url, locals, setHeaders }) => {
 	setHeaders({ 'cache-control': 'no-store' });
@@ -39,7 +39,6 @@ export const POST: RequestHandler = async ({ params, request, url, locals, setHe
 	}
 
 	return Response.json({
-		state: await publicState(result.row, { origin: url.origin, forController: true }),
-		scorePush: result.scorePush
+		state: await publicState(result.row, { origin: url.origin, forController: true })
 	});
 };

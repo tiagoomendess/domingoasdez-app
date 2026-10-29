@@ -50,8 +50,7 @@
 		away: { name: m.placard_setup_sample_away(), emblem: data.club.emblem },
 		homeScore: 2,
 		awayScore: 1,
-		clock: { elapsedMs: HALF_MS, runningSince: null, period: 'half_time' as const },
-		scoreboardUpdates: true
+		clock: { elapsedMs: HALF_MS, runningSince: null, period: 'half_time' as const }
 	});
 
 	const durationOptions = Array.from({ length: AD_MAX_SECONDS - AD_MIN_SECONDS + 1 }, (_, i) => {

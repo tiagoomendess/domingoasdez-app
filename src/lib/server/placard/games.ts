@@ -34,6 +34,8 @@ export type PlacardGame = {
 	homeTeamId: number;
 	awayTeamId: number;
 	homeClubId: number;
+	/** `clubs.admin_user_id` of the home club, who may set up its screen. */
+	homeClubAdminUserId: number | null;
 	home: PlacardTeam;
 	away: PlacardTeam;
 };
@@ -51,6 +53,7 @@ const selectGames = (where: SQL | undefined) =>
 			homeTeamId: games.homeTeamId,
 			awayTeamId: games.awayTeamId,
 			homeClubId: homeClub.id,
+			homeClubAdminUserId: homeClub.adminUserId,
 			homeName: homeClub.name,
 			homeEmblem: homeClub.emblem,
 			awayName: awayClub.name,
@@ -83,6 +86,7 @@ function present(row: Row, now: Date): PlacardGame {
 		homeTeamId: row.homeTeamId,
 		awayTeamId: row.awayTeamId,
 		homeClubId: row.homeClubId,
+		homeClubAdminUserId: row.homeClubAdminUserId,
 		home: { name: row.homeName, emblem: emblemUrl(row.homeEmblem) ?? '' },
 		away: { name: row.awayName, emblem: emblemUrl(row.awayEmblem) ?? '' }
 	};

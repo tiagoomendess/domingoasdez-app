@@ -26,14 +26,14 @@
 		MINUTE_MS,
 		type PlacardAction,
 		type PlacardPublicState,
-		type PlacardSide,
-		type ScorePushResult
+		type PlacardSide
 	} from '#lib/placard.ts';
 	import { PlacardPoll } from '#lib/placard-poll.svelte.ts';
 	import { activeOverlay } from '#lib/components/placard/overlays.ts';
 	import SubstitutionControl from '#lib/components/placard/SubstitutionControl.svelte';
 	import MessageControl from '#lib/components/placard/MessageControl.svelte';
 	import MegaphoneIcon from 'phosphor-svelte/lib/MegaphoneIcon';
+	import GearSixIcon from 'phosphor-svelte/lib/GearSixIcon';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -47,7 +47,6 @@
 	});
 
 	let localNow = $state(Date.now());
-	let scorePush = $state<ScorePushResult | null>(null);
 	let endOpen = $state(false);
 	let ending = $state(false);
 	let toastVisible = $state(false);
@@ -59,16 +58,6 @@
 	const running = $derived(match?.clock.runningSince != null);
 	const clock = $derived(
 		match ? formatClock(elapsedMs(match.clock, poll.serverNow(localNow))) : ''
-	);
-
-	const pushNote = $derived(
-		match && !match.scoreboardUpdates
-			? m.placard_push_not_allowed()
-			: scorePush === 'updated' || scorePush === 'unchanged'
-				? m.placard_push_updated()
-				: scorePush === 'not_live'
-					? m.placard_push_not_live()
-					: m.placard_push_hint()
 	);
 
 	onMount(() => {
@@ -133,12 +122,8 @@
 				await poll.refresh();
 				return false;
 			}
-			const body = (await response.json()) as {
-				state: PlacardPublicState;
-				scorePush: ScorePushResult | null;
-			};
+			const body = (await response.json()) as { state: PlacardPublicState };
 			poll.accept(body.state, sentAt);
-			if (body.scorePush) scorePush = body.scorePush;
 			return true;
 		} catch {
 			showError(m.placard_error_offline());
@@ -271,7 +256,6 @@
 				</div>
 			{/each}
 		</section>
-		<p class="px-4 text-footnote text-ink-tertiary">{pushNote}</p>
 
 		<!-- Clock -->
 		<section
@@ -386,6 +370,12 @@
 		<Button variant="destructive" size="lg" full onclick={() => (endOpen = true)}>
 			{m.placard_end()}
 		</Button>
+
+		{#if data.settingsHref}
+			<Button href={data.settingsHref} variant="tinted" icon={GearSixIcon} size="lg" full>
+				{m.placard_control_settings()}
+			</Button>
+		{/if}
 	</div>
 {/if}
 

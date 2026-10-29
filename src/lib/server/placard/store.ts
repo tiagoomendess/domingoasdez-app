@@ -230,8 +230,7 @@ export async function publicState(
 					away: game.away,
 					homeScore: state.homeScore,
 					awayScore: state.awayScore,
-					clock: state.clock,
-					scoreboardUpdates: game.scoreboardUpdates
+					clock: state.clock
 				}
 			: null,
 		overlay: game ? currentOverlay(row, now, game) : null,
