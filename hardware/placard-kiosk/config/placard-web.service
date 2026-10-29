@@ -1,0 +1,15 @@
+[Unit]
+Description=Placard local loader page (serves the connecting/hotspot screen)
+After=network.target
+
+[Service]
+# Serves /opt/placard/web on :8080, where placard-connect.sh writes status.json.
+WorkingDirectory=/opt/placard/web
+ExecStartPre=/bin/sh -c 'ln -sf /run/placard/status.json /opt/placard/web/status.json'
+ExecStart=/usr/bin/python3 -m http.server 8080 --bind 127.0.0.1
+Restart=always
+RestartSec=2
+User=placard
+
+[Install]
+WantedBy=multi-user.target

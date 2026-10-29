@@ -44,6 +44,12 @@
 		-->
 		<script>
 			(function () {
+				// The stadium screen (TV), its pairing page and the controller never
+				// show ads, Analytics or a consent popup. The screen is unattended on a
+				// TV and the consent CMP would sit on top of the scoreboard forever.
+				var pp = location.pathname;
+				if (pp === '/placard' || pp.slice(0, 9) === '/placard/') return;
+
 				var hosts = {
 					'domingoasdez.com': 1,
 					'www.domingoasdez.com': 1,

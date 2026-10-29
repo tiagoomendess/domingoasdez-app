@@ -4,7 +4,7 @@
 - **Tab:** none. The page is bare, with no AppShell (`bare` in `src/routes/+layout.svelte`).
 - **Files:**
   - Route: `src/routes/placard/`
-  - Components: `src/lib/components/placard/` (`PlacardFrame`, `scenes.ts`, `PairingScene`, `MatchScene`, `overlays.ts`, `AdOverlay`)
+  - Components: `src/lib/components/placard/` (`PlacardFrame`, `scenes.ts`, `PairingScene`, `MatchScene`, `overlays.ts`, `OverlayProgress`, `AdOverlay`, `SubstitutionOverlay`, `MessageOverlay`)
   - Client: `src/lib/placard-poll.svelte.ts`
   - Shared logic: `src/lib/placard.ts`
   - Server: `src/lib/server/placard/`
@@ -43,13 +43,20 @@ The screen a club puts on a TV at the stadium. It shows a QR code until a phone 
   - The old screen used the phone's clock against the TV's, so the two drifted, or froze when the TV was behind.
 - **Scenes and overlays.** Two layers, each from a registry:
   - The **scene** is what the screen shows underneath: `pairing` or `match` (`placardScenes` in `scenes.ts`).
-  - An **overlay** shows on top of the match for a while, then disappears on its own (`placardOverlays` in `overlays.ts`). The only one so far is `ad`.
+  - An **overlay** shows on top of the match for a while, then disappears on its own (`placardOverlays` in `overlays.ts`): `ad`, `substitution` and `message`. Only one at a time.
   - The match keeps running underneath an overlay; the clock doesn't stop.
   - Overlays are stored on the screen row as `overlay_type`, `overlay_payload`, `overlay_started_at` and `overlay_ends_at`. The server stops sending an overlay once it has ended, and the TV hides it by its own clock, even between polls.
-  - Substitutions or messages: add a member to `PlacardOverlay`, a case in `currentOverlay()` (`store.ts`), a component in `overlays.ts`, and a server action.
+  - A new overlay (a message, say): add a member to `PlacardOverlay`, a case in `currentOverlay()` (`store.ts`), a component in `overlays.ts`, and a server action started through `startOverlay()`.
 - **Ad break** (`AdOverlay`):
   - The image is drawn as large as fits (`object-fit: contain`), centred both ways, over the theme's background colour. An ad with the screen's shape fills it.
-  - A thin bar in the accent colour at the bottom runs out until the ad ends.
+  - A thin bar in the accent colour at the bottom runs out until the ad ends (`OverlayProgress`, shared by all overlays).
+- **Substitution** (`SubstitutionOverlay`), 10 s:
+  - The team's emblem and name under "Substituição", then "↓ Sai" (red) and "↑ Entra" (green), each with a round photo and the player's name. Side by side on a wide screen, stacked on a portrait one.
+  - Photos only for adults (no photos of minors in public, as on the rest of the site); others get their initials.
+  - The payload stores the side and both players (id, name, photo path), so the screen shows what was sent. The team comes from the game when it's read.
+- **Message** (`MessageOverlay`), 15 s:
+  - "Informação" in the accent colour above the controller's text, centred over the whole screen.
+  - The text is rendered as plain text, never HTML. Its size depends on its length (up to 30, 70 or 120 characters), and it's larger on a portrait screen, which has height to spare.
 - **Theme** (`PlacardFrame`): the home club's look from [its setup page](../competicoes/clube-placard.md).
   - Text colour, background colour, and a 16:9 background image drawn with `background-size: cover`, so it's upscaled if needed and never letterboxed.
   - Secondary text is the text colour faded; the accent is the text colour.
@@ -63,6 +70,7 @@ The screen a club puts on a TV at the stadium. It shows a QR code until a phone 
 
 ## Edge cases and pitfalls
 
+- **No Google on the placard pages.** The inline script in `src/app.html` returns early for `/placard` and anything under `/placard/` (TV, pairing, controller), so Analytics, AdSense and the Funding Choices consent CMP never load there. The TV is unattended, and a consent popup would otherwise sit on top of the scoreboard with no one to dismiss it. The placard's own ads are the club's `AdOverlay` images, not AdSense.
 - **Don't open `/placard` on the controller's phone.** That makes the phone a screen of its own. The controller has no "see the screen" link for this reason; its mini scoreboard shows the same thing.
 - Layout is sized with container query units (`cqmin`, `cqw`, `cqh`) on a `container-type: size` root, so it fits 16:9, ultrawide and portrait. A portrait screen stacks the emblems above the score.
 - Clearing the TV's cookies creates a new screen with a new code. The old row is deleted by the admin's `cleanup-placards` job after 30 days unseen.

@@ -18,7 +18,11 @@ import {
 	type PlacardMatchState,
 	type PlacardOverlay,
 	type PlacardPeriod,
-	type PlacardPublicState
+	type PlacardPublicState,
+	type PlacardSubPlayer,
+	MESSAGE_MS,
+	normalizeMessage,
+	SUBSTITUTION_MS
 } from '#lib/placard.ts';
 import { db } from '#lib/server/db/index.ts';
 import { placardEvents, placards } from '#lib/server/db/schema.ts';
@@ -28,6 +32,7 @@ import { clubAdRows, clubAdSpots } from './club-setup.ts';
 import type { PlacardRow } from './device.ts';
 import { placardGame, type PlacardGame } from './games.ts';
 import { pushPlacardScore, type ScorePushResult } from './score-push.ts';
+import { placardSquads } from './squads.ts';
 import { resolvePlacardTheme } from './theme.ts';
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -89,7 +94,11 @@ const RELEASED = {
  * The overlay a screen shows at `now`, or null once it's over. Rows keep an expired overlay
  * (nothing clears it); it's simply ignored. Each overlay type reads its own payload here.
  */
-export function currentOverlay(row: PlacardRow, now: Date): PlacardOverlay | null {
+export function currentOverlay(
+	row: PlacardRow,
+	now: Date,
+	game: Pick<PlacardGame, 'home' | 'away'> | null = null
+): PlacardOverlay | null {
 	if (!row.overlayType || !row.overlayStartedAt || !row.overlayEndsAt) return null;
 	if (row.overlayEndsAt.getTime() <= now.getTime()) return null;
 	const startedAt = row.overlayStartedAt.getTime();
@@ -104,9 +113,43 @@ export function currentOverlay(row: PlacardRow, now: Date): PlacardOverlay | nul
 				endsAt,
 				ad: { id: payload.adId, image: mediaUrl(payload.image) ?? '' }
 			};
+		case 'substitution': {
+			const out = subPlayer(payload.out);
+			const incoming = subPlayer(payload.in);
+			if (!out || !incoming || !game) return null;
+			if (payload.side !== 'home' && payload.side !== 'away') return null;
+			return {
+				type: 'substitution',
+				startedAt,
+				endsAt,
+				side: payload.side,
+				team: payload.side === 'home' ? game.home : game.away,
+				out,
+				in: incoming
+			};
+		}
+		case 'message': {
+			const text = normalizeMessage(payload.text);
+			return text ? { type: 'message', startedAt, endsAt, text } : null;
+		}
 		default:
 			return null;
 	}
+}
+
+/** Whether any overlay is still on (whatever its type), for refusing a second one. */
+export const overlayActive = (row: PlacardRow, now: Date) =>
+	row.overlayEndsAt !== null && row.overlayEndsAt.getTime() > now.getTime();
+
+/** A stored substitution player (`picture` as a path), with its photo as a browser URL. */
+function subPlayer(value: unknown): PlacardSubPlayer | null {
+	const player = value as { id?: unknown; name?: unknown; picture?: unknown } | null;
+	if (!player || typeof player.id !== 'number' || typeof player.name !== 'string') return null;
+	return {
+		id: player.id,
+		name: player.name,
+		picture: typeof player.picture === 'string' ? mediaUrl(player.picture) : null
+	};
 }
 
 async function logEvent(
@@ -191,7 +234,7 @@ export async function publicState(
 					scoreboardUpdates: game.scoreboardUpdates
 				}
 			: null,
-		overlay: game ? currentOverlay(row, now) : null,
+		overlay: game ? currentOverlay(row, now, game) : null,
 		theme,
 		controls
 	};
@@ -292,7 +335,14 @@ export type ActionResult =
 	| { ok: true; row: PlacardRow; scorePush: ScorePushResult | null }
 	| {
 			ok: false;
-			reason: 'not_found' | 'forbidden' | 'not_paired' | 'ad_not_found' | 'ad_cooldown' | 'busy';
+			reason:
+				| 'not_found'
+				| 'forbidden'
+				| 'not_paired'
+				| 'ad_not_found'
+				| 'ad_cooldown'
+				| 'player_not_found'
+				| 'busy';
 	  };
 
 /**
@@ -306,29 +356,107 @@ async function startAdBreak(tx: Tx, row: PlacardRow, adId: number, userId: numbe
 	const ad = ads.find((spot) => spot.id === adId);
 	if (!ad) return 'ad_not_found' as const;
 	if (now.getTime() < adAvailableAt(row.lastAdAt?.getTime() ?? null)) return 'ad_cooldown' as const;
-	if (currentOverlay(row, now)) return 'busy' as const;
+	if (overlayActive(row, now)) return 'busy' as const;
 
-	await tx
-		.update(placards)
-		.set({
-			overlayType: 'ad',
-			// The stored path, not a URL: the media origin (or CDN) is added when it's read.
-			overlayPayload: { adId: ad.id, image: ad.image },
-			overlayStartedAt: now,
-			overlayEndsAt: new Date(now.getTime() + ad.durationSeconds * 1000),
-			lastAdAt: now,
-			nextAdId: nextAdAfter(ads, ad.id)?.id ?? null,
-			lastActionAt: now,
-			version: sql`${placards.version} + 1`,
-			updatedAt: now
-		})
-		.where(eq(placards.id, row.id));
+	await startOverlay(tx, row, {
+		type: 'ad',
+		// The stored path, not a URL: the media origin (or CDN) is added when it's read.
+		payload: { adId: ad.id, image: ad.image },
+		durationMs: ad.durationSeconds * 1000,
+		now,
+		extra: { lastAdAt: now, nextAdId: nextAdAfter(ads, ad.id)?.id ?? null }
+	});
 	await logEvent(tx, {
 		placardId: row.id,
 		gameId: row.gameId,
 		userId,
 		type: 'show_ad',
 		payload: { adId: ad.id, durationSeconds: ad.durationSeconds },
+		now
+	});
+	return 'done' as const;
+}
+
+/** Puts an overlay on the screen for `durationMs` from `now` (any overlay type). */
+async function startOverlay(
+	tx: Tx,
+	row: PlacardRow,
+	overlay: {
+		type: PlacardOverlay['type'];
+		payload: Record<string, unknown>;
+		durationMs: number;
+		now: Date;
+		extra?: Partial<typeof placards.$inferInsert>;
+	}
+) {
+	const { now } = overlay;
+	await tx
+		.update(placards)
+		.set({
+			overlayType: overlay.type,
+			overlayPayload: overlay.payload,
+			overlayStartedAt: now,
+			overlayEndsAt: new Date(now.getTime() + overlay.durationMs),
+			...overlay.extra,
+			lastActionAt: now,
+			version: sql`${placards.version} + 1`,
+			updatedAt: now
+		})
+		.where(eq(placards.id, row.id));
+}
+
+/**
+ * Shows the controller's own text (a raffle winner, a notice to the stands) for 15 s. `text` was
+ * normalised and length-checked by `parseAction`. It's logged with the event, so the admin can
+ * see who sent what.
+ */
+async function startMessage(tx: Tx, row: PlacardRow, text: string, userId: number, now: Date) {
+	if (overlayActive(row, now)) return 'busy' as const;
+	await startOverlay(tx, row, { type: 'message', payload: { text }, durationMs: MESSAGE_MS, now });
+	await logEvent(tx, {
+		placardId: row.id,
+		gameId: row.gameId,
+		userId,
+		type: 'show_message',
+		payload: { text },
+		now
+	});
+	return 'done' as const;
+}
+
+/**
+ * Shows a substitution for 10 s: `outPlayerId` leaves, `inPlayerId` comes on, both from the
+ * squad of the `side` team. Names, photo paths and the club are copied into the overlay, so
+ * the screen shows what was sent even if a player is edited meanwhile. Refused while another
+ * overlay (an ad, a substitution) is still on.
+ */
+async function startSubstitution(
+	tx: Tx,
+	row: PlacardRow,
+	action: Extract<PlacardAction, { type: 'show_substitution' }>,
+	userId: number,
+	now: Date
+) {
+	const game = row.gameId ? await placardGame(row.gameId, now) : null;
+	if (!game) return 'not_paired' as const;
+	const squad = (await placardSquads(game, now))[action.side];
+	const out = squad.find((player) => player.id === action.outPlayerId);
+	const incoming = squad.find((player) => player.id === action.inPlayerId);
+	if (!out || !incoming || out.id === incoming.id) return 'player_not_found' as const;
+	if (overlayActive(row, now)) return 'busy' as const;
+
+	await startOverlay(tx, row, {
+		type: 'substitution',
+		payload: { side: action.side, out, in: incoming },
+		durationMs: SUBSTITUTION_MS,
+		now
+	});
+	await logEvent(tx, {
+		placardId: row.id,
+		gameId: row.gameId,
+		userId,
+		type: 'show_substitution',
+		payload: { side: action.side, outPlayerId: out.id, inPlayerId: incoming.id },
 		now
 	});
 	return 'done' as const;
@@ -360,6 +488,11 @@ export async function applyPlacardAction(input: {
 			return 'done' as const;
 		}
 		if (action.type === 'show_ad') return startAdBreak(tx, row, action.adId, input.userId, now);
+		if (action.type === 'show_substitution') {
+			return startSubstitution(tx, row, action, input.userId, now);
+		}
+		if (action.type === 'show_message')
+			return startMessage(tx, row, action.text, input.userId, now);
 
 		const next = applyAction(matchState(row), action, now.getTime());
 		await tx

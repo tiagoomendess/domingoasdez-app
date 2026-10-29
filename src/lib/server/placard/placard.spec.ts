@@ -9,7 +9,7 @@ vi.mock('#lib/server/media.ts', () => ({
 vi.mock('#lib/server/storage.ts', () => ({}));
 
 const { hashDeviceToken, isDuplicateKey, randomPairingCode } = await import('./device.ts');
-const { FINISHED_RELEASE_MS, IDLE_RELEASE_MS, currentOverlay, shouldRelease } =
+const { FINISHED_RELEASE_MS, IDLE_RELEASE_MS, currentOverlay, overlayActive, shouldRelease } =
 	await import('./store.ts');
 
 type Row = Parameters<typeof shouldRelease>[0];
@@ -99,5 +99,63 @@ describe('currentOverlay', () => {
 		expect(currentOverlay(withAd({ overlayType: 'confetti' }), at('05.000'))).toBeNull();
 		expect(currentOverlay(withAd({ overlayPayload: { adId: 3 } }), at('05.000'))).toBeNull();
 		expect(currentOverlay(row(), at('05.000'))).toBeNull();
+	});
+});
+
+describe('substitution overlay', () => {
+	const at = (s: string) => new Date(`2026-10-25T16:00:${s}Z`);
+	const game = {
+		home: { name: 'Negreiros', emblem: 'https://media/n.png' },
+		away: { name: 'Bastuço', emblem: 'https://media/b.png' }
+	};
+	const sub = row({
+		overlayType: 'substitution',
+		overlayPayload: {
+			side: 'away',
+			out: { id: 1, name: 'Rui', picture: '/storage/rui.jpg' },
+			in: { id: 2, name: 'Zé', picture: null }
+		},
+		overlayStartedAt: at('00.000'),
+		overlayEndsAt: at('10.000')
+	});
+
+	it('shows the side’s team and both players, photos as URLs', () => {
+		expect(currentOverlay(sub, at('03.000'), game)).toMatchObject({
+			type: 'substitution',
+			side: 'away',
+			team: game.away,
+			out: { id: 1, name: 'Rui', picture: 'https://media/storage/rui.jpg' },
+			in: { id: 2, name: 'Zé', picture: null }
+		});
+	});
+
+	it('needs the game, and counts as busy until it ends whatever its type', () => {
+		expect(currentOverlay(sub, at('03.000'))).toBeNull();
+		expect(overlayActive(sub, at('09.999'))).toBe(true);
+		expect(overlayActive(sub, at('10.000'))).toBe(false);
+	});
+});
+
+describe('message overlay', () => {
+	const at = (s: string) => new Date(`2026-10-25T16:00:${s}Z`);
+	const message = (text: unknown) =>
+		row({
+			overlayType: 'message',
+			overlayPayload: { text },
+			overlayStartedAt: at('00.000'),
+			overlayEndsAt: at('15.000')
+		});
+
+	it('shows the text until it ends', () => {
+		expect(currentOverlay(message('Rifa: 1443'), at('14.000'))).toMatchObject({
+			type: 'message',
+			text: 'Rifa: 1443'
+		});
+		expect(currentOverlay(message('Rifa: 1443'), at('15.000'))).toBeNull();
+	});
+
+	it('drops a stored text that is empty or too long', () => {
+		expect(currentOverlay(message(''), at('01.000'))).toBeNull();
+		expect(currentOverlay(message('x'.repeat(121)), at('01.000'))).toBeNull();
 	});
 });

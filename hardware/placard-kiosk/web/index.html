@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="pt-PT">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+		<title>Placard — Domingo às Dez</title>
+		<style>
+			:root {
+				--bg: #08090b;
+				--surface: #15171b;
+				--ink: #f3f5f8;
+				--ink-secondary: #a8b0bd;
+				--ink-tertiary: #7f8896;
+				--accent: #5cb6ea;
+				--line: rgba(255, 255, 255, 0.1);
+			}
+			* { box-sizing: border-box; }
+			html, body { height: 100%; margin: 0; }
+			body {
+				background: var(--bg);
+				color: var(--ink);
+				font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+				display: grid;
+				place-items: center;
+				padding: 5vmin;
+				text-align: center;
+				-webkit-user-select: none;
+				user-select: none;
+				cursor: none;
+			}
+			.wrap { width: min(880px, 92vw); }
+			h1 {
+				font-size: clamp(28px, 5vmin, 56px);
+				font-weight: 700;
+				letter-spacing: -0.02em;
+				margin: 0 0 2vmin;
+			}
+			p { font-size: clamp(16px, 2.6vmin, 26px); color: var(--ink-secondary); margin: 1.5vmin 0; }
+			.spinner {
+				width: clamp(44px, 7vmin, 72px);
+				height: clamp(44px, 7vmin, 72px);
+				margin: 0 auto 4vmin;
+				border: 5px solid var(--line);
+				border-top-color: var(--accent);
+				border-radius: 50%;
+				animation: spin 1s linear infinite;
+			}
+			@keyframes spin { to { transform: rotate(360deg); } }
+			.card {
+				background: var(--surface);
+				border: 1px solid var(--line);
+				border-radius: 22px;
+				padding: 5vmin;
+			}
+			ol { text-align: left; margin: 3vmin auto 0; max-width: 42ch; padding-left: 1.4em; }
+			li { font-size: clamp(15px, 2.4vmin, 24px); color: var(--ink-secondary); margin: 1.4vmin 0; line-height: 1.5; }
+			.pw {
+				display: inline-block;
+				font-size: clamp(28px, 6vmin, 64px);
+				font-weight: 700;
+				letter-spacing: 0.12em;
+				color: var(--ink);
+				background: rgba(92, 182, 234, 0.16);
+				border-radius: 14px;
+				padding: 0.3em 0.6em;
+				margin: 2vmin 0;
+				font-variant-numeric: tabular-nums;
+			}
+			.trying { color: var(--accent); min-height: 1.4em; }
+			.hint { color: var(--ink-tertiary); font-size: clamp(13px, 2vmin, 20px); }
+			@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2.5s; } }
+		</style>
+	</head>
+	<body>
+		<div class="wrap">
+			<!-- Connecting -->
+			<div id="view-connecting">
+				<div class="spinner"></div>
+				<h1>A ligar o placard…</h1>
+				<p id="connecting-msg">A procurar a rede guardada.</p>
+			</div>
+
+			<!-- Needs a hotspot -->
+			<div id="view-hotspot" hidden>
+				<div class="card">
+					<h1>Liga o placard à internet</h1>
+					<p>Cria um hotspot no telemóvel com esta palavra-passe:</p>
+					<div class="pw" id="pw">········</div>
+					<ol>
+						<li><strong>iPhone:</strong> Definições → Hotspot pessoal, liga <em>“Maximizar compatibilidade”</em> e deixa este ecrã aberto.</li>
+						<li><strong>Android:</strong> dá ao hotspot o nome <strong id="ssid">domingoasdez</strong> para ligar mais depressa.</li>
+						<li>Aguarda — o placard procura e liga-se sozinho.</li>
+					</ol>
+					<p class="trying" id="trying">&nbsp;</p>
+					<p class="hint">A ligação é guardada: para a próxima liga-se sozinho.</p>
+				</div>
+			</div>
+		</div>
+
+		<script>
+			const PLACARD_URL = 'https://domingoasdez.com/placard';
+			const STATUS_URL = '/status.json';
+			const views = {
+				connecting: document.getElementById('view-connecting'),
+				hotspot: document.getElementById('view-hotspot')
+			};
+			const el = {
+				connectingMsg: document.getElementById('connecting-msg'),
+				pw: document.getElementById('pw'),
+				ssid: document.getElementById('ssid'),
+				trying: document.getElementById('trying')
+			};
+
+			function show(view) {
+				for (const [name, node] of Object.entries(views)) node.hidden = name !== view;
+			}
+
+			async function tick() {
+				try {
+					const r = await fetch(STATUS_URL + '?t=' + Date.now(), { cache: 'no-store' });
+					const s = await r.json();
+
+					if (s.state === 'online') {
+						location.replace(PLACARD_URL);
+						return;
+					}
+					if (s.state === 'need_hotspot') {
+						el.pw.textContent = s.password || '········';
+						if (s.ssid) el.ssid.textContent = s.ssid;
+						el.trying.innerHTML = s.trying ? 'A tentar: “' + s.trying + '”…' : '&nbsp;';
+						show('hotspot');
+					} else {
+						if (s.message) el.connectingMsg.textContent = s.message;
+						show('connecting');
+					}
+				} catch {
+					/* status file not ready yet — keep showing "connecting" */
+				}
+			}
+
+			tick();
+			setInterval(tick, 1000);
+		</script>
+	</body>
+</html>

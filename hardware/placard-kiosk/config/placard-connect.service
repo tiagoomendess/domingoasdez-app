@@ -1,0 +1,15 @@
+[Unit]
+Description=Placard network bring-up (saved networks, then hotspot search)
+After=NetworkManager.service placard-web.service
+Wants=NetworkManager.service
+
+[Service]
+Type=oneshot
+# Exits once online. NetworkManager keeps/repairs the connection afterwards.
+ExecStart=/opt/placard/bin/placard-connect.sh
+RemainAfterExit=yes
+# Never let a scan loop wedge boot forever; the kiosk is already on screen.
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target

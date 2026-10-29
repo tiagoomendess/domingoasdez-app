@@ -1,0 +1,20 @@
+[Unit]
+Description=Placard kiosk browser (cage + Chromium)
+After=placard-web.service systemd-user-sessions.service
+Wants=placard-web.service
+
+[Service]
+User=placard
+PAMName=login
+TTYPath=/dev/tty1
+# cage needs a seat/VT; run it on tty1 as the placard user.
+ExecStart=/opt/placard/bin/placard-kiosk.sh
+Restart=always
+RestartSec=2
+# Give the GPU/seat a moment on cold boot before the first try.
+StandardInput=tty
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

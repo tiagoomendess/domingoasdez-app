@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { m } from '#lib/messages.ts';
 	import type { PlacardOverlay } from '#lib/placard.ts';
+	import OverlayProgress from './OverlayProgress.svelte';
 
 	type Props = {
 		overlay: Extract<PlacardOverlay, { type: 'ad' }>;
@@ -9,10 +10,6 @@
 	};
 
 	let { overlay, now }: Props = $props();
-
-	const left = $derived(
-		Math.min(1, Math.max(0, (overlay.endsAt - now) / (overlay.endsAt - overlay.startedAt)))
-	);
 </script>
 
 <!--
@@ -21,9 +18,7 @@
 -->
 <div class="ad" role="img" aria-label={m.placard_ad_label()}>
 	<img src={overlay.ad.image} alt="" />
-	<div class="track" aria-hidden="true">
-		<div class="bar" style:transform={`scaleX(${left})`}></div>
-	</div>
+	<OverlayProgress startedAt={overlay.startedAt} endsAt={overlay.endsAt} {now} />
 </div>
 
 <style>
@@ -36,25 +31,8 @@
 	}
 
 	img {
-		max-width: 100%;
-		max-height: 100%;
 		width: 100%;
 		height: 100%;
 		object-fit: contain;
-	}
-
-	.track {
-		position: absolute;
-		right: 0;
-		bottom: 0;
-		left: 0;
-		height: max(4px, 0.8cqmin);
-		background: rgb(0 0 0 / 0.35);
-	}
-
-	.bar {
-		height: 100%;
-		background: var(--placard-accent);
-		transform-origin: left;
 	}
 </style>

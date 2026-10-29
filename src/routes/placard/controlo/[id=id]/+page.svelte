@@ -22,6 +22,7 @@
 		applyAction,
 		elapsedMs,
 		formatClock,
+		isServerAction,
 		MINUTE_MS,
 		type PlacardAction,
 		type PlacardPublicState,
@@ -30,6 +31,8 @@
 	} from '#lib/placard.ts';
 	import { PlacardPoll } from '#lib/placard-poll.svelte.ts';
 	import { activeOverlay } from '#lib/components/placard/overlays.ts';
+	import SubstitutionControl from '#lib/components/placard/SubstitutionControl.svelte';
+	import MessageControl from '#lib/components/placard/MessageControl.svelte';
 	import MegaphoneIcon from 'phosphor-svelte/lib/MegaphoneIcon';
 	import type { PageProps } from './$types';
 
@@ -90,11 +93,11 @@
 	 * replaces the guess; a failure shows a toast and reloads the state. The page never leaves on
 	 * an error (the old one sent the operator back to the game list on any failed save).
 	 */
-	async function send(action: PlacardAction) {
+	async function send(action: PlacardAction): Promise<boolean> {
 		const current = poll.state;
-		if (!current?.match) return;
-		// Match actions are guessed locally; server actions (end, ad break) wait for the answer.
-		if (action.type !== 'end' && action.type !== 'show_ad') {
+		if (!current?.match) return false;
+		// Match actions are guessed locally; server actions (end, overlays) wait for the answer.
+		if (!isServerAction(action)) {
 			const next = applyAction(current.match, action, poll.serverNow());
 			poll.state = {
 				...current,
@@ -120,13 +123,15 @@
 						: reason === 'ad_cooldown'
 							? m.placard_ads_error_cooldown()
 							: reason === 'busy'
-								? m.placard_ads_error_busy()
+								? m.placard_overlay_busy()
 								: reason === 'ad_not_found'
 									? m.placard_ads_error_gone()
-									: m.placard_error_action()
+									: reason === 'player_not_found'
+										? m.placard_sub_error_player()
+										: m.placard_error_action()
 				);
 				await poll.refresh();
-				return;
+				return false;
 			}
 			const body = (await response.json()) as {
 				state: PlacardPublicState;
@@ -134,9 +139,11 @@
 			};
 			poll.accept(body.state, sentAt);
 			if (body.scorePush) scorePush = body.scorePush;
+			return true;
 		} catch {
 			showError(m.placard_error_offline());
 			await poll.refresh();
+			return false;
 		}
 	}
 
@@ -154,11 +161,15 @@
 			null
 	);
 	const serverNow = $derived(poll.serverNow(localNow));
+	// Any overlay on the screen (an ad, a substitution) blocks the next one until it ends.
 	const adOnScreen = $derived(activeOverlay(screen?.overlay ?? null, serverNow));
+	const overlaySeconds = $derived(
+		adOnScreen ? Math.ceil((adOnScreen.endsAt - serverNow) / 1000) : 0
+	);
 	const adWaitMs = $derived(Math.max(0, (screen?.controls?.adAvailableAt ?? 0) - serverNow));
 	const adLabel = $derived(
 		adOnScreen
-			? m.placard_ads_showing({ seconds: Math.ceil((adOnScreen.endsAt - serverNow) / 1000) })
+			? m.placard_ads_showing({ seconds: overlaySeconds })
 			: adWaitMs > 0
 				? m.placard_ads_wait({ time: formatClock(adWaitMs + 999) })
 				: m.placard_ads_show({ seconds: selectedAd?.durationSeconds ?? 0 })
@@ -309,6 +320,14 @@
 			</IconButton>
 		</section>
 
+		<SubstitutionControl
+			home={match.home}
+			away={match.away}
+			squads={data.squads}
+			busySeconds={overlaySeconds}
+			onsend={send}
+		/>
+
 		<!-- Ad break: pick an ad (the next in rotation is preselected), then show it. -->
 		<section
 			class="rounded-card bg-surface p-4 ring-1 ring-line dark:ring-0"
@@ -357,6 +376,8 @@
 				<p class="mt-2 text-footnote text-ink-tertiary">{m.placard_ads_hint()}</p>
 			{/if}
 		</section>
+
+		<MessageControl busySeconds={overlaySeconds} onsend={send} />
 
 		{#if poll.failures >= 2}
 			<p class="px-4 text-footnote text-danger" role="status">{m.placard_error_offline()}</p>

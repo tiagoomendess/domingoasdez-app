@@ -51,7 +51,7 @@ These old URLs 404 here. Old emails, bookmarks and search results may still use 
 - **Predictions have no points or leaderboard.** Each game shows a verdict, but nothing adds them up per user yet.
 - **Two-legged ties aren't modelled.** Their legs are judged one game at a time, so a level first leg has "no winner" for predictions.
 - **Placard (stadium screen):**
-  - Only ad breaks exist as overlays: no substitutions or messages yet.
+  - Substitutions show names and photos only: the site has no shirt numbers.
   - No free games: only the day's games from the database (`placards.game_id` is nullable for it).
   - No way to hand a screen to another controller except `score_update` or ending it.
   - Deleting a club removes its placard setup rows but leaves its uploaded files in storage.

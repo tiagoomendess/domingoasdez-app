@@ -49,9 +49,19 @@ export type PlacardMatchAction =
  * the screen off the game (back to pairing), `show_ad` starts an ad break with one of the home
  * club's ads. Future overlays (substitution, message) get their action here.
  */
-export type PlacardServerAction = { type: 'end' } | { type: 'show_ad'; adId: number };
+export type PlacardServerAction =
+	| { type: 'end' }
+	| { type: 'show_ad'; adId: number }
+	| { type: 'show_substitution'; side: PlacardSide; outPlayerId: number; inPlayerId: number }
+	| { type: 'show_message'; text: string };
 
 export type PlacardAction = PlacardMatchAction | PlacardServerAction;
+
+const SERVER_ACTIONS: readonly string[] = ['end', 'show_ad', 'show_substitution', 'show_message'];
+
+/** Server actions aren't guessed by the controller: it waits for the server's answer. */
+export const isServerAction = (action: PlacardAction): action is PlacardServerAction =>
+	SERVER_ACTIONS.includes(action.type);
 
 export const initialClock = (): PlacardClock => ({
 	elapsedMs: 0,
@@ -118,6 +128,9 @@ export function applyAction(
 	}
 }
 
+const isId = (value: unknown): value is number =>
+	typeof value === 'number' && Number.isInteger(value) && value > 0;
+
 /** Validates an action sent by a controller (JSON body). */
 export function parseAction(value: unknown): PlacardAction | null {
 	if (!value || typeof value !== 'object') return null;
@@ -137,10 +150,27 @@ export function parseAction(value: unknown): PlacardAction | null {
 			}
 			return null;
 		case 'show_ad':
-			if (typeof input.adId === 'number' && Number.isInteger(input.adId) && input.adId > 0) {
-				return { type: 'show_ad', adId: input.adId };
+			if (isId(input.adId)) return { type: 'show_ad', adId: input.adId };
+			return null;
+		case 'show_substitution':
+			if (
+				(input.side === 'home' || input.side === 'away') &&
+				isId(input.outPlayerId) &&
+				isId(input.inPlayerId) &&
+				input.outPlayerId !== input.inPlayerId
+			) {
+				return {
+					type: 'show_substitution',
+					side: input.side,
+					outPlayerId: input.outPlayerId,
+					inPlayerId: input.inPlayerId
+				};
 			}
 			return null;
+		case 'show_message': {
+			const text = normalizeMessage(input.text);
+			return text ? { type: 'show_message', text } : null;
+		}
 		case 'clock_toggle':
 		case 'clock_reset':
 		case 'half_time':
@@ -173,12 +203,57 @@ export type PlacardTheme = {
  * has its own fields and its own component in the TV's overlay registry; a substitution or a
  * message is one more member here.
  */
-export type PlacardOverlay = {
-	type: 'ad';
-	startedAt: number;
-	endsAt: number;
-	ad: { id: number; image: string };
-};
+export type PlacardOverlay =
+	| {
+			type: 'ad';
+			startedAt: number;
+			endsAt: number;
+			ad: { id: number; image: string };
+	  }
+	| {
+			type: 'substitution';
+			startedAt: number;
+			endsAt: number;
+			side: PlacardSide;
+			team: PlacardTeam;
+			out: PlacardSubPlayer;
+			in: PlacardSubPlayer;
+	  }
+	| {
+			type: 'message';
+			startedAt: number;
+			endsAt: number;
+			text: string;
+	  };
+
+/** Longest message for the screen: what still reads from the stands in large type. */
+export const MESSAGE_MAX_LENGTH = 120;
+/** How long a message stays on the screen. */
+export const MESSAGE_MS = 15_000;
+
+/** Characters as people count them (an emoji or an accented letter is one). */
+export const messageLength = (text: string) => [...text].length;
+
+/**
+ * A message as the screen shows it: trimmed, line breaks and runs of spaces turned into single
+ * spaces (it's laid out by the screen), without control characters. Null when empty or longer
+ * than `MESSAGE_MAX_LENGTH`.
+ */
+export function normalizeMessage(value: unknown): string | null {
+	if (typeof value !== 'string') return null;
+	const text = value
+		// eslint-disable-next-line no-control-regex
+		.replace(/[\u0000-\u001f\u007f]/g, ' ')
+		.replace(/\s+/g, ' ')
+		.trim();
+	return text && messageLength(text) <= MESSAGE_MAX_LENGTH ? text : null;
+}
+
+/** A player in a substitution: `picture` is null for minors (no photos of minors in public). */
+export type PlacardSubPlayer = { id: number; name: string; picture: string | null };
+
+/** How long a substitution stays on the screen. */
+export const SUBSTITUTION_MS = 10_000;
 
 export type PlacardOverlayType = PlacardOverlay['type'];
 

@@ -3,6 +3,10 @@ import {
 	AD_COOLDOWN_MS,
 	adAvailableAt,
 	isAdDuration,
+	isServerAction,
+	MESSAGE_MAX_LENGTH,
+	messageLength,
+	normalizeMessage,
 	nextAdAfter,
 	parseAction,
 	parseHexColor,
@@ -64,5 +68,50 @@ describe('uploads', () => {
 		expect(parseHexColor('#abc')).toBeNull();
 		expect(parseHexColor('red')).toBeNull();
 		expect(parseHexColor(null)).toBeNull();
+	});
+});
+
+describe('substitutions', () => {
+	it('parses a substitution with two different players', () => {
+		expect(
+			parseAction({ type: 'show_substitution', side: 'away', outPlayerId: 4, inPlayerId: 9 })
+		).toEqual({ type: 'show_substitution', side: 'away', outPlayerId: 4, inPlayerId: 9 });
+		expect(
+			parseAction({ type: 'show_substitution', side: 'away', outPlayerId: 4, inPlayerId: 4 })
+		).toBeNull();
+		expect(
+			parseAction({ type: 'show_substitution', side: 'both', outPlayerId: 4, inPlayerId: 9 })
+		).toBeNull();
+	});
+
+	it('is a server action, not guessed by the controller', () => {
+		expect(
+			isServerAction({ type: 'show_substitution', side: 'home', outPlayerId: 1, inPlayerId: 2 })
+		).toBe(true);
+		expect(isServerAction({ type: 'clock_toggle' })).toBe(false);
+	});
+});
+
+describe('messages', () => {
+	it('cleans the text and keeps it within 120 characters', () => {
+		expect(normalizeMessage('  O vencedor da rifa\n é o  1443 ')).toBe(
+			'O vencedor da rifa é o 1443'
+		);
+		expect(normalizeMessage('a'.repeat(MESSAGE_MAX_LENGTH))).toHaveLength(MESSAGE_MAX_LENGTH);
+		expect(normalizeMessage('a'.repeat(MESSAGE_MAX_LENGTH + 1))).toBeNull();
+		expect(normalizeMessage('   ')).toBeNull();
+		expect(normalizeMessage(42)).toBeNull();
+	});
+
+	it('counts an emoji as one character', () => {
+		expect(messageLength('Golo ⚽')).toBe(6);
+	});
+
+	it('parses the show_message action with the cleaned text', () => {
+		expect(parseAction({ type: 'show_message', text: ' Olá\tbancada ' })).toEqual({
+			type: 'show_message',
+			text: 'Olá bancada'
+		});
+		expect(parseAction({ type: 'show_message', text: '' })).toBeNull();
 	});
 });
