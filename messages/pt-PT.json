@@ -695,6 +695,8 @@
 	"flash_interview_notif_error_email": "Indica um endereço de email válido (10 a 64 caracteres).",
 
 	"error_code": "Erro {status}",
+	"error_403_title": "Sem acesso",
+	"error_403_text": "A tua conta não pode usar esta página.",
 	"error_400_title": "Pedido inválido",
 	"error_400_text": "Não conseguimos processar este pedido. Verifica o endereço e tenta outra vez.",
 	"error_404_title": "Página não encontrada",

@@ -695,6 +695,8 @@
 	"flash_interview_notif_error_email": "Saisissez une adresse email valide (10 à 64 caractères).",
 
 	"error_code": "Erreur {status}",
+	"error_403_title": "Accès refusé",
+	"error_403_text": "Ton compte ne peut pas utiliser cette page.",
 	"error_400_title": "Requête invalide",
 	"error_400_text": "Nous n'avons pas pu traiter cette requête. Vérifiez l'adresse et réessayez.",
 	"error_404_title": "Page introuvable",

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import ArrowCounterClockwiseIcon from 'phosphor-svelte/lib/ArrowCounterClockwiseIcon';
 	import CoffeeIcon from 'phosphor-svelte/lib/CoffeeIcon';
 	import FastForwardIcon from 'phosphor-svelte/lib/FastForwardIcon';
@@ -60,6 +60,11 @@
 		match ? formatClock(elapsedMs(match.clock, poll.serverNow(localNow))) : ''
 	);
 
+	// Banned from score reports since the page opened: reload into the blocked page.
+	$effect(() => {
+		if (poll.errorStatus === 403) invalidateAll();
+	});
+
 	onMount(() => {
 		const stop = poll.start();
 		let frame = requestAnimationFrame(function tick() {
@@ -101,6 +106,11 @@
 				headers: { 'content-type': 'application/json' },
 				body: JSON.stringify(action)
 			});
+			if (response.status === 403) {
+				// Banned since the page opened: reload into the blocked page.
+				await invalidateAll();
+				return false;
+			}
 			if (!response.ok) {
 				const reason =
 					response.status === 409

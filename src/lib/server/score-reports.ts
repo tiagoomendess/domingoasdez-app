@@ -3,7 +3,7 @@
  * Ports Front\ScoreReportsController create + store.
  */
 import type { Cookies } from '@sveltejs/kit';
-import { and, desc, eq, gt, or, sql } from 'drizzle-orm';
+import { and, desc, eq, gt, inArray, or, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/mysql-core';
 import { dev } from '$app/env';
 import type { AuthUser } from '#lib/auth/user.ts';
@@ -213,6 +213,63 @@ async function loadActiveBans(input: {
 		shadowBan: Boolean(row.shadowBan),
 		ipBan: Boolean(row.ipBan)
 	}));
+}
+
+/**
+ * Whether an active score-report ban matches this person: their account, the uuid cookie of this
+ * browser, any uuid the account has reported from (`user_uuids`), or the IP / IP + user agent, with
+ * the same rules as a report (`findMatchingBan`). Shadow bans count too. Used to keep banned
+ * reporters off the stadium screen controller, which sends score reports of its own.
+ */
+export async function hasActiveScoreReportBan(input: {
+	userId: number;
+	uuid: string | null;
+	ipAddress: string | null;
+	userAgent: string | null;
+}): Promise<boolean> {
+	const linked = await db
+		.select({ uuid: userUuids.uuid })
+		.from(userUuids)
+		.where(eq(userUuids.userId, input.userId));
+	const uuids = [
+		...new Set([
+			...(isValidUuidCookie(input.uuid) ? [input.uuid] : []),
+			...linked.map((row) => row.uuid).filter((uuid) => uuid.length > 0)
+		])
+	];
+
+	const conditions = [eq(scoreReportBans.userId, input.userId)];
+	if (uuids.length) conditions.push(inArray(scoreReportBans.uuid, uuids));
+	if (input.ipAddress) conditions.push(eq(scoreReportBans.ipAddress, input.ipAddress));
+	const rows = await db
+		.select({
+			id: scoreReportBans.id,
+			userId: scoreReportBans.userId,
+			uuid: scoreReportBans.uuid,
+			ipAddress: scoreReportBans.ipAddress,
+			userAgent: scoreReportBans.userAgent,
+			shadowBan: scoreReportBans.shadowBan,
+			ipBan: scoreReportBans.ipBan,
+			reason: scoreReportBans.reason,
+			expiresAt: scoreReportBans.expiresAt
+		})
+		.from(scoreReportBans)
+		.where(and(gt(scoreReportBans.expiresAt, new Date()), or(...conditions)));
+	const bans = rows.map((row) => ({
+		...row,
+		shadowBan: Boolean(row.shadowBan),
+		ipBan: Boolean(row.ipBan)
+	}));
+
+	return (uuids.length ? uuids : ['']).some(
+		(uuid) =>
+			findMatchingBan(bans, {
+				uuid,
+				userId: input.userId,
+				ipAddress: input.ipAddress,
+				userAgent: input.userAgent
+			}) !== null
+	);
 }
 
 async function loadAlreadySent(

@@ -25,6 +25,10 @@ The phone side of a stadium screen: the score and clock buttons of the old `reac
 ## How it works
 
 - **Who:** the user who paired the screen, or anyone with `score_update`. Others get a 404. The check runs again on the locked row for every action.
+- **Banned reporters are out.** The controller always needs an account, and a user with an active `score_report_bans` row is blocked from every controller route: `/placard/ligar/**`, `/placard/controlo/**` (403, "Sem acesso") and both controller APIs (403). Otherwise the screen would be a way around the ban, since it writes score reports and can push the score.
+  - The match is `hasActiveScoreReportBan` (`src/lib/server/score-reports.ts`), the same rules as a report (`findMatchingBan`): the account, this browser's `score_report_uuid` cookie, any uuid the account has reported from (`user_uuids`), the IP when it's an IP ban, or IP + user agent. Shadow bans block too, and only unexpired bans count.
+  - It's checked on each action and each poll, so a ban during a game takes effect within 2 s: the page reloads into the 403.
+  - The TV (`/placard`, `/api/placard/estado`) stays open to everyone.
 - **Actions:**
   - Each one is `POST /api/placard/{id}/acoes` with a JSON `PlacardAction`, applied on the stored state in a transaction (`SELECT … FOR UPDATE`).
   - The transaction bumps `version` and logs a `placard_events` row with the user.

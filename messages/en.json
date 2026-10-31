@@ -695,6 +695,8 @@
 	"flash_interview_notif_error_email": "Enter a valid email address (10 to 64 characters).",
 
 	"error_code": "Error {status}",
+	"error_403_title": "No access",
+	"error_403_text": "Your account can’t use this page.",
 	"error_400_title": "Bad request",
 	"error_400_text": "We couldn't process this request. Check the address and try again.",
 	"error_404_title": "Page not found",

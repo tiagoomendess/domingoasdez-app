@@ -1,4 +1,8 @@
+import { error, redirect, type RequestEvent } from '@sveltejs/kit';
+import type { AuthUser } from '#lib/auth/user.ts';
+import { SCORE_REPORT_UUID_COOKIE } from '#lib/score-reports.ts';
 import { getUserPermissionNames, hasPermission } from '#lib/server/auth/permissions.ts';
+import { hasActiveScoreReportBan } from '#lib/server/score-reports.ts';
 import type { PlacardRow } from './device.ts';
 
 /**
@@ -38,3 +42,40 @@ export function createRateLimit(max: number, windowMs: number) {
 
 /** The sign-in page, coming back to `path` afterwards. */
 export const signInUrl = (path: string) => `/conta/entrar?redirectTo=${encodeURIComponent(path)}`;
+
+type ControllerEvent = Pick<RequestEvent, 'locals' | 'cookies' | 'request' | 'getClientAddress'>;
+
+/**
+ * Whether the signed-in user is barred from controlling screens: an active score-report ban on
+ * their account, this browser's uuid, one of their uuids or their IP. The controller pushes scores
+ * to the game (and writes score reports), so a banned reporter could use it to send wrong scores
+ * again. The TV side stays open.
+ */
+export async function placardControlBanned(event: ControllerEvent, user: AuthUser) {
+	let ipAddress: string | null = null;
+	try {
+		ipAddress = event.getClientAddress();
+	} catch {
+		// No address (prerender, tests): the account and uuids still apply.
+	}
+	return hasActiveScoreReportBan({
+		userId: user.id,
+		uuid: event.cookies.get(SCORE_REPORT_UUID_COOKIE) ?? null,
+		ipAddress,
+		userAgent: event.request.headers.get('user-agent')
+	});
+}
+
+/**
+ * The guard of every controller page: signed in (else the sign-in page, back to `path`) and not
+ * banned from score reports (else a 403). Returns the user.
+ */
+export async function requirePlacardController(
+	event: ControllerEvent,
+	path: string
+): Promise<AuthUser> {
+	const user = event.locals.user;
+	if (!user) redirect(303, signInUrl(path));
+	if (await placardControlBanned(event, user)) error(403, 'Placard control blocked');
+	return user;
+}

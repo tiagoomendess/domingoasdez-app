@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import CompassIcon from 'phosphor-svelte/lib/CompassIcon';
+	import ProhibitIcon from 'phosphor-svelte/lib/ProhibitIcon';
 	import WarningCircleIcon from 'phosphor-svelte/lib/WarningCircleIcon';
 	import CloudWarningIcon from 'phosphor-svelte/lib/CloudWarningIcon';
 	import Button from '#lib/components/ui/Button.svelte';
@@ -13,9 +14,11 @@
 	const copy = $derived(
 		status === 404
 			? { icon: CompassIcon, title: m.error_404_title(), text: m.error_404_text() }
-			: serverError
-				? { icon: CloudWarningIcon, title: m.error_500_title(), text: m.error_500_text() }
-				: { icon: WarningCircleIcon, title: m.error_400_title(), text: m.error_400_text() }
+			: status === 403
+				? { icon: ProhibitIcon, title: m.error_403_title(), text: m.error_403_text() }
+				: serverError
+					? { icon: CloudWarningIcon, title: m.error_500_title(), text: m.error_500_text() }
+					: { icon: WarningCircleIcon, title: m.error_400_title(), text: m.error_400_text() }
 	);
 	const ErrorIcon = $derived(copy.icon);
 	const retryHref = $derived(page.url.pathname + page.url.search);

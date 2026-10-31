@@ -16,7 +16,7 @@ Puts a stadium screen (see [placard.md](placard.md)) on one of today's games, co
 
 ## How it works
 
-- **Signed-in only.** Guests are sent to `/conta/entrar?redirectTo=<this path>` and come back to the same code. Any signed-in user can pair a screen.
+- **Signed-in only.** Guests are sent to `/conta/entrar?redirectTo=<this path>` and come back to the same code. Any signed-in user can pair a screen, unless banned from score reports (see the controller's doc): they get a 403.
 - The typed code is normalised: spaces and dashes are dropped and it's upper-cased. A lower-case code in the URL redirects to the canonical form.
 - **The games:** the visible games of today's **Lisbon** day, then the `test_game_id` variable's game, kept last as on the old screen. Legacy used the UTC day.
 - **Pairing** is a locked update on the row with that code, still in `pairing`, and not expired. If two phones race for the same code, only one wins; the other sees "Código inválido ou expirado".
