@@ -4,12 +4,18 @@ import {
 	gameKind,
 	judgePrediction,
 	percentOf,
+	predictionPoints,
 	predictedOutcome,
 	predictionWindow,
 	predictionsOpenAt,
+	rankLeaderboard,
 	summarizePredictions,
 	validatePrediction,
-	type PredictionCountRow
+	type GameKind,
+	type GameResult,
+	type Prediction,
+	type PredictionCountRow,
+	type Side
 } from './predictions.ts';
 
 describe('gameKind', () => {
@@ -187,5 +193,81 @@ describe('predictionWindow', () => {
 		expect(predictionWindow({ ...game, postponed: true }, at('2026-10-20T00:00:00.000Z'))).toBe(
 			'closed'
 		);
+	});
+});
+
+describe('predictionPoints', () => {
+	const points = (prediction: Prediction, result: GameResult, kind: GameKind = 'points') =>
+		predictionPoints(judgePrediction(prediction, result, kind));
+	const pick = (home: number, away: number, penaltyWinner: Side | null = null) => ({
+		home,
+		away,
+		penaltyWinner
+	});
+	const final = (home: number, away: number, penalties: GameResult['penalties'] = null) => ({
+		home,
+		away,
+		penalties
+	});
+
+	it('gives 3 for the exact score, 1 for the outcome, 0 for a miss', () => {
+		expect(points(pick(2, 1), final(2, 1))).toBe(3);
+		expect(points(pick(1, 1), final(1, 1))).toBe(3);
+		expect(points(pick(3, 0), final(2, 1))).toBe(1);
+		expect(points(pick(0, 0), final(2, 2))).toBe(1);
+		expect(points(pick(1, 2), final(2, 1))).toBe(0);
+	});
+
+	it('needs the right side through on penalties for an exact level knockout score', () => {
+		const shootout = final(1, 1, { home: 3, away: 4 });
+		expect(points(pick(1, 1, 'away'), shootout, 'knockout')).toBe(3);
+		expect(points(pick(1, 1, 'home'), shootout, 'knockout')).toBe(0);
+		expect(points(pick(0, 0, 'away'), shootout, 'knockout')).toBe(1);
+	});
+
+	it('keeps the exact score when a knockout game has no winner on file', () => {
+		expect(points(pick(1, 1, 'home'), final(1, 1), 'knockout')).toBe(3);
+		expect(points(pick(2, 2, 'home'), final(1, 1), 'knockout')).toBe(0);
+	});
+});
+
+describe('rankLeaderboard', () => {
+	const tally = (userId: number, points: number, exact: number, total: number) => ({
+		userId,
+		points,
+		exact,
+		correct: points - exact * 3,
+		total
+	});
+
+	it('orders by points, then exact scores, then fewest predictions', () => {
+		const ranked = rankLeaderboard([
+			tally(1, 6, 1, 5),
+			tally(2, 9, 0, 9),
+			tally(3, 6, 2, 8),
+			tally(4, 6, 1, 3)
+		]);
+		expect(ranked.map((r) => [r.userId, r.position])).toEqual([
+			[2, 1],
+			[3, 2],
+			[4, 3],
+			[1, 4]
+		]);
+	});
+
+	it('shares a position on a full tie and skips the next ones', () => {
+		const ranked = rankLeaderboard(
+			[tally(5, 3, 1, 2), tally(6, 3, 1, 2), tally(7, 1, 0, 2)],
+			(a, b) => b.userId - a.userId
+		);
+		expect(ranked.map((r) => [r.userId, r.position])).toEqual([
+			[6, 1],
+			[5, 1],
+			[7, 3]
+		]);
+	});
+
+	it('handles an empty board', () => {
+		expect(rankLeaderboard([])).toEqual([]);
 	});
 });

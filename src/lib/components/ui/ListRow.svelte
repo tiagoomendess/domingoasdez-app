@@ -10,6 +10,8 @@
 		onclick?: (event: MouseEvent) => void;
 		chevron?: boolean;
 		destructive?: boolean;
+		/** Tints the row, e.g. the viewer's own row in a ranking. */
+		highlighted?: boolean;
 		leading?: Snippet;
 		trailing?: Snippet;
 	};
@@ -22,6 +24,7 @@
 		onclick,
 		chevron,
 		destructive = false,
+		highlighted = false,
 		leading,
 		trailing
 	}: Props = $props();
@@ -55,7 +58,7 @@
 	</span>
 {/snippet}
 
-<li class="row">
+<li class={['row', highlighted && 'bg-accent-tint']}>
 	{#if href}
 		<a {href} class={['flex w-full items-center gap-3 pl-4', interactiveClasses]}>
 			{@render content()}

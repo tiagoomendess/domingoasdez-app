@@ -874,5 +874,57 @@
 	"placard_message_placeholder": "E.g. The raffle winner is number 1443",
 	"placard_message_count": "{count}/{max} characters",
 	"placard_message_show": "Show message",
-	"placard_message_label": "Announcement"
+	"placard_message_label": "Announcement",
+
+	"leaderboard_title": "Predictions",
+	"leaderboard_meta_description": "Who gets the results right: the game predictions leaderboard.",
+	"leaderboard_rules": "3 points for the exact score, 1 point for the right winner or draw.",
+	"leaderboard_period_label": "Period",
+	"leaderboard_period_week": "7 days",
+	"leaderboard_period_month": "30 days",
+	"leaderboard_period_all": "All time",
+	"leaderboard_exact": [
+		{
+			"declarations": ["input count", "local countPlural = count: plural"],
+			"selectors": ["countPlural"],
+			"match": {
+				"countPlural=one": "{count} exact",
+				"countPlural=other": "{count} exact"
+			}
+		}
+	],
+	"leaderboard_correct": [
+		{
+			"declarations": ["input count", "local countPlural = count: plural"],
+			"selectors": ["countPlural"],
+			"match": {
+				"countPlural=one": "{count} right",
+				"countPlural=other": "{count} right"
+			}
+		}
+	],
+	"leaderboard_total": [
+		{
+			"declarations": ["input count", "local countPlural = count: plural"],
+			"selectors": ["countPlural"],
+			"match": {
+				"countPlural=one": "{count} game",
+				"countPlural=other": "{count} games"
+			}
+		}
+	],
+	"leaderboard_points": [
+		{
+			"declarations": ["input count", "local countPlural = count: plural"],
+			"selectors": ["countPlural"],
+			"match": {
+				"countPlural=one": "{count} pt",
+				"countPlural=other": "{count} pts"
+			}
+		}
+	],
+	"leaderboard_position": "Position {position}",
+	"leaderboard_you": "Your position",
+	"leaderboard_empty_title": "No points yet",
+	"leaderboard_empty_text": "Once games with predictions finish, the leaderboard shows up here."
 }

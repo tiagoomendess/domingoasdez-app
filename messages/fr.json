@@ -874,5 +874,57 @@
 	"placard_message_placeholder": "Ex. : Le gagnant de la tombola est le numéro 1443",
 	"placard_message_count": "{count}/{max} caractères",
 	"placard_message_show": "Afficher le message",
-	"placard_message_label": "Annonce"
+	"placard_message_label": "Annonce",
+
+	"leaderboard_title": "Pronostics",
+	"leaderboard_meta_description": "Qui trouve le bon score : le classement des pronostics des matchs.",
+	"leaderboard_rules": "3 points pour le score exact, 1 point pour le bon vainqueur ou le match nul.",
+	"leaderboard_period_label": "Période",
+	"leaderboard_period_week": "7 jours",
+	"leaderboard_period_month": "30 jours",
+	"leaderboard_period_all": "Toujours",
+	"leaderboard_exact": [
+		{
+			"declarations": ["input count", "local countPlural = count: plural"],
+			"selectors": ["countPlural"],
+			"match": {
+				"countPlural=one": "{count} exact",
+				"countPlural=other": "{count} exacts"
+			}
+		}
+	],
+	"leaderboard_correct": [
+		{
+			"declarations": ["input count", "local countPlural = count: plural"],
+			"selectors": ["countPlural"],
+			"match": {
+				"countPlural=one": "{count} bon",
+				"countPlural=other": "{count} bons"
+			}
+		}
+	],
+	"leaderboard_total": [
+		{
+			"declarations": ["input count", "local countPlural = count: plural"],
+			"selectors": ["countPlural"],
+			"match": {
+				"countPlural=one": "{count} match",
+				"countPlural=other": "{count} matchs"
+			}
+		}
+	],
+	"leaderboard_points": [
+		{
+			"declarations": ["input count", "local countPlural = count: plural"],
+			"selectors": ["countPlural"],
+			"match": {
+				"countPlural=one": "{count} pt",
+				"countPlural=other": "{count} pts"
+			}
+		}
+	],
+	"leaderboard_position": "{position}e place",
+	"leaderboard_you": "Ta position",
+	"leaderboard_empty_title": "Pas encore de points",
+	"leaderboard_empty_text": "Quand les matchs pronostiqués seront terminés, le classement apparaîtra ici."
 }

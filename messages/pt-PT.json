@@ -874,5 +874,57 @@
 	"placard_message_placeholder": "Ex.: O vencedor da rifa é o número 1443",
 	"placard_message_count": "{count}/{max} caracteres",
 	"placard_message_show": "Mostrar mensagem",
-	"placard_message_label": "Informação"
+	"placard_message_label": "Informação",
+
+	"leaderboard_title": "Previsões",
+	"leaderboard_meta_description": "Quem mais acerta nos resultados: classificação das previsões dos jogos.",
+	"leaderboard_rules": "3 pontos pelo resultado exato, 1 ponto por acertar no vencedor ou no empate.",
+	"leaderboard_period_label": "Período",
+	"leaderboard_period_week": "7 dias",
+	"leaderboard_period_month": "30 dias",
+	"leaderboard_period_all": "Sempre",
+	"leaderboard_exact": [
+		{
+			"declarations": ["input count", "local countPlural = count: plural"],
+			"selectors": ["countPlural"],
+			"match": {
+				"countPlural=one": "{count} exato",
+				"countPlural=other": "{count} exatos"
+			}
+		}
+	],
+	"leaderboard_correct": [
+		{
+			"declarations": ["input count", "local countPlural = count: plural"],
+			"selectors": ["countPlural"],
+			"match": {
+				"countPlural=one": "{count} certo",
+				"countPlural=other": "{count} certos"
+			}
+		}
+	],
+	"leaderboard_total": [
+		{
+			"declarations": ["input count", "local countPlural = count: plural"],
+			"selectors": ["countPlural"],
+			"match": {
+				"countPlural=one": "{count} jogo",
+				"countPlural=other": "{count} jogos"
+			}
+		}
+	],
+	"leaderboard_points": [
+		{
+			"declarations": ["input count", "local countPlural = count: plural"],
+			"selectors": ["countPlural"],
+			"match": {
+				"countPlural=one": "{count} pt",
+				"countPlural=other": "{count} pts"
+			}
+		}
+	],
+	"leaderboard_position": "{position}.º lugar",
+	"leaderboard_you": "A tua posição",
+	"leaderboard_empty_title": "Ainda sem pontos",
+	"leaderboard_empty_text": "Quando os jogos com previsões terminarem, a classificação aparece aqui."
 }

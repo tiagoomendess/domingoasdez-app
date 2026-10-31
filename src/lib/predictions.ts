@@ -167,3 +167,47 @@ export function summarizePredictions(
 export function percentOf(count: number, total: number): number {
 	return total > 0 ? Math.round((count / total) * 100) : 0;
 }
+
+/**
+ * Leaderboard points for a judged prediction: 3 for the exact score, 1 for the right winner or
+ * draw. An exact level score in a knockout game with the wrong side through on penalties gets
+ * nothing; with no winner on file (`void`) the exact score still counts.
+ */
+export function predictionPoints(verdict: PredictionVerdict): 0 | 1 | 3 {
+	if (verdict.exact && verdict.winner !== 'wrong') return 3;
+	return verdict.winner === 'right' ? 1 : 0;
+}
+
+export type LeaderboardTally = {
+	userId: number;
+	points: number;
+	/** Exact scores (3-point predictions). */
+	exact: number;
+	/** Right winner or draw without the exact score (1-point predictions). */
+	correct: number;
+	/** Every judged prediction, hits or not. */
+	total: number;
+};
+
+export type RankedTally = LeaderboardTally & { position: number };
+
+function compareTallies(a: LeaderboardTally, b: LeaderboardTally): number {
+	// Fewer predictions for the same points and exact scores means a better hit rate.
+	return b.points - a.points || b.exact - a.exact || a.total - b.total;
+}
+
+/**
+ * Orders by points, then exact scores, then fewest predictions. Tallies still level share a
+ * position ("1, 2, 2, 4"); `tieOrder` only decides who's listed first among them.
+ */
+export function rankLeaderboard<T extends LeaderboardTally>(
+	tallies: T[],
+	tieOrder: (a: T, b: T) => number = (a, b) => a.userId - b.userId
+): (T & { position: number })[] {
+	const sorted = tallies.toSorted((a, b) => compareTallies(a, b) || tieOrder(a, b));
+	let position = 0;
+	return sorted.map((tally, index) => {
+		if (index === 0 || compareTallies(sorted[index - 1], tally) !== 0) position = index + 1;
+		return { ...tally, position };
+	});
+}

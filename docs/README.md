@@ -69,11 +69,12 @@ Grouped by the bottom tab that owns them (`tabFromPath` in `src/lib/navigation.s
 
 ### Other
 
-| Page                                           | Route                       |
-| ---------------------------------------------- | --------------------------- |
-| [Error page](pages/outras/erro.md)             | any failing URL             |
-| [Design (style guide)](pages/outras/design.md) | `/design`                   |
-| [Demo pages](pages/outras/demo.md)             | `/demo`, `/demo/playwright` |
+| Page                                                 | Route                       |
+| ---------------------------------------------------- | --------------------------- |
+| [Error page](pages/outras/erro.md)                   | any failing URL             |
+| [Previsões (leaderboard)](pages/outras/previsoes.md) | `/previsoes` (hidden)       |
+| [Design (style guide)](pages/outras/design.md)       | `/design`                   |
+| [Demo pages](pages/outras/demo.md)                   | `/demo`, `/demo/playwright` |
 
 Redirects, JSON endpoints and legacy hand-offs are in [routes-without-pages.md](routes-without-pages.md).
 
