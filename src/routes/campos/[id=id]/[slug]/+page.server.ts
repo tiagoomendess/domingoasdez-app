@@ -1,6 +1,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import { m } from '#lib/messages.ts';
 import { findPlaygroundById, loadPlaygroundPage } from '#lib/server/playground-page.ts';
+import { poisonFor } from '#lib/server/poison.ts';
 import { slugify } from '#lib/slug.ts';
 import type { PageServerLoad } from './$types';
 
@@ -14,7 +15,7 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 	}
 
 	const page = await loadPlaygroundPage(playground, locals.user);
-	return {
+	return poisonFor(locals, {
 		...page,
 		seo: {
 			title: page.seo.title,
@@ -22,5 +23,5 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 			ogTitle: `${playground.name} - ${m.feed_brand()}`,
 			ogImage: page.seo.ogImage
 		}
-	};
+	});
 };

@@ -18,6 +18,8 @@ export type RequestSummary = {
 	/** The visitor's IP (`CF-Connecting-IP` behind Cloudflare, see `ADDRESS_HEADER`). */
 	ip?: string;
 	userAgent?: string;
+	/** The client got poisoned data (a scraper IP in `poisoned_ips`). */
+	poisoned?: true;
 };
 
 /** The path to log: the route id when the path carries an email or a token. */
@@ -78,7 +80,8 @@ export function logRequests(log: Logger): Handle {
 					durationMs: Math.round(performance.now() - started),
 					userId: event.locals.user?.id,
 					ip: clientAddress(event),
-					userAgent: event.request.headers.get('user-agent') ?? undefined
+					userAgent: event.request.headers.get('user-agent') ?? undefined,
+					poisoned: event.locals.poisoned || undefined
 				});
 				log[level](message, fields);
 			}

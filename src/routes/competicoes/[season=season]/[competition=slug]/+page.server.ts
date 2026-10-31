@@ -3,6 +3,7 @@ import { isLegacyFullYearSlug, parseSeasonSlug, seasonNameSlug } from '#lib/comp
 import { findSeasonBySlugs, loadCompetitionPage } from '#lib/server/competition-page.ts';
 import { swrCache } from '#lib/server/cache.ts';
 import { loadCompetitionStats } from '#lib/server/competition-stats.ts';
+import { poisonFor } from '#lib/server/poison.ts';
 import { slugify } from '#lib/slug.ts';
 import type { PageServerLoad } from './$types';
 
@@ -18,7 +19,7 @@ const seasonCache = swrCache<
 	]
 >('competition page', { freshMs: 15_000, staleMs: 15_000, maxEntries: 50 });
 
-export const load: PageServerLoad = async ({ params, url }) => {
+export const load: PageServerLoad = async ({ params, url, locals }) => {
 	const { season: seasonSlug, competition: competitionSlug } = params;
 
 	// Legacy full-year slug (2025-2026) → 301 to canonical short form.
@@ -56,7 +57,8 @@ export const load: PageServerLoad = async ({ params, url }) => {
 	const vista =
 		vistaParam === 'classificacao' || vistaParam === 'estatisticas' ? vistaParam : 'jogos';
 
-	return {
+	// Copies the cached data for scraper IPs, never changes it.
+	return poisonFor(locals, {
 		...page,
 		vista,
 		stats: {
@@ -64,5 +66,5 @@ export const load: PageServerLoad = async ({ params, url }) => {
 			attack: stats.attack,
 			defense: stats.defense
 		}
-	};
+	});
 };

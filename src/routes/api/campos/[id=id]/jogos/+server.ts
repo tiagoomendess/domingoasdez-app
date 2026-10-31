@@ -1,6 +1,7 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { loadPlaygroundGamesPage } from '#lib/server/playground-page.ts';
+import { poisonFor } from '#lib/server/poison.ts';
 
 /**
  * Next page of the games played at a ground ("Ver mais" on the stadium page).
@@ -15,5 +16,5 @@ export const GET: RequestHandler = async ({ params, url, locals }) => {
 	const page = await loadPlaygroundGamesPage(Number(params.id), offset);
 	if (!page) error(404, 'Ground not found');
 
-	return Response.json(page);
+	return Response.json(poisonFor(locals, page));
 };

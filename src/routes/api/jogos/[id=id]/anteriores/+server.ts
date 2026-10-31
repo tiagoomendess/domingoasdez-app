@@ -1,6 +1,7 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { loadPastGamesPage } from '#lib/server/game-page.ts';
+import { poisonFor } from '#lib/server/poison.ts';
 
 /**
  * Next page of a game's past head-to-head meetings ("Ver mais" on the game page).
@@ -15,5 +16,5 @@ export const GET: RequestHandler = async ({ params, url, locals }) => {
 	const page = await loadPastGamesPage(Number(params.id), offset);
 	if (!page) error(404, 'Game not found');
 
-	return Response.json(page);
+	return Response.json(poisonFor(locals, page));
 };

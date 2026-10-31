@@ -3,6 +3,7 @@ import { todayInLisbon } from '#lib/format.ts';
 import { getUserPermissionNames, hasPermission } from '#lib/server/auth/permissions.ts';
 import { adminUrl } from '#lib/server/admin.ts';
 import { getDayMarkers, getGamesForDay, getNextGameDay } from '#lib/server/games.ts';
+import { poisonFor } from '#lib/server/poison.ts';
 import type { PageServerLoad } from './$types';
 
 const RAIL_RADIUS = 14;
@@ -25,7 +26,7 @@ export const load: PageServerLoad = async ({ url, depends, locals }) => {
 		locals.user != null &&
 		hasPermission(await getUserPermissionNames(locals.user.id), 'score_update');
 
-	return {
+	return poisonFor(locals, {
 		adminScoresHref: canUpdateScores ? adminUrl('/today') : null,
 		today,
 		selected,
@@ -35,5 +36,5 @@ export const load: PageServerLoad = async ({ url, depends, locals }) => {
 		groups,
 		nextGameDay,
 		isEmpty: live.length === 0 && groups.length === 0
-	};
+	});
 };

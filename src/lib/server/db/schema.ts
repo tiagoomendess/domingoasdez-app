@@ -493,6 +493,12 @@ export const scoreReports = mysqlTable('score_reports', {
 	updatedAt: timestamp('updated_at')
 });
 
+/** Scraper IPs that get wrong data (src/lib/server/poison.ts). One address or a CIDR range. */
+export const poisonedIps = mysqlTable('poisoned_ips', {
+	id: int('id', { unsigned: true }).primaryKey().autoincrement(),
+	ip: varchar('ip', { length: 64 }).notNull()
+});
+
 export const scoreReportBans = mysqlTable('score_report_bans', {
 	id: bigint('id', { mode: 'number', unsigned: true }).primaryKey().autoincrement(),
 	userId: int('user_id', { unsigned: true }),

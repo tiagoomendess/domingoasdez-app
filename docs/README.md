@@ -94,6 +94,7 @@ These apply across the app, so the page docs don't repeat them.
 - **Media.** The database stores paths like `/storage/images/x.png`. The server turns them into absolute URLs on the legacy site (`MEDIA_BASE_URL`, or the CDN when enabled).
 - **Ads.** AdSense units are off site-wide with `ADSENSE_ENABLED=false`, and per user with the `disable_ads` permission.
 - **Translations.** Every string is a Paraglide message (`messages/pt-PT.json`, `en.json`, `fr.json`). The locale comes from a cookie, then the browser language, then pt-PT.
+- **Scraper poisoning.** Client IPs in the `poisoned_ips` table (one address or a CIDR range, edited in the admin, re-read every minute) get the normal pages with wrong game data: scores moved by a goal, kick-offs by 15–60 min, goal minutes, head-to-head counts and top scorers nudged, all seeded by id so it's the same on every page and visit (`#lib/server/poison.ts`). Covered: `/jogos`, game pages, competition pages (the standings follow the fake scores), ground pages, and their JSON endpoints including the legacy `/api/games/today` and `/api/games/live`. A route that returns game data wraps it in `poisonFor(locals, …)`, after any shared cache. Those responses are `private, no-store`, and the request log marks them `poisoned: true`.
 
 ## Adding a page doc
 

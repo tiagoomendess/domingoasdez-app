@@ -16,6 +16,7 @@ import {
 	parseClubsSlug
 } from '#lib/server/game-page.ts';
 import { slugify } from '#lib/slug.ts';
+import { poisonFor } from '#lib/server/poison.ts';
 import type { Actions, PageServerLoad, RequestEvent } from './$types';
 
 type GameParams = Parameters<PageServerLoad>[0]['params'];
@@ -89,11 +90,12 @@ export const load: PageServerLoad = async ({ params, url, locals, depends }) => 
 	if (!resolved) error(404, m.game_not_found());
 	if (!resolved.canonical) redirect(301, resolved.canonicalPath);
 
-	const [page, comments, predictions] = await Promise.all([
+	const [realPage, comments, predictions] = await Promise.all([
 		loadGamePage(resolved.game, locals.user, url.href),
 		listMatchComments(resolved.game.id, locals.user?.id ?? null),
 		loadGamePredictions(resolved.game, locals.user?.id ?? null)
 	]);
+	const page = poisonFor(locals, realPage);
 
 	// Judged on the score the page shows; `penalties` is only set when they decided the game.
 	const result =
