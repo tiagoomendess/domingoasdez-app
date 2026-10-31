@@ -390,19 +390,23 @@
 								: m.games_day_title()}
 							headingLevel={3}
 						/>
-						<div class="lg:columns-2 lg:gap-3">
-							{#each groups as group (group.id)}
-								<div class="mb-3 break-inside-avoid last:mb-0 lg:mb-3">
-									<MatchGroup
-										name={group.name}
-										subtitle={group.subtitle}
-										emblem={group.emblem}
-										href={group.href}
-										matches={group.matches}
-									/>
-								</div>
-							{/each}
-						</div>
+						<!-- Keyed by day: each day starts from its own collapsed state, polls keep the user's toggles -->
+						{#key data.selected}
+							<div class="lg:columns-2 lg:gap-3">
+								{#each groups as group (group.id)}
+									<div class="mb-3 break-inside-avoid last:mb-0 lg:mb-3">
+										<MatchGroup
+											name={group.name}
+											subtitle={group.subtitle}
+											emblem={group.emblem}
+											href={group.href}
+											matches={group.matches}
+											collapsed={groups.length > 1}
+										/>
+									</div>
+								{/each}
+							</div>
+						{/key}
 					</section>
 				{/if}
 

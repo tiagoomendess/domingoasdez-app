@@ -355,7 +355,7 @@ The chips on Home are generated from `feedTypes`, so a new content type gets a c
   - A small dot under a date means it has games; a red dot means games are live now (if this is cheap to query).
   - A calendar pill pinned at the right end opens a **Sheet** with a month picker, to jump far (the legacy date picker).
   - Selecting a date updates `?date=YYYY-MM-DD` (the legacy parameter) with a client-side navigation and shows skeleton rows while it loads.
-- **MatchGroup**: a `surface` card per competition. The header has an Emblem (32), the competition or group name (`headline`) and the season (`footnote`), plus a chevron linking to the competition. Below it are the MatchRows, separated by inset hairlines.
+- **MatchGroup**: a `surface` card per competition. The header has an Emblem (32), the competition or group name (`headline`) and the season (`footnote`) and a caret: the whole header is one button that expands or collapses the group (`aria-expanded`, the caret turns). A separate 48 px trailing chevron, behind a hairline, links to the competition. Below it are the MatchRows, separated by inset hairlines. `collapsed` sets the starting state; `/jogos` starts every day group collapsed when the day has more than one.
 - **MatchRow** uses a stacked layout so long club names don't need the legacy 3-letter abbreviations:
 
 ```

@@ -11,6 +11,7 @@ Merges the legacy "jogos do dia" (`/hoje`) and "em direto" (`/direto`) pages int
 - **DateRail**: a horizontal row of days, ±14 days around the selected one, with "Hoje" for today. A dot marks days with games; a red dot marks today when something is live. A calendar pill opens a month picker in a Sheet.
 - **A decorrer** (today only, when games are live): live and warm-up games, grouped by competition.
 - **Jogos do dia** (or "Outros jogos de hoje" when there's a live section): the rest of the day's games, grouped by competition, in a 2-column masonry from 1024 px.
+  - With more than one group, every group starts **collapsed**, so the whole day's competitions fit on screen and you open only the one you want (tap the header; the chevron on the far right opens the competition). A day with a single group starts expanded. Live groups are never collapsed.
 - **Empty day**: an empty state with a "Próximo jogo: {date}" button when there's a later game day, or "Voltar a hoje".
 - **Swipe between days**: swipe left anywhere on the page for the next day, right for the previous one, including the empty space just above the tab bar.
 - An "Atualizar resultados" button to the admin app for users with `score_update` (today only).
@@ -45,4 +46,5 @@ Merges the legacy "jogos do dia" (`/hoje`) and "em direto" (`/direto`) pages int
 - Goals are only detected between two polls. The first load, a day change and coming back to a hidden tab never flash, but a goal scored while the tab was hidden does flash on the first poll after it's visible again. Games must be `live` in both snapshots, so warm-up → live never counts.
 - Browsers only allow sound after a gesture. The page unlocks audio on any pointerdown or keydown, and turning the switch on in `/conta` also does. Chrome and Android also allow it after any earlier tap in the app (sticky activation). Until then a goal still flashes, but silently. iOS also mutes it with the silent switch.
 - To test, use the game in the `variables.test_game_id` row: move its date to about 20 minutes ago (UTC), set `finished=0`, and change `goals_home`/`goals_away` while `/jogos` is open.
+- The collapsed state is set when a group mounts. The day list is keyed by the selected day, so each day starts fresh, while the 5 s poll keeps whatever you opened or closed. If a poll moves games into the live section and leaves one group, it stays as it was.
 - Legacy `/hoje?date=…` and `/direto` redirect here (301).

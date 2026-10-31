@@ -15,12 +15,27 @@ export type RequestSummary = {
 	status: number;
 	durationMs: number;
 	userId?: number;
+	/** The visitor's IP (`CF-Connecting-IP` behind Cloudflare, see `ADDRESS_HEADER`). */
+	ip?: string;
+	userAgent?: string;
 };
 
 /** The path to log: the route id when the path carries an email or a token. */
 export function loggedPath(event: Pick<RequestEvent, 'url' | 'route' | 'params'>): string {
 	const secret = SECRET_PARAMS.some((name) => name in event.params);
 	return secret && event.route.id ? event.route.id : event.url.pathname;
+}
+
+/**
+ * The client's IP, or nothing when it can't be read: adapter-node throws when `ADDRESS_HEADER` is
+ * set and the header is missing (requests that skip Cloudflare, such as the local uptime checks).
+ */
+export function clientAddress(event: Pick<RequestEvent, 'getClientAddress'>): string | undefined {
+	try {
+		return event.getClientAddress();
+	} catch {
+		return undefined;
+	}
 }
 
 /** Level and line of a finished request: errors for 5xx, the uptime checks only at debug level. */
@@ -61,7 +76,9 @@ export function logRequests(log: Logger): Handle {
 					route: event.route.id,
 					status,
 					durationMs: Math.round(performance.now() - started),
-					userId: event.locals.user?.id
+					userId: event.locals.user?.id,
+					ip: clientAddress(event),
+					userAgent: event.request.headers.get('user-agent') ?? undefined
 				});
 				log[level](message, fields);
 			}

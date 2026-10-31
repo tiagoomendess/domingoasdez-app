@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { loggedPath, requestEntry, type RequestSummary } from './request-log';
+import { clientAddress, loggedPath, requestEntry, type RequestSummary } from './request-log';
 
 const request: RequestSummary = {
 	requestId: 'r1',
@@ -52,5 +52,18 @@ describe('loggedPath', () => {
 				params: { email: 'a@b.pt', token: 'abc123' }
 			})
 		).toBe('/conta/registar/verificar/[email]/[token]');
+	});
+});
+
+describe('clientAddress', () => {
+	it('returns the address', () => {
+		expect(clientAddress({ getClientAddress: () => '203.0.113.7' })).toBe('203.0.113.7');
+	});
+
+	it('returns nothing when the address header is missing', () => {
+		const getClientAddress = () => {
+			throw new Error('Address header was specified with ADDRESS_HEADER=CF-Connecting-IP');
+		};
+		expect(clientAddress({ getClientAddress })).toBeUndefined();
 	});
 });
